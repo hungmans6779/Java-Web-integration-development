@@ -1,0 +1,55 @@
+﻿
+
+use struts1_2;
+
+
+show variables;
+
+
+show tables;
+
+
+  create table tb_person (
+	    id integer auto_increment,     -- 主鍵，自增長類型
+	    account varchar(255),          -- 帳號列，varchar 類型
+	    name varchar(255),             -- 姓名列，varchar 類型
+	    birthday date,                 -- 生日列，date 類型
+	    create_date timestamp,         -- 建立日期列，時間戳記列
+	    secret bit,                    -- 是否保密，boolean 類型，資料庫用bit 類型
+	    primary key (id)               -- 主鍵為id
+	);
+
+
+
+   create table tb_hobby(
+     person_id integer,
+     hobby varchar(255),
+     primary key (person_id,hobby)
+   );
+
+
+select * from tb_person;
+
+select * from tb_hobby;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

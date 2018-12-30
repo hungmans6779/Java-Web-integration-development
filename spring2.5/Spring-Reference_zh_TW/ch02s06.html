@@ -1,0 +1,73 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>2.6.&#160;其他</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch02.html" title="第&#160;2&#160;章&#160;Spring 2.0和 2.5的新特性">
+<link rel="prev" href="ch02s05.html" title="2.5.&#160;Web層">
+<link rel="next" href="ch02s07.html" title="2.7.&#160;移植到Spring 2.5">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="new-in-2-other"></a>2.6.&#160;其他</h2></div></div></div>
+<p>最後這一部分列出所有其他的Spring 2.0/2.5的新功能或改進過的功能。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="new-in-2-other-dynamic-language-support"></a>2.6.1.&#160;動態語言支持</h3></div></div></div>
+<p>Spring 2.0現在支持用非Java語言編寫的bean，當前支持的動態語言包括JRuby，Groovy和BeanShell。標題為 <a href="ch24.html" title="第&#160;24&#160;章&#160;動態語言支持">第&#160;24&#160;章 <i>動態語言支持</i></a> 部分描述了動態語言支持的細節。</p>
+<p>Spring 2.5 提高了動態語言支持，加入了autowiring和對剛發佈的JRuby 1.0的支持。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="new-in-2-other-testing"></a>2.6.2.&#160;增強的測試支持</h3></div></div></div>
+<p>Spring 2.5 引入了<span class="emphasis"><em>Spring TestContext
+      Framework</em></span>, 它提供了註釋(annotation)驅動的單元和整合測試支持，它是現存的測試框架的混合。不同的測試框架可以使用同樣的技術和基於註釋的配置，例如，JUnit 3.8環境也可以用於使用JUnit 4.4或TestNG編寫的測試。
+	  </p>
+<p>除了提供通用並且可擴展的測試基礎設備，<span class="emphasis"><em>Spring TestContext Framework</em></span>提供了可以立刻使用的針對Spring的整合測試功能，例如<a href="ch08s03.html#testcontext-ctx-management" title="8.3.7.2.&#160;上下文管理和快取記憶體">context
+      management and caching(上下文管理與快取記憶體)</a>, <a href="ch08s03.html#testcontext-fixture-di" title="8.3.7.3.&#160;測試fixture的依賴注入">dependency injection of test
+      fixtures（測試夾具的DI）</a>, 和 <a href="ch08s03.html#testcontext-tx" title="8.3.7.4.&#160;事務管理">transactional test
+      management（事務測試管理）</a> ，使用預設rollback語義。
+      </p>
+<p>想知道這些新的測試支持能為你編寫單元和整合測試帶來多大的好處？請參閱<a href="ch08s03.html#testcontext-framework" title="8.3.7.&#160;Spring TestContext Framework">第&#160;8.3.7&#160;節 「Spring TestContext Framework」</a>，這是更新過的測試章節。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="new-in-2-other-jmx"></a>2.6.3.&#160;JMX 支持</h3></div></div></div>
+<p>Spring Framework開始支持<code class="literal">通知(Notification)</code>；
+			還可以宣告式地控制MBean在一個<code class="literal">MBeanServer</code>上的註冊行為。</p>
+<div class="itemizedlist"><ul type="disc">
+<li><a href="ch20s07.html" title="20.7.&#160;通知">第&#160;20.7&#160;節 「通知」</a></li>
+<li><a href="ch20s02.html#jmx-exporting-registration-behavior" title="20.2.5.&#160;控制註冊行為">第&#160;20.2.5&#160;節 「控制註冊行為」</a></li>
+</ul></div>
+<p>除此之外，Spring 2.5還提供了<a href="ch20s04.html#jmx-context-mbeanexport" title="20.4.3.&#160;&lt;context:mbean-export/&gt;元素"><code class="literal">context:mbean-export</code></a>配置元素，便於註冊使用註釋標注的bean 類別，它會檢查Spring的<code class="interfacename">@ManagedResource</code> 註釋。
+</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="new-in-2-other-jca"></a>2.6.4.&#160;將Spring 應用程序上下文部署為JCA adapter</h3></div></div></div>
+<p>Spring 2.5支持將Spring應用程序上下文配置成為JCA 資源適配器(JCA resource adapter)，打包為JCA RAR檔案。這允許孤立的應用程序模組部署進J2EE伺服器，存取所有的伺服器基礎設施，例如執行計劃任務，監聽訊息等等。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="new-in-2-other-taskexecutor"></a>2.6.5.&#160;計劃任務</h3></div></div></div>
+<p>Spring 2.0 提供了一種對計劃任務的抽象。對於感興趣的開發人員， <a href="ch23s04.html" title="23.4.&#160;SpringTaskExecutor抽象">第&#160;23.4&#160;節 「Spring<code class="interfacename">TaskExecutor</code>抽象」</a> 提供了所有的細節。</p>
+<p><code class="interfacename">TaskExecutor</code>抽象層在Spring內部也同樣美被使用，例如，異步JMS支持。在Spring 2.5中，在對JCA環境支持中也使用到了。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="new-in-2-other-java5"></a>2.6.6.&#160;對Java 5 (Tiger) 支持</h3></div></div></div>
+<p>下面的列表列出了在Spring 2.0和2.5中對新的Java 5的支持部分的文檔。</p>
+<div class="itemizedlist"><ul type="disc">
+<li><a href="ch03s11.html" title="3.11.&#160;基於註釋（Annotation-based）的配置">第&#160;3.11&#160;節 「基於註釋（Annotation-based）的配置」</a></li>
+<li><a href="ch25s03.html#metadata-annotations-required" title="25.3.1.&#160;@Required">第&#160;25.3.1&#160;節 「@<code class="interfacename">Required</code>」</a></li>
+<li><a href="ch09s05.html#transaction-declarative-annotations" title="9.5.6.&#160;使用 @Transactional">第&#160;9.5.6&#160;節 「使用 <code class="interfacename">@Transactional</code>」</a></li>
+<li><a href="ch11s02.html#jdbc-SimpleJdbcTemplate" title="11.2.3.&#160;SimpleJdbcTemplate類別">第&#160;11.2.3&#160;節 「<code class="classname">SimpleJdbcTemplate</code>類別」</a></li>
+<li><a href="ch12s06.html" title="12.6.&#160;JPA">第&#160;12.6&#160;節 「JPA」</a></li>
+<li><a href="ch06s02.html" title="6.2.&#160;@AspectJ支持">第&#160;6.2&#160;節 「@AspectJ支持」</a></li>
+<li><a href="ch06s08.html#aop-atconfigurable" title="6.8.1.&#160;在Spring中使用AspectJ進行domain object的依賴注入">第&#160;6.8.1&#160;節 「在Spring中使用AspectJ進行domain object的依賴注入」</a></li>
+</ul></div>
+</div>
+</div></body>
+</html>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+
+<struts>
+ 
+  <constant name="struts.objectFactory"  value="spring" />    <!-- 把值設為spring，表示該Action 是由  Spring 產生。 -->
+  <constant name="srtuts.devMode"        value="true"   />    <!-- 開發模式  --> 
+                                                 
+
+
+  <!-- 定義一個 cat package  -->
+  <package name="main" extends="struts-default" >
+    <global-results>
+      <result name="exception">/form/errorPage/exception3.jsp</result>
+    </global-results>    
+    
+    <global-exception-mappings>
+      <exception-mapping exception="java.lang.Exception" result="exception" />
+    </global-exception-mappings>
+  
+  
+    <!--  把 class 設定為 catAction 時，Struts2 將會到 Spring 中尋找名為 catAction2 的 CatAction 物件。 -->
+    <action name="*_cat" method="{1}" class="catAction2" >
+      <param name="action" >{1}</param>
+      <result name="list" >/form/list.jsp</result>   <!-- 名為 list 的 result  -->
+    </action>
+   
+   
+  </package>
+
+
+</struts>    

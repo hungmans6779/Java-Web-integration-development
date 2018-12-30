@@ -1,0 +1,63 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>8.2.&#160;單元測試</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch08.html" title="第&#160;8&#160;章&#160;測試">
+<link rel="prev" href="ch08.html" title="第&#160;8&#160;章&#160;測試">
+<link rel="next" href="ch08s03.html" title="8.3.&#160;整合測試">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="unit-testing"></a>8.2.&#160;單元測試</h2></div></div></div>
+<p>採用依賴注射的一個主要好處是你的程式碼對容器的依賴將比傳統J2EE開發小的多。<span class="emphasis"><em>無需Spring或任何其他容器</em></span>，只要簡單地通過 <code class="literal">new</code> 操作符即可實例化物件，通過這種方式,組成你應用的POJO對象就可以使用JUnit或TestNG進行測試了。你可以使用<a href="ch08s02.html#mock-objects" title="8.2.1.&#160;Mock物件">Mock物件</a>(或者其他很多有價值的測試技術來進行隔離測試)。如果你的應用在架構上遵循了Spring的建議，那麼你的程式碼將會有清晰的層次和高度的模組化，這些都將大大<span class="emphasis"><em>方便</em></span>單元測試。例如，在單元測試中你可以通過stub(佔位)或者mock(模仿)DAO或者Repository(資源庫)介面的方式，來測試服務層物件，而無需存取持久化資料。</p>
+<p>真正的單元測試運行起來通常都非常迅速，因為沒有應用伺服器，資料庫，ORM工具等運行設施需要設置。因此在你的開發方法論中，正確對待單元測試可以大大提高你的生產力。如果你有一些基於IoC的應用，那通常並不需要專門的一章「測試」來說明你編寫有效的 <span class="emphasis"><em>單元</em></span> 測試。但為了一些特定的單元測試場景，Spring框架提供了如下mock物件和測試支持類別：</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mock-objects"></a>8.2.1.&#160;Mock物件</h3></div></div></div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="mock-objects-jndi"></a>8.2.1.1.&#160;JNDI</h4></div></div></div>
+<p><code class="literal">org.springframework.mock.jndi</code> 套件裡有一個JNDI SPI的實作，它可以用來搭建一個為測試套件或單機應用所使用的簡單JNDI環境。例如，與相同的JNDI名稱綁定的測試程式碼中的<font color="red">&lt;font&gt;&lt;/font&gt;</font>JDBC <code class="classname">DataSource</code>，就像在J2EE容器中一樣，應用程式碼和配置都可以無需修改在測試場景重用。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="mock-objects-servlet"></a>8.2.1.2.&#160;Servlet API</h4></div></div></div>
+<p><code class="literal">org.springframework.mock.web</code> 套件有一組Servlet API 的很詳盡的mock物件，主要導向Spring Web MVC 框架，能方便的測試web上下文和控制器。這些mock物件通常比使用動態mock物件更方便（例如 <a href="http://www.easymock.org" target="_top">EasyMock</a>) 或已有的Servlet API mock物件(如 <a href="http://www.mockobjects.com" target="_top">MockObjects</a>).</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="mock-objects-portlet"></a>8.2.1.3.&#160;Portlet API</h4></div></div></div>
+<p><code class="literal">org.springframework.mock.web.portlet</code>包有一組Portlet API mock物件，導向Spring Portlet MVC框架。</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="unit-testing-support-classes"></a>8.2.2.&#160;單元測試支持類別</h3></div></div></div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="unit-testing-utilities"></a>8.2.2.1.&#160;通用工具類別</h4></div></div></div>
+<p><code class="literal">org.springframework.test.util</code>包內有<code class="classname">ReflectionTestUtils</code>。
+        它是基於反射的工具方法集，用在單元測試和整合測試場景中。開發者可以在測試應用程式碼時，設置非<code class="literal">public</code>
+        的欄位或者調用非<code class="literal">public</code>的 setter方法，例如：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>ORM框架如JPA和Hibernate能夠使用 <code class="literal">public</code> Setter方法存取<code class="literal">private</code>或<code class="literal">protected</code>欄位以獲得一個域實例的屬性</p></li>
+<li><p>Spring支持如<code class="interfacename">@Autowired</code>和<code class="interfacename">@Resource</code>註釋來提供<code class="literal">private</code>或<code class="literal">protected</code>欄位、setter方法和配置方法的依賴注入</p></li>
+</ul></div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="unit-testing-spring-mvc"></a>8.2.2.2.&#160;Spring MVC</h4></div></div></div>
+<p><code class="literal">org.springframework.test.web</code>包含有<code class="classname">AbstractModelAndViewTests</code>類別，它可以作為基於JUnit 3.8的單元測試基類別來處理Spring MVC <code class="classname">ModelAndView</code>物件。當基於Java 1.4 或更高的版本（例如與JUnit 4+, TestNG等綁定）時，你可以選擇使用<code class="classname">ModelAndViewAssert</code>類別（在相同包中）來測試 <code class="classname">ModelAndView</code>相關功能。</p>
+<p>提示: 根據你的測試環境，可以擴展
+        <code class="classname">AbstractModelAndViewTests</code>或直接使用
+        <code class="classname">ModelAndViewAssert</code>，然後使用
+        <code class="literal">MockHttpServletRequest</code>,
+        <code class="literal">MockHttpSession</code>等。這些類別在<a href="ch08s02.html#mock-objects-servlet" title="8.2.1.2.&#160;Servlet API"><code class="literal">org.springframework.mock.web</code></a>
+        套件中，用來測試Spring MVC <code class="literal">Controller</code>.</p>
+</div>
+</div>
+</div></body>
+</html>

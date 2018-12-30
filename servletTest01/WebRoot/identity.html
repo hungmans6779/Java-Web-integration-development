@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>identity.html</title>
+    <meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
+    <meta http-equiv="description" content="this is my page">
+    <meta http-equiv="content-type" content="text/html; charset=BIG5">
+    <script type="text/javascript" >
+      <!--
+        function reloadImage(){
+        	document.getElementById('btn').disabled=true;
+        	document.getElementById('identity').src="servlet/IdentityServlet?ts="+new Date().getTime();
+        }
+      //-->
+    </script>
+
+  </head>
+  
+  <body>
+   <img src="servlet/IdentityServlet" id="identity" onload="btn.disabled=false;" />
+   <input type="button" value="換個圖片" onclick="reloadImage()" id="btn"  />
+  </body>
+</html>

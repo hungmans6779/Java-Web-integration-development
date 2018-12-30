@@ -1,0 +1,162 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>16.2.&#160; DispatcherPortlet</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch16.html" title="第&#160;16&#160;章&#160;Portlet MVC框架">
+<link rel="prev" href="ch16.html" title="第&#160;16&#160;章&#160;Portlet MVC框架">
+<link rel="next" href="ch16s03.html" title="16.3.&#160;ViewRendererServlet">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="portlet-dispatcher"></a>16.2.&#160;
+			<code class="classname">DispatcherPortlet</code>
+		</h2></div></div></div>
+<p>Portlet MVC是一個請求驅動的Web MVC框架，它圍繞著Portlet設計，把請求
+		轉發給控制器，提供了便利的Porltet應用開發功能。而且，Spring的
+		<code class="classname">DispatcherPortlet</code>功能遠遠不止這些，它和Spring
+		<code class="interfacename">ApplicationContext</code>完全整合，使得開發人員
+		能夠使用Spring其它部分的每個功能。</p>
+<p><code class="classname">DispatcherPortlet</code>和一般的Portlet一樣，
+		在Web應用的<code class="literal">portlet.xml</code>中宣告：</p>
+<pre class="programlisting">&lt;portlet&gt;
+	&lt;portlet-name&gt;sample&lt;/portlet-name&gt;
+	&lt;portlet-class&gt;org.springframework.web.portlet.DispatcherPortlet&lt;/portlet-class&gt;
+	&lt;supports&gt;
+		&lt;mime-type&gt;text/html&lt;/mime-type&gt;
+		&lt;portlet-mode&gt;view&lt;/portlet-mode&gt;
+	&lt;/supports&gt;
+	&lt;portlet-info&gt;
+		&lt;title&gt;Sample Portlet&lt;/title&gt;
+	&lt;/portlet-info&gt;
+&lt;/portlet&gt;</pre>
+<p>現在需要配置<code class="classname">DispatcherPortlet</code>。</p>
+<p>在Portlet MVC框架裡，每個<code class="classname">DispatcherPortlet</code>都有自己的
+		<code class="interfacename">WebApplicationContext</code>，它接管了所有在根
+		<code class="interfacename">WebApplicationContext</code>定義的Bean。我們可以
+		在Portlet作用範圍內對這些Bean進行重載，重載後的Bean可以定義成對於特定的Portlet實例可見。</p>
+<p>在初始化
+		<code class="classname">DispatcherPortlet</code>時，框架會在Web應用的<code class="literal">WEB-INF</code>
+		目錄下尋找<code class="literal">[portlet-name]-portlet.xml</code>，產生在其中定義的Bean（會覆寫在全局範圍裡名字相同的Bean的定義）。
+		</p>
+<p><code class="classname">DispatcherPortlet</code>用到的配置檔案位置
+		可以通過Portlet初始化參數來修改（下面有詳細的描述）。</p>
+<p>Spring的<code class="classname">DispatcherPortlet</code>會用一些特殊的Bean
+		來處理請求和顯示視圖。這些Spring包含的Bean和其它的Bean一樣，可以在
+		<code class="interfacename">WebApplicationContext</code>裡進行配置。每
+		個Bean下面都會有詳細的描述。這裡，只是讓你知道它們，
+		我們繼續討論<code class="classname">DispatcherPortlet</code>。大多數的Bean都有缺省配置，所以不需要擔心它們的配置。
+		</p>
+<div class="table">
+<a name="portlet-webappctx-special-beans-tbl"></a><p class="title"><b>表&#160;16.1.&#160;<code class="interfacename">WebApplicationContext</code>中特殊的Bean</b></p>
+<div class="table-contents"><table summary="WebApplicationContext中特殊的Bean" border="1">
+<colgroup>
+<col align="left">
+<col>
+</colgroup>
+<thead><tr>
+<th align="left">名詞</th>
+<th>解釋</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">處理器映射</td>
+<td>(<a href="ch16s05.html" title="16.5.&#160;處理器映射">第&#160;16.5&#160;節 「處理器映射」</a>)
+						一個前置和後置的處理器以及控制器的列表，這些控制器
+						通過匹配特定的條件（比如，由控制器指定的Portlet模式），
+						從而得到執行。</td>
+</tr>
+<tr>
+<td align="left">控制器</td>
+<td>(<a href="ch16s04.html" title="16.4.&#160;控制器">第&#160;16.4&#160;節 「控制器」</a>)是MVC的一員，
+						是提供（或至少可以存取）具體功能的Bean</td>
+</tr>
+<tr>
+<td align="left">視圖解析器</td>
+<td>(<a href="ch16s06.html" title="16.6.&#160;視圖和它們的解析">第&#160;16.6&#160;節 「視圖和它們的解析」</a>) 能夠將
+						視圖名字對應到視圖定義。</td>
+</tr>
+<tr>
+<td align="left">分段(multipart)解析器</td>
+<td>(<a href="ch16s07.html" title="16.7.&#160;Multipart檔案上傳支持">第&#160;16.7&#160;節 「Multipart檔案上傳支持」</a>) 能夠處理
+						從HTML表單上傳的檔案</td>
+</tr>
+<tr>
+<td align="left">處理器異常解析器</td>
+<td>(<a href="ch16s08.html" title="16.8.&#160;異常處理">第&#160;16.8&#160;節 「異常處理」</a>) 
+						能夠將異常對應到視圖，或實作某種複雜的異常處理程式碼</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><p>在<code class="classname">DispatcherPortlet</code>配置好後，請求進入到特定
+		<code class="classname">DispatcherPortlet</code>時，它開始處理。下面描述了
+		<code class="classname">DispatcherPortlet</code>處理請求的完整過程：</p>
+<div class="orderedlist"><ol type="1">
+<li><p><code class="literal">PortletRequest.getLocale()</code>返回
+			的Locale綁定在請求上，這使得在處理請求時（如顯示視圖、準備資料等），
+			程式碼能夠使用Locale。</p></li>
+<li><p>如果在<code class="interfacename">ActionRequest</code>裡
+			指定了分段解析器，框架會在請求裡尋找分段，如果找到了，
+			會把它們包裹在<code class="interfacename">MultipartActionRequest</code>
+			裡，供在後續處理中使用。（關於分段處理的進一步資訊見<a href="ch16s07.html" title="16.7.&#160;Multipart檔案上傳支持">第&#160;16.7&#160;節 「Multipart檔案上傳支持」</a>）。
+			</p></li>
+<li><p>尋找合適的處理器。如果找到了，這個處理器關聯的執行鏈
+			(前置處理器、後置處理器和控制器)會被按序執行來準備模型。</p></li>
+<li><p>如果有模型返回，視圖通過視圖解析器進行顯示，視圖解析器是在
+			<code class="interfacename">WebApplicationContext</code>配置好的。如果沒有模型
+			返回（可能由於預處理器或後處理器攔截了請求，比如安全原因），就不會有視圖顯示
+			因為有可能請求已經被處理了。</p></li>
+</ol></div>
+<p>在<code class="interfacename">WebApplicationContext</code>裡
+		定義的異常處理解析器能夠捕獲在處理請求時可能拋出的異常，借助這些解析器，
+		我們可以對在捕獲特定異常時的操作進行自定義。</p>
+<p>通過在<code class="literal">portlet.xml</code>檔案裡增加Context參數或者Portlet
+		初始化參數，可以對Spring的<code class="classname">DispatcherPortlet</code>進行自定義。
+		下面列出了幾種可能。</p>
+<div class="table">
+<a name="portlet-dpp-init-params"></a><p class="title"><b>表&#160;16.2.&#160;<code class="classname">DispatcherPortlet</code> 的初始化參數</b></p>
+<div class="table-contents"><table summary="DispatcherPortlet 的初始化參數" border="1">
+<colgroup>
+<col align="left">
+<col>
+</colgroup>
+<thead><tr>
+<th align="left">參數</th>
+<th>解釋</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left"><code class="literal">contextClass</code></td>
+<td>實作<code class="interfacename">WebApplicationContext</code>
+						的類別，在Portlet初始化時用它初始化context。如果沒有指定這個
+						參數，會使用<code class="classname">XmlPortletApplicationContext</code>。</td>
+</tr>
+<tr>
+<td align="left"><code class="literal">contextConfigLocation</code></td>
+<td>傳給context實例(由<code class="literal">contextClass</code>指定)
+						的字元串，指明context的位置。它可以(以逗號)分隔為多個字元串來
+						支持多個context（在定義過兩次的bean有多個context位置時，
+						最後的位置起作用）。</td>
+</tr>
+<tr>
+<td align="left"><code class="literal">namespace</code></td>
+<td>
+<code class="interfacename">WebApplicationContext</code>
+						的命名空間，缺省是<code class="literal">[portlet-name]-portlet</code>。</td>
+</tr>
+<tr>
+<td align="left"><code class="literal">viewRendererUrl</code></td>
+<td>
+<code class="classname">ViewRendererServlet</code>的URL，
+						<code class="classname">DispatcherPortlet</code>可以存取。
+						(見 <a href="ch16s03.html" title="16.3.&#160;ViewRendererServlet">第&#160;16.3&#160;節 「<code class="classname">ViewRendererServlet</code>」</a>)。</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break">
+</div></body>
+</html>

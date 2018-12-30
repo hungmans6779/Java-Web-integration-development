@@ -1,0 +1,223 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>13.2.&#160;DispatcherServlet</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch13.html" title="第&#160;13&#160;章&#160;Web MVC framework Web框架">
+<link rel="prev" href="ch13.html" title="第&#160;13&#160;章&#160;Web MVC framework Web框架">
+<link rel="next" href="ch13s03.html" title="13.3.&#160;控制器">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="mvc-servlet"></a>13.2.&#160;<code class="classname">DispatcherServlet</code></h2></div></div></div>
+<p>與其它web MVC框架一樣，Spring的web MVC框架是一個請求驅動的web框架，其設計圍繞一個中心的servlet進行，
+    它能將請求分發給控制器，並提供其它功能說明web應用開發。然而，Spring的<code class="classname">DispatcherServlet
+    </code>所做的不僅僅是這些，它和Spring的IoC容器完全整合在一起，從而允許你使用Spring的其它功能。
+    </p>
+<p>下圖展示了Spring Web MVC <code class="classname">DispatcherServlet</code>處理請求的串流程。
+    熟悉設計模式的讀者可能會發現<code class="classname">DispatcherServlet</code>應用了「<span class="quote">
+    Front Controller</span>」模式（很多其他的主串流web框架也都用到了該模式）。
+    </p>
+<div class="mediaobject" align="center">
+<img src="images/mvc.png" align="middle"><div class="caption"><p>Spring Web MVC請求處理串流程</p></div>
+</div>
+<p><code class="classname">DispatcherServlet</code>實際上是一個<code class="interfacename">Servlet
+    </code>（它繼承了<code class="classname">HttpServlet</code>）。與其它Servlet一樣，
+    <code class="classname">DispatcherServlet</code>定義在web應用的<code class="literal">web.xml</code>檔案中。
+    DispatcherServlet處理的請求必須在同一個<code class="literal">web.xml</code>檔案裡使用url-mapping定義映射。
+    下面的例子演示了如何配置<code class="classname">DispatcherServlet</code>。
+    </p>
+<pre class="programlisting">&lt;web-app&gt;
+
+    &lt;servlet&gt;
+        &lt;servlet-name&gt;example&lt;/servlet-name&gt;
+        &lt;servlet-class&gt;org.springframework.web.servlet.DispatcherServlet&lt;/servlet-class&gt;
+        &lt;load-on-startup&gt;1&lt;/load-on-startup&gt;
+    &lt;/servlet&gt;
+
+    &lt;servlet-mapping&gt;
+        &lt;servlet-name&gt;example&lt;/servlet-name&gt;
+        &lt;url-pattern&gt;*.form&lt;/url-pattern&gt;
+    &lt;/servlet-mapping&gt;
+
+&lt;/web-app&gt;</pre>
+<p>在上面的例子裡，所有以<code class="literal">.form</code>結尾的請求都會由名為<code class="literal">
+    example</code>的<code class="classname">DispatcherServlet</code>處理。這只是配置Spring Web MVC
+    的第一步。接下來需要配置<code class="classname">DispatcherServlet</code>本身和Spring Web MVC 框架用到的其他的bean。
+    </p>
+<p>正如在<a href="ch03s08.html" title="3.8.&#160;The ApplicationContext">第&#160;3.8&#160;節 「The <code class="interfacename">ApplicationContext</code>」</a>中所描述的，Spring中的<code class="interfacename">
+    ApplicationContext</code>實例可以被限制在不同的作用域（scope）中。在web MVC框架中，每個
+    <code class="classname">DispatcherServlet</code>有它自己的<code class="interfacename">WebApplicationContext
+    </code>，這個context繼承了根 <code class="interfacename">WebApplicationContext</code>
+    的所有bean定義。這些繼承的bean也可以在每個serlvet自己的所屬的域中被覆寫（override），覆寫後的bean
+    可以被設置成只有這個servlet實例自己才可以使用的屬性。
+    </p>
+<div class="mediaobject" align="center">
+<img src="images/mvc-contexts.gif" align="middle"><div class="caption"><p>Spring Web MVC中的Context體系</p></div>
+</div>
+<p>在<code class="classname">DispatcherServlet</code>的初始化過程中，框架會在web應用的
+    <code class="literal">WEB-INF</code>檔案夾下尋找名為<code class="literal">[servlet-name]-servlet.xml</code>
+    的配置檔案，產生檔案中定義的bean。這些bean會覆寫在全局範圍（global cope）中定義的同名的bean。
+    </p>
+<p>下面這個例子展示了在<code class="literal">web.xml</code>中<code class="classname">DispatcherServlet</code>的配置：</p>
+<pre class="programlisting">&lt;web-app&gt;
+    ...
+    &lt;servlet&gt;
+        &lt;servlet-name&gt;<span class="bold"><strong>golfing</strong></span>&lt;/servlet-name&gt;
+        &lt;servlet-class&gt;org.springframework.web.servlet.DispatcherServlet&lt;/servlet-class&gt;
+        &lt;load-on-startup&gt;1&lt;/load-on-startup&gt;
+    &lt;/servlet&gt;
+    &lt;servlet-mapping&gt;
+        &lt;servlet-name&gt;<span class="bold"><strong>golfing</strong></span>&lt;/servlet-name&gt;
+        &lt;url-pattern&gt;*.do&lt;/url-pattern&gt;
+    &lt;/servlet-mapping&gt;
+&lt;/web-app&gt;</pre>
+<p>上述servlet配置完成後，還需要配置<code class="literal">/WEB-INF/<span class="bold"><strong>
+    golfing</strong></span>-servlet.xml</code>檔案。golfing-servlet.xml這個檔案應該宣告在
+    <span class="emphasis"><em>Spring Web MVC 框架中</em></span>需要的bean。 這個檔案的路徑也可以通過web.xml中servlet
+    的初始化參數來更改（詳情見下面的例子）。
+    </p>
+<p><code class="interfacename">WebApplicationContext</code>僅僅是一個擁有web應用必要功能的普通
+    <code class="interfacename">ApplicationContext</code>。它與一個標準的<code class="interfacename">
+    ApplicationContext</code>的不同之處在於，它能夠解析theme
+    （參考<a href="ch13s07.html" title="13.7.&#160;使用主題">第&#160;13.7&#160;節 「使用主題」</a>），並且它知道自己與哪個servlet相關聯
+    （通過<code class="interfacename">ServletContext</code>）。<code class="interfacename">WebApplicationContext
+    </code>被綁定在<code class="interfacename">ServletContext</code>上，需要時，可以使用
+    <code class="classname">RequestContextUtils</code>提供的靜態方法找到<code class="interfacename">WebApplicationContext</code>。
+    </p>
+<p>Spring的<code class="classname">DispatcherServlet</code>有一組特殊的bean，
+    用來處理請求和渲染相應的視圖。這些bean包含在Spring的框架裡，可以在<code class="interfacename">
+    WebApplicationContext</code>中配置，配置方式與配置其它bean相同。這些bean
+    中的每一個都在下文作詳細描述。此刻讀者只需知道它們的存在，以便我們繼續對DispatcherServlet
+    進行討論。對大多數bean，Spring都提供了合理的缺省值，所以在開始階段，你不必擔心如何對其進行配置。
+    </p>
+<div class="table">
+<a name="mvc-webappctx-special-beans-tbl"></a><p class="title"><b>表&#160;13.1.&#160;<code class="interfacename">WebApplicationContext</code>中特殊的bean</b></p>
+<div class="table-contents"><table summary="WebApplicationContext中特殊的bean" border="1">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Bean型別</th>
+<th>描述</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>控制器（Controllers）</td>
+<td>
+            <a href="ch13s03.html" title="13.3.&#160;控制器">控制器</a> 實作的是MVC中的<code class="literal">C</code> 。
+            </td>
+</tr>
+<tr>
+<td>處理器映射（Handler mapping）</td>
+<td>
+            <a href="ch13s04.html" title="13.4.&#160;處理器映射（handler mapping）">處理器映射</a>包含預處理器（pre-processor），
+            後置處理器（post-processor）和控制器的列表，它們在符合某種條件時才被執行（例如符合控制器指定的URL）。
+            </td>
+</tr>
+<tr>
+<td>視圖解析器（View resolvers）</td>
+<td>
+            <a href="ch13s05.html" title="13.5.&#160;視圖與視圖解析">視圖解析器</a> 可以將視圖名解析為對應的視圖。
+            </td>
+</tr>
+<tr>
+<td>本地化解析器（Locale resolver）</td>
+<td>
+            <a href="ch13s06.html" title="13.6.&#160;本地化解析器">本地化解析器</a>能夠解析使用者正在使用的本地化設置，以提供國際化視圖。
+            </td>
+</tr>
+<tr>
+<td>主題解析器（Theme resolver）</td>
+<td>
+            <a href="ch13s07.html" title="13.7.&#160;使用主題">主題解析器</a>能夠解析你的web應用所使用的主題，以提供個性化的佈局。
+            </td>
+</tr>
+<tr>
+<td>檔案上傳解析器（Multipart File resolver）</td>
+<td>
+            <a href="ch13s08.html" title="13.8.&#160;Spring對分段檔案上傳（multipart file upload）的支持">檔案上傳解析器</a>提供HTML表單檔案上傳功能。
+            </td>
+</tr>
+<tr>
+<td>處理器異常解析器(Handler exception resolver(s))</td>
+<td>
+            <a href="ch13s10.html" title="13.10.&#160;處理異常">處理器異常解析器</a>可以將異常對應到視圖，或者實作更加複雜的異常處理邏輯。
+            </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><p><code class="classname">DispatcherServlet</code>配置完成後，當相應的請求到達時，處理就開始了。
+    下面的列表描述了<code class="classname">DispatcherServlet</code>處理請求的全過程：
+    </p>
+<div class="orderedlist"><ol type="1">
+<li><p>找到<code class="interfacename">WebApplicationContext</code>並將其綁定到請求的一個屬性上，
+        以便控制器和處理鏈上的其它處理器能使用<code class="interfacename">WebApplicationContext</code>。
+        預設的屬性名為<code class="literal">DispatcherServlet.WEB_APPLICATION_CONTEXT_ATTRIBUTE</code>。
+        </p></li>
+<li><p>將本地化解析器（localResolver）綁定到請求上，這樣使得處理鏈上的處理器在處理請求（準備資料、顯示視圖等等）
+        時能進行本地化處理。若不使用本地化解析器，也不會有任何副作用，因此如果不需要本地化解析，忽略它即可。
+        </p></li>
+<li><p>將主題解析器綁定到請求上，這樣視圖可以決定使用哪個主題。如果你不需要主題，可以忽略它，不會有任何影響。</p></li>
+<li><p>如果上傳檔案解析器被指定，Spring會檢查每個接收到的請求是否存在上傳檔案，如果存在，
+        這個請求將被封裝成<code class="classname">MultipartHttpServletRequest</code>以便被處理鏈中的其它處理器使用
+        （關於檔案上傳的更多內容請參考<a href="ch13s08.html#mvc-multipart-resolver" title="13.8.2.&#160;使用MultipartResolver">第&#160;13.8.2&#160;節 「使用<code class="interfacename">MultipartResolver</code>」</a>）。
+        </p></li>
+<li><p>找到合適的處理器，執行和這個處理器相關的執行鏈（預處理器，後置處理器，控制器），以便為視圖準備模型資料（用於渲染）。</p></li>
+<li><p>如果模型資料被返回，就使用配置在<code class="interfacename">WebApplicationContext</code>中的視圖解析器顯示視圖，
+        否則視圖不會被顯示。有多種原因可以導致返回的資料模型為空，比如預處理器或後處理器可能截取了請求，這可能是出於安全原因，
+        也可能是請求已經被處理，沒有必要再處理一次。
+        </p></li>
+</ol></div>
+<p>請求處理過程中拋出的異常，可以被任何定義在<code class="interfacename">WebApplicationContext</code>中的異常解析器所獲取。
+    使用這些異常解析器，可以在異常拋出時根據需要定義特定行為。
+    </p>
+<p>Spring的<code class="classname">DispatcherServlet</code>也支持返回Servlet API定義的<span class="emphasis"><em>last-modification-date</em></span>。
+    決定某個請求的最後修改日期很簡單：<code class="classname">DispatcherServlet</code>會首先尋找一個合適的handler mapping，檢查從中取得指定的處理器是否實作了
+    <code class="interfacename">LastModified</code>介面，如果是，將調用<code class="literal">long getLastModified(request)</code>方法，並將結果返回給客戶端。
+    </p>
+<p>可以通過兩種方式定制Spring的<code class="classname">DispatcherServlet</code>：在<code class="literal">web.xml</code>檔案中增加添加context參數，
+    或servlet初始化參數。下面是可能用到的參數。
+    </p>
+<div class="table">
+<a name="mvc-disp-servlet-init-params-tbl"></a><p class="title"><b>表&#160;13.2.&#160;<code class="classname">DispatcherServlet</code>初始化參數</b></p>
+<div class="table-contents"><table summary="DispatcherServlet初始化參數" border="1">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>參數</th>
+<th>描述</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code class="literal">contextClass</code></td>
+<td>
+            實作<code class="interfacename">WebApplicationContext</code>介面的類別，當前的servlet用它來創建上下文。如果這個參數沒有指定，
+            預設使用<code class="classname">XmlWebApplicationContext</code>。
+            </td>
+</tr>
+<tr>
+<td><code class="literal">contextConfigLocation</code></td>
+<td>
+            傳給上下文實例（由contextClass指定）的字元串，用來指定上下文的位置。這個字元串可以被分成多個字元串（使用逗號作為分隔符）
+            來支持多個上下文（在多上下文的情況下，如果同一個bean被定義兩次，後面一個優先）。
+            </td>
+</tr>
+<tr>
+<td><code class="literal">namespace</code></td>
+<td>
+            <code class="interfacename">WebApplicationContext</code>命名空間。預設值是<code class="literal">[server-name]-servlet</code>。
+            </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break">
+</div></body>
+</html>

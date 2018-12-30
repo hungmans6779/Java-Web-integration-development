@@ -1,0 +1,318 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>B.7.&#160;Meatier examples</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="apb.html" title="附錄&#160;B.&#160;Extensible XML authoring">
+<link rel="prev" href="apbs06.html" title="B.6.&#160;Using a custom extension in your Spring XML configuration">
+<link rel="next" href="apbs08.html" title="B.8.&#160;Further Resources">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="extensible-xml-meat"></a>B.7.&#160;Meatier examples</h2></div></div></div>
+<p>Find below some much meatier examples of custom XML extensions.</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="extensible-xml-custom-nested"></a>B.7.1.&#160;Nesting custom tags within custom tags</h3></div></div></div>
+<p>This example illustrates how you might go about writing the various artifacts
+		    required to satisfy a target of the following configuration:</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:foo="http://www.foo.com/schema/component"
+      xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+http://www.foo.com/schema/component http://www.foo.com/schema/component/component.xsd"&gt;
+
+   <em class="lineannotation"><span class="lineannotation">&lt;foo:component id="bionic-family" name="Bionic-1"&gt;
+      &lt;foo:component name="Sport-1"/&gt;
+      &lt;foo:component name="Rock-1"/&gt;
+   &lt;/foo:component&gt;</span></em>
+
+&lt;/beans&gt;</pre>
+<p>The above configuration actually nests custom extensions within each other. The class
+            that is actually configured by the above <code class="literal">&lt;foo:component/&gt;</code>
+            element is the <code class="classname">Component</code> class (shown directly below). Notice
+            how the <code class="classname">Component</code> class does <span class="emphasis"><em>not</em></span> expose
+            a setter method for the <code class="literal">'components'</code> property; this makes it hard
+            (or rather impossible) to configure a bean definition for the <code class="classname">Component</code>
+            class using setter injection.</p>
+<pre class="programlisting">package com.foo;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class Component {
+
+   private String name;
+   private List components = new ArrayList();
+
+   <em class="lineannotation"><span class="lineannotation">// mmm, there is no setter method for the <code class="literal">'components'</code></span></em>
+   public void addComponent(Component component) {
+      this.components.add(component);
+   }
+
+   public List getComponents() {
+      return components;
+   }
+
+   public String getName() {
+      return name;
+   }
+
+   public void setName(String name) {
+      this.name = name;
+   }
+}</pre>
+<p>The typical solution to this issue is to create a custom <code class="interfacename">FactoryBean</code>
+            that exposes a setter property for the <code class="literal">'components'</code> property.</p>
+<pre class="programlisting">package com.foo;
+
+import org.springframework.beans.factory.FactoryBean;
+
+import java.util.Iterator;
+import java.util.List;
+
+public class ComponentFactoryBean implements FactoryBean {
+
+   private Component parent;
+   private List children;
+
+   public void setParent(Component parent) {
+      this.parent = parent;
+   }
+
+   public void setChildren(List children) {
+      this.children = children;
+   }
+
+   public Object getObject() throws Exception {
+      if (this.children != null &amp;&amp; this.children.size() &gt; 0) {
+         for (Iterator it = children.iterator(); it.hasNext();) {
+            Component childComponent = (Component) it.next();
+            this.parent.addComponent(childComponent);
+         }
+      }
+      return this.parent;
+   }
+
+   public Class getObjectType() {
+      return Component.class;
+   }
+
+   public boolean isSingleton() {
+      return true;
+   }
+}</pre>
+<p>This is all very well, and does work nicely, but exposes a lot of Spring plumbing to the
+            end user. What we are going to do is write a custom extension that hides away all of this
+            Spring plumbing. If we stick to <a href="apb.html#extensible-xml-introduction" title="B.1.&#160;Introduction">the steps described
+            previously</a>, we'll start off by creating the XSD schema to define the structure of
+            our custom tag.</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;
+
+&lt;xsd:schema xmlns="http://www.foo.com/schema/component"
+         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+         targetNamespace="http://www.foo.com/schema/component"
+         elementFormDefault="qualified"
+         attributeFormDefault="unqualified"&gt;
+
+   &lt;xsd:element name="component"&gt;
+      &lt;xsd:complexType&gt;
+         &lt;xsd:choice minOccurs="0" maxOccurs="unbounded"&gt;
+            &lt;xsd:element ref="component"/&gt;
+         &lt;/xsd:choice&gt;
+         &lt;xsd:attribute name="id" type="xsd:ID"/&gt;
+         &lt;xsd:attribute name="name" use="required" type="xsd:string"/&gt;
+      &lt;/xsd:complexType&gt;
+   &lt;/xsd:element&gt;
+
+&lt;/xsd:schema&gt;
+</pre>
+<p>We'll then create a custom <code class="interfacename">NamespaceHandler</code>.</p>
+<pre class="programlisting">package com.foo;
+
+import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
+
+public class ComponentNamespaceHandler extends NamespaceHandlerSupport {
+
+   public void init() {
+      registerBeanDefinitionParser("component", new ComponentBeanDefinitionParser());
+   }
+}</pre>
+<p>Next up is the custom <code class="interfacename">BeanDefinitionParser</code>. Remember
+            that what we are creating is a <code class="interfacename">BeanDefinition</code> describing
+            a <code class="classname">ComponentFactoryBean</code>.</p>
+<pre class="programlisting">package com.foo;
+
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.ManagedList;
+import org.springframework.beans.factory.xml.AbstractBeanDefinitionParser;
+import org.springframework.beans.factory.xml.ParserContext;
+import org.springframework.util.xml.DomUtils;
+import org.w3c.dom.Element;
+
+import java.util.List;
+
+public class ComponentBeanDefinitionParser extends AbstractBeanDefinitionParser {
+
+   protected AbstractBeanDefinition parseInternal(Element element, ParserContext parserContext) {
+      BeanDefinitionBuilder factory = BeanDefinitionBuilder.rootBeanDefinition(ComponentFactoryBean.class);
+      BeanDefinitionBuilder parent = parseComponent(element);
+      factory.addPropertyValue("parent", parent.getBeanDefinition());
+
+      List childElements = DomUtils.getChildElementsByTagName(element, "component");
+      if (childElements != null &amp;&amp; childElements.size() &gt; 0) {
+         parseChildComponents(childElements, factory);
+      }
+      return factory.getBeanDefinition();
+   }
+
+   private static BeanDefinitionBuilder parseComponent(Element element) {
+      BeanDefinitionBuilder component = BeanDefinitionBuilder.rootBeanDefinition(Component.class);
+      component.addPropertyValue("name", element.getAttribute("name"));
+      return component;
+   }
+
+   private static void parseChildComponents(List childElements, BeanDefinitionBuilder factory) {
+      ManagedList children = new ManagedList(childElements.size());
+      for (int i = 0; i &lt; childElements.size(); ++i) {
+         Element childElement = (Element) childElements.get(i);
+         BeanDefinitionBuilder child = parseComponent(childElement);
+         children.add(child.getBeanDefinition());
+      }
+      factory.addPropertyValue("children", children);
+   }
+}</pre>
+<p>Lastly, the various artifacts need to be registered with the Spring XML infrastructure.</p>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation"># in <code class="filename">'META-INF/spring.handlers'</code></span></em>
+http\://www.foo.com/schema/component=com.foo.ComponentNamespaceHandler</pre>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation"># in <code class="filename">'META-INF/spring.schemas'</code></span></em>
+http\://www.foo.com/schema/component/component.xsd=com/foo/component.xsd</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="extensible-xml-custom-just-attributes"></a>B.7.2.&#160;Custom attributes on 'normal' elements</h3></div></div></div>
+<p>Writing your own custom parser and the associated artifacts isn't hard, but sometimes it
+		    is not the right thing to do. Consider the scenario where you need to add metadata to already
+		    existing bean definitions. In this case you certainly don't want to have to go off and write
+		    your own entire custom extension; rather you just want to add an additional attribute
+		    to the existing bean definition element.</p>
+<p>By way of another example, let's say that the service class that you are defining a bean
+		    definition for a service object that will (unknown to it) be accessing a clustered
+		    <a href="http://jcp.org/en/jsr/detail?id=107" target="_top">JCache</a>, and you want to ensure that
+		    the named JCache instance is eagerly started within the surrounding cluster:</p>
+<pre class="programlisting">&lt;bean id="checkingAccountService" class="com.foo.DefaultCheckingAccountService"
+      <em class="lineannotation"><span class="lineannotation"><span class="bold"><strong>jcache:cache-name="checking.account"&gt;</strong></span></span></em>
+   <em class="lineannotation"><span class="lineannotation">&lt;!-- other dependencies here... --&gt;</span></em>
+&lt;/bean&gt;</pre>
+<p>What we are going to do here is create another <code class="interfacename">BeanDefinition</code>
+            when the <code class="literal">'jcache:cache-name'</code> attribute is parsed; this
+            <code class="interfacename">BeanDefinition</code> will then initialize the named JCache
+            for us. We will also modify the existing <code class="interfacename">BeanDefinition</code> for the
+            <code class="literal">'checkingAccountService'</code> so that it will have a dependency on this
+            new JCache-initializing <code class="interfacename">BeanDefinition</code>.</p>
+<pre class="programlisting">package com.foo;
+
+public class JCacheInitializer {
+
+   private String name;
+
+   public JCacheInitializer(String name) {
+      this.name = name;
+   }
+
+   public void initialize() {
+      <em class="lineannotation"><span class="lineannotation">// lots of JCache API calls to initialize the named cache...</span></em>
+   }
+}</pre>
+<p>Now onto the custom extension. Firstly, the authoring of the XSD schema describing the
+            custom attribute (quite easy in this case).</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;
+
+&lt;xsd:schema xmlns="http://www.foo.com/schema/jcache"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://www.foo.com/schema/jcache"
+            elementFormDefault="qualified"&gt;
+
+   &lt;xsd:attribute name="cache-name" type="xsd:string"/&gt;
+
+&lt;/xsd:schema&gt;
+</pre>
+<p>Next, the associated <code class="interfacename">NamespaceHandler</code>.</p>
+<pre class="programlisting">package com.foo;
+
+import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
+
+public class JCacheNamespaceHandler extends NamespaceHandlerSupport {
+
+   public void init() {
+      super.registerBeanDefinitionDecoratorForAttribute("cache-name",
+            new JCacheInitializingBeanDefinitionDecorator());
+   }
+}
+</pre>
+<p>Next, the parser. Note that in this case, because we are going to be parsing an XML
+            attribute, we write a <code class="interfacename">BeanDefinitionDecorator</code> rather than a
+            <code class="interfacename">BeanDefinitionParser</code>.</p>
+<pre class="programlisting">package com.foo;
+
+import org.springframework.beans.factory.config.BeanDefinitionHolder;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.xml.BeanDefinitionDecorator;
+import org.springframework.beans.factory.xml.ParserContext;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Node;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class JCacheInitializingBeanDefinitionDecorator implements BeanDefinitionDecorator {
+   
+   private static final String[] EMPTY_STRING_ARRAY = new String[0];
+
+   public BeanDefinitionHolder decorate(
+         Node source, BeanDefinitionHolder holder, ParserContext ctx) {
+      String initializerBeanName = registerJCacheInitializer(source, ctx);
+      createDependencyOnJCacheInitializer(holder, initializerBeanName);
+      return holder;
+   }
+
+   private void createDependencyOnJCacheInitializer(BeanDefinitionHolder holder, String initializerBeanName) {
+      AbstractBeanDefinition definition = ((AbstractBeanDefinition) holder.getBeanDefinition());
+      String[] dependsOn = definition.getDependsOn();
+      if (dependsOn == null) {
+         dependsOn = new String[]{initializerBeanName};
+      } else {
+         List dependencies = new ArrayList(Arrays.asList(dependsOn));
+         dependencies.add(initializerBeanName);
+         dependsOn = (String[]) dependencies.toArray(EMPTY_STRING_ARRAY);
+      }
+      definition.setDependsOn(dependsOn);
+   }
+
+   private String registerJCacheInitializer(Node source, ParserContext ctx) {
+      String cacheName = ((Attr) source).getValue();
+      String beanName = cacheName + "-initializer";
+      if (!ctx.getRegistry().containsBeanDefinition(beanName)) {
+         BeanDefinitionBuilder initializer = BeanDefinitionBuilder.rootBeanDefinition(JCacheInitializer.class);
+         initializer.addConstructorArg(cacheName);
+         ctx.getRegistry().registerBeanDefinition(beanName, initializer.getBeanDefinition());
+      }
+      return beanName;
+   }
+}
+</pre>
+<p>Lastly, the various artifacts need to be registered with the Spring XML infrastructure.</p>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation"># in <code class="filename">'META-INF/spring.handlers'</code></span></em>
+http\://www.foo.com/schema/jcache=com.foo.JCacheNamespaceHandler</pre>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation"># in <code class="filename">'META-INF/spring.schemas'</code></span></em>
+http\://www.foo.com/schema/jcache/jcache.xsd=com/foo/jcache.xsd</pre>
+</div>
+</div></body>
+</html>

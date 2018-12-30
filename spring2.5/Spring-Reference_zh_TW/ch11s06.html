@@ -1,0 +1,341 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>11.6.&#160;用Java物件來表達JDBC操作</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch11.html" title="第&#160;11&#160;章&#160;使用JDBC進行資料存取">
+<link rel="prev" href="ch11s05.html" title="11.5.&#160;通過使用SimpleJdbc類別簡化JDBC操作">
+<link rel="next" href="ch11s07.html" title="11.7.&#160;參數和資料處理的基本原則">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="jdbc-object"></a>11.6.&#160;用Java物件來表達JDBC操作</h2></div></div></div>
+<p>
+			<code class="literal">org.springframework.jdbc.object</code>包下的類別允許使用者以更加
+			物件導向的方式去存取資料庫。比如說，使用者可以執行查詢並返回一個list，
+			該list作為一個結果集將把從資料庫中取出的列資料映射到業務物件的屬性上。
+			使用者也可以執行預儲程序，以及運行更新、刪除以及插入SQL語句。
+	</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>
+			在許多Spring開發人員中間存在有一種觀點，那就是下面將要提到的各種RDBMS操作類別
+			（<a href="ch11s06.html#jdbc-StoredProcedure" title="11.6.4.&#160;StoredProcedure類別"><code class="classname">StoredProcedure</code></a>類別除外）
+			通常也可以直接使用<code class="classname">JdbcTemplate</code>相關的方法來替換。
+			相對於把一個查詢操作封裝成一個類別而言，直接調用<code class="classname">JdbcTemplate</code>方法將更簡單而且更容易理解。
+		</p>
+<p>
+			必須強調的一點是，這僅僅只是一種<span class="emphasis"><em>觀點</em></span>而已，
+			如果你認為你可以從直接使用RDBMS操作類別中獲取一些額外的好處，你不妨根據自己的需要和喜好進行不同的選擇。
+		</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jdbc-SqlQuery"></a>11.6.1.&#160;<code class="classname">SqlQuery</code>類別</h3></div></div></div>
+<p>
+			<code class="classname">SqlQuery</code>是一個可重用、執行緒安全的類別，它封裝了一個SQL查詢。
+			其子類別必須實作<code class="literal">newResultReader()</code>方法，該方法用來在遍歷
+			<code class="interfacename">ResultSet</code>的時候能使用一個類別來保存結果。
+			我們很少需要直接使用<code class="classname">SqlQuery</code>，因為其子類別
+			<code class="classname">MappingSqlQuery</code>作為一個更加易用的實作能夠將結果集中的行映射為Java物件。
+			<code class="classname">SqlQuery</code>還有另外兩個擴展分別是
+			<code class="classname">MappingSqlQueryWithParameters</code>和<code class="classname">UpdatableSqlQuery</code>。
+		</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jdbc-MappingSqlQuery"></a>11.6.2.&#160;<code class="classname">MappingSqlQuery</code>類別</h3></div></div></div>
+<p>
+			<code class="classname">MappingSqlQuery</code>是一個可重用的查詢抽象類別，其具體類別必須實作
+			<code class="literal">mapRow(ResultSet, int)</code>抽象方法來將結果集中的每一行轉換成Java物件。
+			下面這個例子演示了一個定制查詢，它將從客戶表中取得的資料映射到一個<code class="classname">Customer</code>類別實例。
+	</p>
+<pre class="programlisting">private class CustomerMappingQuery extends MappingSqlQuery {
+
+    public CustomerMappingQuery(DataSource ds) {
+        super(ds, "SELECT id, name FROM customer WHERE id = ?");
+        super.declareParameter(new SqlParameter("id", Types.INTEGER));
+        compile();
+    }
+
+    public Object mapRow(ResultSet rs, int rowNumber) throws SQLException {
+        Customer cust = new Customer();
+        cust.setId((Integer) rs.getObject("id"));
+        cust.setName(rs.getString("name"));
+        return cust;
+    } 
+}</pre>
+<p>
+			在上面的例子中，我們為使用者查詢提供了一個建構函數並為建構函數傳遞了一個
+			<code class="interfacename">DataSource</code>參數。在建構函數里面我們把
+			<code class="interfacename">DataSource</code>和一個用來返回查詢結果的SQL語句作為參數
+			調用父類別的建構函數。SQL語句將被用於產生一個<code class="interfacename">PreparedStatement</code>物件，
+			因此它可以包含佔位符來傳遞參數。而每一個SQL語句的參數必須通過調用
+			<code class="literal">declareParameter</code>方法來進行宣告，該方法需要一個
+			<code class="classname">SqlParameter</code>（封裝了一個欄位名字和一個
+			<code class="classname">java.sql.Types</code>中定義的JDBC型別）物件作為參數。
+			所有參數定義完之後，我們調用<code class="literal">compile()</code>方法來對SQL語句進行預先編譯。
+		</p>
+<pre class="programlisting">public Customer getCustomer(Integer id) {
+    CustomerMappingQuery custQry = new CustomerMappingQuery(dataSource); 
+    Object[] parms = new Object[1];
+    parms[0] = id;
+    List customers = custQry.execute(parms);
+    if (customers.size() &gt; 0) {
+        return (Customer) customers.get(0);
+    }
+    else {
+        return null;
+    }
+}</pre>
+<p>
+			在上面的例子中，getCustomer方法通過傳遞惟一參數id來返回一個客戶物件。
+			該方法內部在創建<code class="classname">CustomerMappingQuery</code>實例之後，
+			我們創建了一個物件陣列用來包含要傳遞的查詢參數。這裡我們只有唯一的一個
+			<code class="classname">Integer</code>參數。執行<code class="classname">CustomerMappingQuery</code>的
+			execute方法之後，我們得到了一個<code class="literal">List</code>，該List中包含一個
+			<code class="classname">Customer</code>物件，如果有對象滿足查詢條件的話。
+		</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jdbc-SqlUpdate"></a>11.6.3.&#160;<code class="classname">SqlUpdate</code>類別</h3></div></div></div>
+<p>
+			<code class="classname">SqlUpdate</code>類別封裝了一個可重複使用的SQL更新操作。
+			跟所有<code class="classname">RdbmsOperation</code>類別一樣，SqlUpdate可以在SQL中定義參數。
+			該類別提供了一系列<code class="literal">update()</code>方法，就像SqlQuery提供的一系列<code class="literal">execute()</code>方法一樣。 
+			<code class="classname">SqlUpdate</code>是一個具體的類別。通過在SQL語句中定義參數，這個類別可以支持不同的更新方法，我們一般不需要通過繼承來實作定制。
+		</p>
+<pre class="programlisting">import java.sql.Types;
+
+import javax.sql.DataSource;
+
+import org.springframework.jdbc.core.SqlParameter;
+import org.springframework.jdbc.object.SqlUpdate;
+
+public class UpdateCreditRating extends SqlUpdate {
+
+    public UpdateCreditRating(DataSource ds) {
+        setDataSource(ds);
+        setSql("update customer set credit_rating = ? where id = ?");
+        declareParameter(new SqlParameter(Types.NUMERIC));
+        declareParameter(new SqlParameter(Types.NUMERIC));
+        compile();
+    }
+
+    <em class="lineannotation"><span class="lineannotation">/**
+     * @param id for the Customer to be updated
+     * @param rating the new value for credit rating
+     * @return number of rows updated
+     */</span></em>
+    public int run(int id, int rating) {
+        Object[] params =
+            new Object[] {
+                new Integer(rating),
+                new Integer(id)};
+        return update(params);
+    }
+}</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jdbc-StoredProcedure"></a>11.6.4.&#160;<code class="classname">StoredProcedure</code>類別</h3></div></div></div>
+<p>
+			<code class="classname">StoredProcedure</code>類別是一個抽象基類別，它是對RDBMS預儲程序的一種抽象。
+			該類別提供了多種<code class="literal">execute(..)</code>方法，不過這些方法的存取型別都是<code class="literal">protected</code>的。
+		</p>
+<p>
+			從父類別繼承的<code class="literal">sql</code>屬性用來指定RDBMS預儲程序的名字。
+			儘管該類別提供了許多必須在JDBC3.0下使用的功能，但是我們更關注的是JDBC 3.0中引入的命名參數特性。
+		</p>
+<p>
+			下面的程序演示了如何調用Oracle中的<code class="literal">sysdate()</code>函數。
+			這裡我們創建了一個繼承<code class="classname">StoredProcedure</code>的子類別，雖然它沒有輸入參數，
+			但是我必須通過使用<code class="classname">SqlOutParameter</code>來宣告一個日期型別的輸出參數。
+			<code class="literal">execute()</code>方法將返回一個map，map中的每個entry是一個用參數名作key，以輸出參數為value的名值對。
+		</p>
+<pre class="programlisting">
+import java.sql.Types;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
+import javax.sql.DataSource;
+
+import org.springframework.jdbc.core.SqlOutParameter;
+import org.springframework.jdbc.datasource.*;
+import org.springframework.jdbc.object.StoredProcedure;
+
+public class TestStoredProcedure {
+
+    public static void main(String[] args)  {
+        TestStoredProcedure t = new TestStoredProcedure();
+        t.test();
+        System.out.println("Done!");
+    }
+    
+    void test() {
+        DriverManagerDataSource ds = new DriverManagerDataSource();
+        ds.setDriverClassName("oracle.jdbc.OracleDriver");
+        ds.setUrl("jdbc:oracle:thin:@localhost:1521:mydb");
+        ds.setUsername("scott");
+        ds.setPassword("tiger");
+
+        MyStoredProcedure sproc = new MyStoredProcedure(ds);
+        Map results = sproc.execute();
+        printMap(results);
+    }
+
+    private class MyStoredProcedure extends StoredProcedure {
+        
+        private static final String SQL = "sysdate";
+
+        public MyStoredProcedure(DataSource ds) {
+            setDataSource(ds);
+            setFunction(true);
+            setSql(SQL);
+            declareParameter(new SqlOutParameter("date", Types.DATE));
+            compile();
+        }
+
+        public Map execute() {
+            <em class="lineannotation"><span class="lineannotation">// the 'sysdate' sproc has no input parameters, so an empty Map is supplied...</span></em>
+            return execute(new HashMap());
+        }
+    }
+
+    private static void printMap(Map results) {
+        for (Iterator it = results.entrySet().iterator(); it.hasNext(); ) {
+            System.out.println(it.next());  
+        }
+    }
+}</pre>
+<p>
+			下面是<code class="classname">StoredProcedure</code>的另一個例子，它使用了兩個Oracle游標型別的輸出參數。
+		</p>
+<pre class="programlisting">import oracle.jdbc.driver.OracleTypes;
+import org.springframework.jdbc.core.SqlOutParameter;
+import org.springframework.jdbc.object.StoredProcedure;
+
+import javax.sql.DataSource;
+import java.util.HashMap;
+import java.util.Map;
+
+public class TitlesAndGenresStoredProcedure extends StoredProcedure {
+
+    private static final String SPROC_NAME = "AllTitlesAndGenres";
+
+    public TitlesAndGenresStoredProcedure(DataSource dataSource) {
+        super(dataSource, SPROC_NAME);
+        declareParameter(new SqlOutParameter("titles", OracleTypes.CURSOR, new TitleMapper()));
+        declareParameter(new SqlOutParameter("genres", OracleTypes.CURSOR, new GenreMapper()));
+        compile();
+    }
+
+    public Map execute() {
+        <em class="lineannotation"><span class="lineannotation">// again, this sproc has no input parameters, so an empty Map is supplied...</span></em>
+        return super.execute(new HashMap());
+    }
+}</pre>
+<p>
+			值得注意的是<code class="classname">TitlesAndGenresStoredProcedure</code>建構函數中
+			<code class="literal">declareParameter(..)</code>的<code class="classname">SqlOutParameter</code>參數，
+			該參數使用了<code class="interfacename">RowMapper</code>介面的實作。這是一種非常方便而強大的重用方式。
+			下面我們來看一下<code class="interfacename">RowMapper</code>的兩個具體實作。
+		</p>
+<p>
+			首先是<code class="classname">TitleMapper</code>類別，它簡單的把<code class="interfacename">ResultSet</code>中的每一行映射為一個<code class="classname">Title</code>Domain Object。
+		</p>
+<pre class="programlisting">import com.foo.sprocs.domain.Title;
+import org.springframework.jdbc.core.RowMapper;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+public final class TitleMapper implements RowMapper {
+    
+    public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+        Title title = new Title();
+        title.setId(rs.getLong("id"));
+        title.setName(rs.getString("name"));
+        return title;
+    }
+}</pre>
+<p>
+			另一個是<code class="classname">GenreMapper</code>類別，也是非常簡單的將<code class="interfacename">ResultSet</code>中的每一行映射為一個<code class="classname">Genre</code>Domain Object。
+		</p>
+<pre class="programlisting">import org.springframework.jdbc.core.RowMapper;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import com.foo.domain.Genre;
+
+public final class GenreMapper implements RowMapper {
+    
+    public Object mapRow(ResultSet rs, int rowNum) throws SQLException {
+        return new Genre(rs.getString("name"));
+    }
+}</pre>
+<p>
+			如果你需要給預儲程序傳輸入參數（這些輸入參數是在RDBMS預儲程序中定義好了的），
+			則需要提供一個指定型別的<code class="literal">execute(..)</code>方法，
+			該方法將調用基類別的<code class="literal">protected</code> <code class="literal">execute(Map parameters)</code>方法。例如：
+		</p>
+<pre class="programlisting">import oracle.jdbc.driver.OracleTypes;
+import org.springframework.jdbc.core.SqlOutParameter;
+import org.springframework.jdbc.object.StoredProcedure;
+
+import javax.sql.DataSource;
+import java.util.HashMap;
+import java.util.Map;
+
+public class TitlesAfterDateStoredProcedure extends StoredProcedure {
+
+    private static final String SPROC_NAME = "TitlesAfterDate";
+    private static final String CUTOFF_DATE_PARAM = "cutoffDate";
+
+    public TitlesAfterDateStoredProcedure(DataSource dataSource) {
+        super(dataSource, SPROC_NAME);
+        declareParameter(new SqlParameter(CUTOFF_DATE_PARAM, Types.DATE);
+        declareParameter(new SqlOutParameter("titles", OracleTypes.CURSOR, new TitleMapper()));
+        compile();
+    }
+
+    public Map execute(Date cutoffDate) {
+        Map inputs = new HashMap();
+        inputs.put(CUTOFF_DATE_PARAM, cutoffDate);
+        return super.execute(inputs);
+    }
+}</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jdbc-SqlFunction"></a>11.6.5.&#160;<code class="classname">SqlFunction</code>類別</h3></div></div></div>
+<p>
+			<code class="classname">SqlFunction</code> RDBMS操作類別封裝了一個SQL「函數」外覆器（wrapper），
+			該套件裝器適用於查詢並返回一個單行結果集。預設返回的是一個<code class="literal">int</code>值，
+			不過我們可以採用類似<code class="classname">JdbcTemplate</code>中的<code class="literal">queryForXxx</code>
+			做法自己實作來返回其它型別。<code class="classname">SqlFunction</code>優勢在於我們不必創建
+			<code class="classname">JdbcTemplate</code>，這些它都在內部替我們做了。
+		</p>
+<p>
+			該類別的主要用途是調用SQL函數來返回一個單值的結果集，比如類似「select user()」、
+			「select sysdate from dual」的查詢。如果需要調用更複雜的存儲函數，
+			（可以為這種型別的處理使用<code class="classname">StoredProcedure</code>或<code class="classname">SqlCall）</code>。
+		</p>
+<p>
+			<code class="classname">SqlFunction</code>是一個具體類別，通常我們不需要它的子類別。
+			其用法是創建該類別的實例，然後宣告SQL語句以及參數就可以調用相關的run方法去多次執行函數。
+			下面的例子用來返回指定表的記錄行數：
+		</p>
+<pre class="programlisting">public int countRows() {
+    SqlFunction sf = new SqlFunction(dataSource, "select count(*) from mytable");
+    sf.compile();
+    return sf.run();
+}</pre>
+</div>
+</div></body>
+</html>

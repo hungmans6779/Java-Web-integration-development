@@ -1,0 +1,79 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>第&#160;15&#160;章&#160;整合其它Web框架</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="pt03.html" title="部分&#160;III.&#160;The Web">
+<link rel="prev" href="ch14s07.html" title="14.7.&#160;JasperReports">
+<link rel="next" href="ch15s02.html" title="15.2.&#160;通用配置">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="chapter" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title">
+<a name="webintegration"></a>第&#160;15&#160;章&#160;整合其它Web框架</h2></div></div></div>
+<div class="toc">
+<p><b>目錄</b></p>
+<dl>
+<dt><span class="section"><a href="ch15.html#intro">15.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch15s02.html">15.2. 通用配置</a></span></dt>
+<dt><span class="section"><a href="ch15s03.html">15.3. JavaServer Faces</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch15s03.html#jsf-delegatingvariableresolver">15.3.1. DelegatingVariableResolver</a></span></dt>
+<dt><span class="section"><a href="ch15s03.html#jsf-facescontextutils">15.3.2. FacesContextUtils</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch15s04.html">15.4. Struts</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch15s04.html#struts-contextloaderplugin">15.4.1. ContextLoaderPlugin</a></span></dt>
+<dt><span class="section"><a href="ch15s04.html#struts-actionsupport">15.4.2. ActionSupport Classes</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch15s05.html">15.5. Tapestry</a></span></dt>
+<dd><dl><dt><span class="section"><a href="ch15s05.html#view-tapestry-di">15.5.1. 注入 Spring 托管的 beans</a></span></dt></dl></dd>
+<dt><span class="section"><a href="ch15s06.html">15.6. WebWork</a></span></dt>
+<dt><span class="section"><a href="ch15s07.html">15.7. 更多資源</a></span></dt>
+</dl>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="intro"></a>15.1.&#160;簡介</h2></div></div></div>
+<p>
+            本章將詳細介紹Spring如何與 <a href="http://struts.apache.org/" target="_top">Struts</a>，
+            <a href="http://java.sun.com/javaee/javaserverfaces/" target="_top">JSF</a>，
+            <a href="http://jakarta.apache.org/tapestry/" target="_top">Tapestry</a>以及
+            <a href="http://www.opensymphony.com/webwork/" target="_top">WebWork</a> 等第三方框架整合。
+        </p>
+<div class="sidebar">
+<p class="title"><b>Spring WebFlow</b></p>
+<p>Spring Web Flow（SWF）的目標是成為Web應用程序頁面串流轉管理的最佳解決方案。</p>
+<p>SWF在servlet和portlet環境中都與比如Spring MVC，Struts，和JSF這樣的現存框架整合在一起。
+  如果你面對的是一個更能得益於作為對話模型，而不是單純的請求模型的業務串流程（或多個串流程）的話，
+  那麼SWF可能就是解決方案了。</p>
+<p>SWF使你能夠把邏輯上的頁面串流轉捕捉為自容納的模組，並在不同的情形下被復用。
+  而這對於開發要引導使用者完成受控的瀏覽動作，從而驅動業務串流程的Web應用程序模組正是理想的。</p>
+<p>關於SWF的更多資訊，請存取<a href="http://www.springframework.org/webflow" target="_top">Spring WebFlow站點</a>。</p>
+</div>
+<p>
+          Spring 框架最具核心價值的一個提議就是允許 <span class="emphasis"><em>選擇</em></span>。總的來說，
+        	Spring 不會強迫大家去使用或者是購買任何特定的架構，技術或者開發方法（雖然它肯定會有傾向性的推薦一些）。
+        	選擇架構、技術、開發方法的自由是與開發人員以及他（她）所在的開發團隊慼慼相關的，
+        	這在 Web 領域是個不爭的事實。Spring 提供了自己的 Web 框架（SpringMVC），
+        	同時它也提供了與其它串流行的 Web 框架整合的能力。這就允許開發人員充分利用已經掌握的技術，
+        	比如某人可以使用他所熟悉的 Struts 框架，同時他也可以享受 Spring 提供的其他功能，
+        	例如資料存取，宣告式事務處理，以及靈活的配置和方便的應用整合。
+        </p>
+<p>
+            上一段簡單介紹了Spring的一些賣點，這章剩下的部分將集中介紹如何用 Spring 整合你所喜歡的 Web 框架。
+        	那些從其他語言轉向 Java 的開發者們經常說，Java 裡面的 Web 框架是在太多了...事實的確如此；
+        	這也意味著在一個章節裡想要涵蓋所有框架的細節是絕對不可能的。這一章選擇了 Java 中四個最串流行的 Web 框架，
+        	首先介紹對於所有框架都適用的 Spring 配置，然後對每個支持的 Web 框架提供詳細的整合選項。
+        </p>
+<p>
+			<span class="emphasis"><em>
+				請注意這一章並不解釋如何使用某種特定的 Web 框架。舉個例子，如果你想要使用 Struts 
+				作為 Web 應用的表現層，在閱讀本章以前，你應該已經熟悉了 Struts。
+				如果你想要瞭解那些 Web 框架的詳細資訊，請參考本章的結尾：<a href="ch15s07.html" title="15.7.&#160;更多資源">第&#160;15.7&#160;節 「更多資源」</a>。
+            </em></span>
+        </p>
+</div>
+</div></body>
+</html>

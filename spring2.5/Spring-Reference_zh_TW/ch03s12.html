@@ -1,0 +1,239 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>3.12.&#160;對受管元件的Classpath掃瞄</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch03.html" title="第&#160;3&#160;章&#160;IoC(控制反轉)容器">
+<link rel="prev" href="ch03s11.html" title="3.11.&#160;基於註釋（Annotation-based）的配置">
+<link rel="next" href="ch03s13.html" title="3.13.&#160;註冊一個LoadTimeWeaver">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="beans-classpath-scanning"></a>3.12.&#160;對受管元件的Classpath掃瞄</h2></div></div></div>
+<p>到目前為止本章中的大多數例子都使用XML來指定配置元資料，
+    這些元資料會產生Spring容器中的每個<code class="interfacename">BeanDefinition</code>。
+    上一節(<a href="ch03s11.html" title="3.11.&#160;基於註釋（Annotation-based）的配置">第&#160;3.11&#160;節 「基於註釋（Annotation-based）的配置」</a>)演示了如何使用程式碼級註釋來提供大量配置元資料。
+    然而，即使是在那些例子中，「基礎」bean定義還是顯式地定義在XML檔案中，註釋只是用來驅動依賴注入的。
+    本節中會介紹一種方法，通過掃瞄classpath並匹配<span class="emphasis"><em>過濾器</em></span>來隱式地檢測<span class="emphasis"><em>候選元件</em></span> (candidate components)。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="beans-stereotype-annotations"></a>3.12.1.&#160;<code class="interfacename">@Component</code>和更多典型化註釋</h3></div></div></div>
+<p>從Spring 2.0開始，引入了<code class="interfacename">@Repository</code>註釋，
+      用它來標記充當儲存資源庫(又稱 Data Access Object或DAO)角色或典型的類別。利用這個標記可以做很多事，
+      其中之一就是對<a href="ch12s06.html#orm-jpa-exceptions" title="12.6.4.&#160;異常轉化">第&#160;12.6.4&#160;節 「異常轉化」</a>中描述的異常進行自動轉換。</p>
+<p>Spring 2.5引入了更多典型化註釋(stereotype annotations)：
+      <code class="interfacename">@Component</code>、<code class="interfacename">@Service</code>和
+      <code class="interfacename">@Controller</code>。
+      <code class="interfacename">@Component</code>是所有受Spring管理元件的通用形式；
+      而<code class="interfacename">@Repository</code>、<code class="interfacename">@Service</code>和
+      <code class="interfacename">@Controller</code>則是<code class="interfacename">@Component</code>的細化，
+      用來表示更具體的用例(例如，分別對應了持久化層、服務層和表現層)。也就是說，
+      你能用<code class="interfacename">@Component</code>來註釋你的元件類別，
+      但如果用<code class="interfacename">@Repository</code>、<code class="interfacename">@Service</code>
+      或<code class="interfacename">@Controller</code>來註釋它們，你的類別也許能更好地被工具處理，或與切面進行關聯。
+      例如，這些典型化註釋可以成為理想的切入點目標。當然，在Spring Framework以後的版本中，
+      <code class="interfacename">@Repository</code>、<code class="interfacename">@Service</code>和
+      <code class="interfacename">@Controller</code>也許還能攜帶更多語義。如此一來，如果你正在考慮服務層中是該用
+      <code class="interfacename">@Component</code>還是<code class="interfacename">@Service</code>，
+      那<code class="interfacename">@Service</code>顯然是更好的選擇。同樣的，就像前面說的那樣，
+      <code class="interfacename">@Repository</code>已經能在持久化層中進行異常轉換時被作為標記使用了。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="beans-scanning-autodetection"></a>3.12.2.&#160;自動檢測元件</h3></div></div></div>
+<p>Spring可以自動檢測「被典型化」(stereotyped)的類別，在<code class="interfacename">ApplicationContext</code>
+      中註冊相應的<code class="interfacename">BeanDefinition</code>。例如，下面的這兩個類別就滿足這種自動檢測的要求：</p>
+<pre class="programlisting">@Service
+public class SimpleMovieLister {
+
+    private MovieFinder movieFinder;
+
+    @Autowired
+    public SimpleMovieLister(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+}</pre>
+<pre class="programlisting">@Repository
+public class JpaMovieFinder implements MovieFinder {
+    <em class="lineannotation"><span class="lineannotation">// implementation elided for clarity</span></em>
+}</pre>
+<p>要檢測這些類別並註冊相應的bean，需要在XML中包含以下元素，其中'basePackage'是兩個類別的公共父包
+      (或者可以用逗號分隔的列表來分別指定包含各個類別的套件)。</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans 
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context-2.5.xsd"&gt;
+               
+     &lt;context:component-scan base-package="org.example"/&gt;
+     
+&lt;/beans&gt;</pre>
+<p>此外，在使用元件掃瞄元素時，<code class="interfacename">AutowiredAnnotationBeanPostProcessor</code>
+      和<code class="interfacename">CommonAnnotationBeanPostProcessor</code>會隱式地被包括進來。
+      也就是說，連個元件都會被自動檢測<span class="emphasis"><em>並</em></span>織入 - 
+      所有這一切都不需要在XML中提供任何bean配置元資料。</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>通過加入值為'false'的<span class="emphasis"><em>annotation-config</em></span>屬性可以禁止註冊這些後置處理器。</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="beans-scanning-filters"></a>3.12.3.&#160;使用過濾器自定義掃瞄</h3></div></div></div>
+<p>預設情況下，用<code class="interfacename">@Component</code>、
+      <code class="interfacename">@Repository</code>、<code class="interfacename">@Service</code>或
+      <code class="interfacename">@Controller</code> (或本身使用了<code class="interfacename">@Component</code>註釋的自定義註釋)
+      註釋的類別是唯一會被檢測到的候選元件。但是可以很方便地通過自定義過濾器來改變並擴展這一行為。
+      可以用'<code class="literal">component-scan</code>'的<span class="emphasis"><em>include-filter</em></span>或
+      <span class="emphasis"><em>exclude-filter</em></span>子元素來進行添加。
+      每個過濾器元素都要求有'<code class="literal">type</code>'和'<code class="literal">expression</code>'屬性。
+      下面給出了四個已有的可選過濾器。</p>
+<div class="table">
+<a name="beans-scanning-filters-tbl"></a><p class="title"><b>表&#160;3.7.&#160;過濾器型別</b></p>
+<div class="table-contents"><table summary="過濾器型別" border="1">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>過濾器型別</th>
+<th>表達式範例</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>annotation</td>
+<td><p><code class="classname">org.example.SomeAnnotation</code></p></td>
+</tr>
+<tr>
+<td>assignable</td>
+<td><p><code class="classname">org.example.SomeClass</code></p></td>
+</tr>
+<tr>
+<td>regex</td>
+<td><p>org\.example\.Default.*</p></td>
+</tr>
+<tr>
+<td>aspectj</td>
+<td><p><code class="interfacename">org.example..*Service+</code></p></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><p>下面這個XML配置會忽略所有的<code class="interfacename">@Repository</code>註釋並用「stub」儲存資源庫代替。</p>
+<pre class="programlisting">&lt;beans ...&gt;
+
+     &lt;context:component-scan base-package="org.example"&gt;
+        &lt;context:include-filter type="regex" expression=".*Stub.*Repository"/&gt;
+        &lt;context:exclude-filter type="annotation" expression="org.springframework.stereotype.Repository"/&gt;
+     &lt;/context:component-scan&gt;
+
+&lt;/beans&gt;</pre>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>你也可以用&lt;component-scan/&gt;元素的<span class="emphasis"><em>use-default-filters="false"</em></span>
+        屬性來禁用預設的過濾器。這會關閉對使用了<code class="interfacename">@Component</code>、
+        <code class="interfacename">@Repository</code>、<code class="interfacename">@Service</code>或
+        <code class="interfacename">@Controller</code>的類別的自動檢測。</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="beans-scanning-name-generator"></a>3.12.4.&#160;自動檢測元件的命名</h3></div></div></div>
+<p>當一個元件在某個掃瞄過程中被自動檢測到時，會根據那個掃瞄器的<code class="interfacename">BeanNameGenerator</code>
+      策略產生它的bean名稱。預設情況下，任何包含<code class="literal">name</code>值的Spring「典型」註釋
+      (<code class="interfacename">@Component</code>、<code class="interfacename">@Repository</code>、
+      <code class="interfacename">@Service</code>和<code class="interfacename">@Controller</code>)
+      會把那個名字提供給相關的bean定義。如果這個註釋不包含<code class="literal">name</code>值或是其他檢測到的元件
+      (比如被自定義過濾器發現的)，預設bean名稱產生器會返回小寫開頭的非限定(non-qualified)類別名。
+      例如，如果發現了下面這兩個元件，它們的名字會是'myMovieLister'和'movieFinderImpl'：</p>
+<pre class="programlisting">@Service("myMovieLister")
+public class SimpleMovieLister {
+    <em class="lineannotation"><span class="lineannotation">// ...</span></em>
+}</pre>
+<pre class="programlisting">@Repository
+public class MovieFinderImpl implements MovieFinder {
+    <em class="lineannotation"><span class="lineannotation">// ...</span></em>
+}</pre>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>如果你不想使用預設bean命名策略，可以提供一個自定義的命名策略。首先實作
+        <a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/beans/factory/support/BeanNameGenerator.html" target="_top"><code class="interfacename">BeanNameGenerator</code></a>
+        介面，確認包含了一個預設的無參數建構方法。然後在配置掃瞄器時提供一個全限定(fully-qualified)類別名：</p>
+</div>
+<pre class="programlisting">&lt;beans ...&gt;
+               
+     &lt;context:component-scan base-package="org.example"
+                             name-generator="org.example.MyNameGenerator" /&gt;
+
+&lt;/beans&gt;</pre>
+<p>作為一條常規，當其他元件可能會顯式地參考一個元件時可以考慮用註釋來指定名稱。
+      另一方面，當容器負責織入時，自動產生的名稱就足夠了。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="beans-scanning-scope-resolver"></a>3.12.5.&#160;為自動檢測的元件提供一個作用域</h3></div></div></div>
+<p>通常受Spring管理的元件，預設或者最常用的作用域是「singleton」。然而，有時也會需要其他的作用域。
+      因此Spring 2.5還引入了一個新的<code class="interfacename">@Scope</code>註釋。只要在註釋中提供作用域的名稱就行了，
+      比方說：</p>
+<pre class="programlisting">@Scope("prototype")
+@Repository
+public class MovieFinderImpl implements MovieFinder {
+    <em class="lineannotation"><span class="lineannotation">// ...</span></em>
+}</pre>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>如果你想提供一個自定義的作用域解析策略，不使用基於註釋的方法，實作<a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/context/annotation/ScopeMetadataResolver.html" target="_top"><code class="interfacename">ScopeMetadataResolver</code></a>
+        介面，確認包含一個預設的沒有參數的建構方法。然後在配置掃瞄器時提供全限定類別名：</p>
+</div>
+<pre class="programlisting">&lt;beans ...&gt;
+               
+     &lt;context:component-scan base-package="org.example"
+                             scope-resolver="org.example.MyScopeResolver" /&gt;
+     
+&lt;/beans&gt;</pre>
+<p>當使用某些非singleton的作用域時，可能需要為這些作用域中的物件產生代理。
+      原因在標題為<a href="ch03s04.html#beans-factory-scopes-other-injection" title="3.4.4.5.&#160;作用域bean與依賴">第&#160;3.4.4.5&#160;節 「作用域bean與依賴」</a>的章節中已經說過了。
+      為了這個目的，'component-scan'元素有一個<span class="emphasis"><em>scoped-proxy</em></span>屬性。
+      三個可能值是：'no'、'interfaces'和'targetClass'。比方說，下面的配置會產生標準的JDK動態代理：</p>
+<pre class="programlisting">&lt;beans ...&gt;
+               
+     &lt;context:component-scan base-package="org.example"
+                             scoped-proxy="interfaces" /&gt;
+     
+&lt;/beans&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="beans-scanning-qualifiers"></a>3.12.6.&#160;用註釋提供限定符元資料</h3></div></div></div>
+<p>在名為<a href="ch03s11.html#beans-autowired-annotation-qualifiers" title="3.11.2.&#160;基於註釋的自動連接微調">第&#160;3.11.2&#160;節 「基於註釋的自動連接微調」</a>的章節裡引入了<code class="interfacename">@Qualifier</code>註釋。
+      那節的例子中演示了<code class="interfacename">@Qualifier</code>註釋的用法，以及如何用自定義限定符註釋在自動織入解析時提供精細控制。
+      那些例子是基於XML bean定義的，所以限定符元資料是在XML中由'<code class="literal">bean</code>'元素的
+      '<code class="literal">qualifier</code>'或'<code class="literal">meta</code>'子元素提供。使用classpath掃瞄來自動檢測元件時，
+      限定符元資料可以由候選類別上的類別別級(type-level)註釋來提供。下面的三個例子就演示了這個技術。</p>
+<pre class="programlisting">@Component
+<span class="bold"><strong>@Qualifier("Action")</strong></span>
+public class ActionMovieCatalog implements MovieCatalog {
+    <em class="lineannotation"><span class="lineannotation">// ...</span></em>
+}</pre>
+<pre class="programlisting">@Component
+<span class="bold"><strong>@Genre("Action")</strong></span>
+public class ActionMovieCatalog implements MovieCatalog {
+    <em class="lineannotation"><span class="lineannotation">// ...</span></em>
+}</pre>
+<pre class="programlisting">@Component
+<span class="bold"><strong>@Offline</strong></span>
+public class CachingMovieCatalog implements MovieCatalog {
+    <em class="lineannotation"><span class="lineannotation">// ...</span></em>
+}</pre>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>和其他大多數基於註釋的東西一樣，請牢記註釋元資料是綁定到類別定義上的，
+      而XML則允許多個<span class="emphasis"><em>相同型別</em></span>的bean根據限定符元資料提供多種選擇，
+      因為元資料是由每個實例提供的，而不是每個類別。</div>
+</div>
+</div></body>
+</html>

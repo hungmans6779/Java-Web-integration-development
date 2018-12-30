@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.5" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee   http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+  
+  <display-name />
+  
+  
+  <!-- Spring 設定 -->
+  <context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>
+      /WEB-INF/classes/applicationContext.xml,
+      /WEB-INF/classes/applicationContext_struts2.xml
+    </param-value> <!-- 設定檔的位置(可以多個設定檔，用,隔開即可)  --> 
+  </context-param>
+
+  
+  <!-- 設定Listener 載入 Spring 設定檔 -->
+  <listener>
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+  </listener>
+  
+  
+  
+  
+  
+
+
+  
+ 
+  <!-- 
+    OpenSessionInViewFilter，將 session 範圍擴大到 JSP 層，防止拋出延遲載入例外
+    OpenSessionInViewFilter 是 Spring 的一個 filter ，用於解決 Hibernate 延遲載人的問題，
+    該 Filter 會將 Session 的範圍延到到 JSP 層，這樣 JSP 中就不會因為延遲載入拋出例外了。 
+  -->
+  <filter>
+    <filter-name>hibernateFilter</filter-name>
+    <filter-class>org.springframework.orm.hibernate3.support.OpenSessionInViewFilter</filter-class>
+  </filter>
+  
+  <!-- 字元編碼 Filter -->
+  <filter>
+    <filter-name>CharacterEncodingFilter</filter-name>
+    <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+    <init-param>
+      <param-name>encoding</param-name>
+      <param-value>utf-8</param-value>
+    </init-param>
+    <init-param>
+      <param-name>forceEncoding</param-name>  <!-- 是否啟用編碼 -->
+      <param-value>true</param-value>         <!-- 啟用 -->
+    </init-param>
+  </filter>
+  
+  <!-- 
+     Struts2.x 的入口點，所使用的 StrutsPrepareAndExecuteFilter   
+     由於 Struts2.x 是從 WebWork 2.x 發展而來，與 Strut1.x 的直接關聯不大，因為 Struts2.x 與 Struts1.x 能夠存在於同一個 Web 系統中。
+     Struts2.x 預設以 action 為副檔名，Struts1.x 預設以 do 為副檔名，URL 也不衝突。 SpringFramework 能同時管理這兩個 Framework 。
+     
+     在本項目的 WEB-INF\lib 下增加 Struts2.x 類別函式庫。本例使用 Spring 整合 Struts2，
+     需要將類別函式庫struts2-spring-plugin-2.0.xx.jar 增加進去。
+  -->
+  <filter>
+  	<filter-name>struts2</filter-name>
+  	<filter-class>org.apache.struts2.dispatcher.FilterDispatcher</filter-class>
+  </filter>
+
+
+  <filter-mapping>
+    <filter-name>hibernateFilter</filter-name>
+    <url-pattern>*.do</url-pattern>
+  </filter-mapping>
+  <filter-mapping>
+    <filter-name>CharacterEncodingFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  <filter-mapping>
+  	<filter-name>struts2</filter-name>      <!-- 設定 URL  -->
+  	<url-pattern>/*</url-pattern>           <!-- 接受所有的URL  -->
+  	                                        <!-- 
+  	                                               雖然 Strust2.x 的預設副檔名為 ".action" ，此處 URL 映射仍然設定為 "/* " 而不是 "*.action"。
+  	                                               因為 Struts2.x 還整合了一些資料如 DOJO 類別函式庫、CSS 檔案，而這些檔案是以 "*.js"、".css" 結尾。
+  	                                        -->   
+  </filter-mapping>
+  
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <!-- Struts1.x 所使用的 ActionServlet  -->
+  <servlet>
+    <servlet-name>action</servlet-name>
+    <servlet-class>org.apache.struts.action.ActionServlet</servlet-class>
+    <init-param>
+      <param-name>config</param-name>
+      <param-value>/WEB-INF/struts-config.xml</param-value>
+    </init-param>
+    <init-param>
+      <param-name>debug</param-name>
+      <param-value>3</param-value>
+    </init-param>
+    <init-param>
+      <param-name>detail</param-name>
+      <param-value>3</param-value>
+    </init-param>
+    <load-on-startup>0</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>action</servlet-name>
+    <url-pattern>*.do</url-pattern>
+  </servlet-mapping>
+  
+ 
+ 
+ 
+ 
+ 
+  
+  <welcome-file-list>
+    <welcome-file>index.jsp</welcome-file>
+  </welcome-file-list>
+  
+ 
+
+
+ 
+   
+</web-app>

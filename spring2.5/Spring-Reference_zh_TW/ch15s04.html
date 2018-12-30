@@ -1,0 +1,192 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>15.4.&#160;Struts</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch15.html" title="第&#160;15&#160;章&#160;整合其它Web框架">
+<link rel="prev" href="ch15s03.html" title="15.3.&#160;JavaServer Faces">
+<link rel="next" href="ch15s05.html" title="15.5.&#160;Tapestry">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="struts"></a>15.4.&#160;Struts</h2></div></div></div>
+<p>
+			<a href="http://struts.apache.org" target="_top">Struts</a> 是 <span class="emphasis"><em>應用最廣的</em></span> 
+			Java Web 開發框架，主要是因為它是最先發行的幾個框架之一（2001年6月）。這個框架由
+			Craig McClanahan 開發完成，現在作為 Apache 軟體基金會的一個開源項目。
+			當時，它極大地簡化了 JSP/Servlet 程式範例並且贏得了大多數正在使用私人框架的開發人員的青睞。它簡化了程式模型，它是開源的，它具有一個
+			龐大的社區，這些都使得這個項目快速成長，同時變得越來越串流行。
+		</p>
+<p>
+			要整合Struts 與 Spring，有兩個選擇：
+		</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>
+   					配置 Spring 將 Action 作為 bean 托管，使用 <code class="classname">ContextLoaderPlugin</code>，
+						並且在 Spring context中設置依賴關係。
+				</p></li>
+<li><p>
+   					繼承 Spring 的 <code class="classname">ActionSupport</code> 類別並且
+						使用<span class="emphasis"><em>getWebApplicationContext()</em></span> 方法獲取 Spring 管理的 bean。
+				</p></li>
+</ul></div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="struts-contextloaderplugin"></a>15.4.1.&#160;ContextLoaderPlugin</h3></div></div></div>
+<p>
+				<a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/web/struts/ContextLoaderPlugIn.html" target="_top"><code class="classname">ContextLoaderPlugin</code></a>
+				是 Struts 1.1+ 的外掛程式，用來為 Struts 的 <code class="classname">ActionServlet</code> 載入 Spring context檔案。
+				這個context參考 <code class="classname">WebApplicationContext</code> （由 <code class="classname">ContextLoaderListener</code> 載入）
+				作為它的父類別。預設的context檔案是映射的 Servlet 的名字，加上 <span class="emphasis"><em>-servlet.xml</em></span>後綴。
+				如果 <code class="classname">ActionServlet</code> 在 web.xml 裡面的定義是 <code class="literal">&lt;servlet-name&gt;action&lt;/servlet-name&gt;</code>，
+				那麼預設的檔案就是 <span class="emphasis"><em>/WEB-INF/action-servlet.xml</em></span>。
+			</p>
+<p>
+				要配置這個外掛程式，請把下面的 XML 貼到 <span class="emphasis"><em>struts-config.xml</em></span> 檔案中 plug-ins 部分的底端：
+			</p>
+<pre class="programlisting">&lt;plug-in className="org.springframework.web.struts.ContextLoaderPlugIn"/&gt;</pre>
+<p>
+				context配置檔案的位置可以通過 『<code class="literal">contextConfigLocation</code>』 屬性來自定義。
+            </p>
+<pre class="programlisting">&lt;plug-in className="org.springframework.web.struts.ContextLoaderPlugIn"&gt;
+  &lt;set-property property="contextConfigLocation"
+      value="/WEB-INF/action-servlet.xml,/WEB-INF/applicationContext.xml"/&gt;
+&lt;/plug-in&gt;</pre>
+<p>
+				也可以使用這個外掛程式載入所有的配置檔案，這在使用測試工具（例如 StrutsTestCase）的時候特別有用。
+				StrutsTestCase 的 <code class="classname">MockStrutsTestCase</code> 不會在啟動的時候初始化 Listener，
+				將你所有的配置檔案放在plug-in裡面是一種解決方案。（有個 <a href="http://sourceforge.net/tracker/index.php?func=detail&amp;aid=1088866&amp;group_id=39190&amp;atid=424562" target="_top">已記錄的 bug</a>
+				就是針對這個問題的，但是已經被標記為「無須改正」）。
+			</p>
+<p>
+				在 <span class="emphasis"><em>struts-config.xml</em></span> 中配置好外掛程式以後，你可以配置Sping來管理 
+				<code class="classname">Action</code>。Spring (1.1.3以後的版本) 提供下面兩種方式：
+			</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>
+	   					用 Spring 的<code class="classname">DelegatingRequestProcessor</code>重載 Struts 
+						預設的 <code class="classname">RequestProcessor</code> 。
+						</p></li>
+<li><p>
+	   					將 <code class="literal">&lt;action-mapping&gt;</code> 的 <code class="literal">type</code> 屬性設為
+						<code class="classname">DelegatingActionProxy</code>。
+					</p></li>
+</ul></div>
+<p>
+				這兩種方法都允許在 <span class="emphasis"><em>action-servlet.xml</em></span> 檔案中管理你的 Action 以及依賴關係。
+				連接 <span class="emphasis"><em>struts-config.xml</em></span> 和 <span class="emphasis"><em>action-servlet.xml</em></span> 中的 Action 的橋樑
+				是 action-mapping 的「path」和 bean 的「name」。如果在 <span class="emphasis"><em>struts-config.xml</em></span> 檔案中有如下配置：
+			</p>
+<pre class="programlisting">&lt;action path="/users" .../&gt;</pre>
+<p>
+				你必須在 <span class="emphasis"><em>action-servlet.xml</em></span> 中將 Action bean 的名字定義為 「/users」：
+			</p>
+<pre class="programlisting">&lt;bean name="/users" .../&gt;</pre>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="struts-delegatingrequestprocessor"></a>15.4.1.1.&#160;DelegatingRequestProcessor</h4></div></div></div>
+<p>
+					為了在 <span class="emphasis"><em>struts-config.xml</em></span> 檔案中配置 <a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/web/struts/DelegatingRequestProcessor.html" target="_top">
+					<code class="literal">DelegatingRequestProcessor</code></a>，你需要重載 &lt;controller&gt; 元素的 「processorClass」 屬性。
+					下面的幾行應該放在 &lt;action-mapping&gt; 元素的後面。
+				</p>
+<pre class="programlisting">&lt;controller&gt;
+  &lt;set-property property="processorClass"
+      value="org.springframework.web.struts.DelegatingRequestProcessor"/&gt;
+&lt;/controller&gt;</pre>
+<p>
+					增加這些設置之後，不管你查詢任何型別的 Action，Sping都自動在它的context配置檔案中尋找。
+					實際上，你甚至不需要指定型別。下面兩個程式碼片斷都可以工作：
+				</p>
+<pre class="programlisting">&lt;action path="/user" type="com.whatever.struts.UserAction"/&gt;		
+&lt;action path="/user"/&gt;</pre>
+<p>
+					如果使用 Struts 的 <span class="emphasis"><em>modules</em></span> 特性，則 bean 命名必須含有 module 的前綴。
+					舉個例子，如果一個 Action 的定義為 <code class="literal">&lt;action path="/user"/&gt;</code>，而且它的 module 前綴為「admin」，
+					那麼它應該對應名為 <code class="literal">&lt;bean name="/admin/user"/&gt;</code> 的 bean。
+				</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>
+						如果在 Struts 應用中使用了 Tiles，則需要配置 &lt;controller&gt; 為
+						<a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/web/struts/DelegatingTilesRequestProcessor.html" target="_top"><code class="classname">DelegatingTilesRequestProcessor</code></a>
+					</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="struts-delegatingactionproxy"></a>15.4.1.2.&#160;DelegatingActionProxy</h4></div></div></div>
+<p>
+					如果你有一個自定義的 <code class="classname">RequestProcessor</code> 並且不能夠使用
+					<code class="classname">DelegatingRequestProcessor</code> 或者
+					<code class="classname">DelegatingTilesRequestProcessor</code>，你可以使用 <a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/web/struts/DelegatingActionProxy.html" target="_top">
+					<code class="classname">DelegatingActionProxy</code></a> 作為你 action-mapping 中的型別。
+				</p>
+<pre class="programlisting">&lt;action path="/user" type="org.springframework.web.struts.DelegatingActionProxy"
+    name="userForm" scope="request" validate="false" parameter="method"&gt;
+  &lt;forward name="list" path="/userList.jsp"/&gt;
+  &lt;forward name="edit" path="/userForm.jsp"/&gt;
+&lt;/action&gt;</pre>
+<p>
+					<span class="emphasis"><em>action-servlet.xml</em></span> 檔案中的bean定義依然不變，不管你使用了自定義的 
+					<code class="literal">RequestProcessor</code> 還是 <code class="classname">DelegatingActionProxy</code>。
+				</p>
+<p>
+					如果把 <code class="classname">Action</code> 定義在Spring的context檔案裡，那麼 Spring bean 容器的所有特性都可用了：
+					比如，依賴注入，再比如，為每個請求初始化一個新的 <code class="classname">Action</code> 實例。
+					如果要使用這個特性，Action bean 定義中需要宣告<span class="emphasis"><em>scope="prototype"</em></span>。
+				</p>
+<pre class="programlisting">&lt;bean name="/user" scope="prototype" autowire="byName"
+    class="org.example.web.UserAction"/&gt;</pre>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="struts-actionsupport"></a>15.4.2.&#160;ActionSupport Classes</h3></div></div></div>
+<p>
+				正如前面提到的，可以使用 <code class="classname">WebApplicationContextUtils</code> 類別從
+				<span class="interface">ServletContext</span> 中獲得 <code class="classname">WebApplicationContext</code> 。 
+				另一個簡單的辦法是繼承 Spring 的 <code class="classname">Action</code> 類別。舉個例子，除了繼承 Struts 的
+				<code class="classname">Action</code> 之外，你也可以繼承 Spring 的 <a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/web/struts/ActionSupport.html" target="_top">
+				<code class="classname">ActionSupport</code></a> 類別。
+			</p>
+<p>
+				<code class="classname">ActionSupport</code> 類別提供了一些便利的方法，例如 <span class="emphasis"><em>getWebApplicationContext()</em></span>。
+				下面的例子展示了如何在 Action 中使用它：
+			</p>
+<pre class="programlisting">public class UserAction extends DispatchActionSupport {
+
+    public ActionForward execute(ActionMapping mapping,
+                                 ActionForm form,
+                                 HttpServletRequest request,
+                                 HttpServletResponse response) throws Exception {
+        if (log.isDebugEnabled()) {
+            log.debug("entering 'delete' method...");
+        }
+        WebApplicationContext ctx = getWebApplicationContext();
+        UserManager mgr = (UserManager) ctx.getBean("userManager");
+        // talk to manager for business logic
+        return mapping.findForward("success");
+    }
+}</pre>
+<p>
+			Spring 套件含了所有標準 Struts Action 的子類別 - Spring 版本在類別名末尾附加了 <span class="emphasis"><em>Support</em></span>：
+			</p>
+<div class="itemizedlist"><ul type="disc" compact>
+<li><p><a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/web/struts/ActionSupport.html" target="_top"><code class="classname">ActionSupport</code></a>,</p></li>
+<li><p><a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/web/struts/DispatchActionSupport.html" target="_top"><code class="literal">DispatchActionSupport</code></a>,</p></li>
+<li><p><a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/web/struts/LookupDispatchActionSupport.html" target="_top"><code class="literal">LookupDispatchActionSupport</code></a> and</p></li>
+<li><p><a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/web/struts/MappingDispatchActionSupport.html" target="_top"><code class="literal">MappingDispatchActionSupport</code></a>.</p></li>
+</ul></div>
+<p>
+		</p>
+<p>
+			應該選擇最適合你項目的整合方式。繼承使得你的程式碼更可靠，並且你確切地知道依賴關係是如何被解析的。
+			另一方面，使用 <code class="classname">ContextLoaderPlugin</code> 允許你方便地在context XML 檔案裡面增加新的
+			依賴關係。這兩種整合方法，不管哪一種 Spring 都提供了相當好用的選項。
+			</p>
+</div>
+</div></body>
+</html>

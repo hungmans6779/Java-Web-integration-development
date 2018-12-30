@@ -1,0 +1,121 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>17.6.&#160;JMS</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch17.html" title="第&#160;17&#160;章&#160;使用Spring進行遠端存取與Web服務">
+<link rel="prev" href="ch17s05.html" title="17.5.&#160;Web Services">
+<link rel="next" href="ch17s07.html" title="17.7.&#160;對遠端介面不提供自動探測實作">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="remoting-jms"></a>17.6.&#160;JMS</h2></div></div></div>
+<p>使用JMS來作為底層的通信協議透明暴露服務也是可能的。Spring框架中對JMS的遠端支持也很基礎 - 它在<span class="emphasis"><em>同一執行緒</em></span>和<span class="emphasis"><em>同一個非事務</em></span> <code class="interfacename">Session</code>上發送和接收，這些吞吐量將非常依賴於實作。</p>
+<p>The following interface is used on both the server and the client side.</p>
+<p>下面的介面可同時用在伺服端和客戶端。</p>
+<pre class="programlisting">package com.foo;
+
+public interface CheckingAccountService {
+
+    public void cancelAccount(Long accountId);
+}</pre>
+<p>對於上面介面的使用在服務的端簡單實作如下。</p>
+<pre class="programlisting">package com.foo;
+
+public class SimpleCheckingAccountService implements CheckingAccountService {
+
+    public void cancelAccount(Long accountId) {
+        System.out.println("Cancelling account [" + accountId + "]");
+    }
+}</pre>
+<p>這個包含JMS設施的bean的配置檔案可同時用在客戶端和伺服端。</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"&gt;
+
+    &lt;bean id="connectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory"&gt;
+        &lt;property name="brokerURL" value="tcp://ep-t43:61616"/&gt;
+    &lt;/bean&gt;
+
+    &lt;bean id="queue" class="org.apache.activemq.command.ActiveMQQueue"&gt;
+        &lt;constructor-arg value="mmm"/&gt;
+    &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="remoting-jms-server"></a>17.6.1.&#160;伺服端配置</h3></div></div></div>
+<p>在伺服端你只需要使用<code class="classname">JmsInvokerServiceExporter</code>來暴露服務物件。</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.springframework.org/schema/beans
+         http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"&gt;
+
+    &lt;bean id="checkingAccountService"
+          class="org.springframework.jms.remoting.JmsInvokerServiceExporter"&gt;
+        &lt;property name="serviceInterface" value="com.foo.CheckingAccountService"/&gt;
+        &lt;property name="service"&gt;
+            &lt;bean class="com.foo.SimpleCheckingAccountService"/&gt;
+        &lt;/property&gt;
+   &lt;/bean&gt;
+
+   &lt;bean class="org.springframework.jms.listener.SimpleMessageListenerContainer"&gt;
+       &lt;property name="connectionFactory" ref="connectionFactory"/&gt;
+       &lt;property name="destination" ref="queue"/&gt;
+       &lt;property name="concurrentConsumers" value="3"/&gt;
+       &lt;property name="messageListener" ref="checkingAccountService"/&gt;
+   &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<pre class="programlisting">package com.foo;
+
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class Server {
+
+    public static void main(String[] args) throws Exception {
+        new ClassPathXmlApplicationContext(new String[]{"com/foo/server.xml", "com/foo/jms.xml"});
+    }
+}</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="remoting-jms-client"></a>17.6.2.&#160;客戶端配置</h3></div></div></div>
+<p>客戶端僅僅需要創建一個客戶端代理來實作上面的介面(<code class="interfacename">CheckingAccountService</code>)。根據後面的bean定義創建的結果對象可以被注入到其它客戶端物件中，而這個代理會負責通過JMS將調用轉發到伺服端。</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"&gt;
+
+    &lt;bean id="checkingAccountService"
+          class="org.springframework.jms.remoting.JmsInvokerProxyFactoryBean"&gt;
+        &lt;property name="serviceInterface" value="com.foo.CheckingAccountService"/&gt;
+        &lt;property name="connectionFactory" ref="connectionFactory"/&gt;
+        &lt;property name="queue" ref="queue"/&gt;
+    &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<pre class="programlisting">package com.foo;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class Client {
+
+    public static void main(String[] args) throws Exception {
+        ApplicationContext ctx = new ClassPathXmlApplicationContext(
+                new String[] {"com/foo/client.xml", "com/foo/jms.xml"});
+        CheckingAccountService service = (CheckingAccountService) ctx.getBean("checkingAccountService");
+        service.cancelAccount(new Long(10));
+    }
+}</pre>
+</div>
+<p>你可能也希望研究<a href="http://lingo.codehaus.org/" target="_top">Lingo</a> 項目提供的支持，它(參考到主頁) 「<span class="quote"><span class="emphasis"><em>... 是一個基於輕量級POJO的遠端核訊息程式碼資源庫，它使用並擴展了Spring框架的遠端程式碼資源庫以支持JMS。</em></span></span>」</p>
+</div></body>
+</html>

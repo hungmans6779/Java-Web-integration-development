@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+                                   "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+                                   
+                                   
+<!-- 類別所在的包名  -->                                   
+<hibernate-mapping package="com.helloweenvsfei.hibernate.bean.xml" >
+
+  <!-- 類別名與表名  -->
+  <class name="com.helloweenvsfei.hibernate.bean.Email" table="tb_email" >
+    
+    
+    <!-- 主鍵屬性與列  -->
+    <!-- 
+      @Id                                                  // 主鍵
+	  @GeneratedValue(strategy = GenerationType.AUTO)      // 自增長策略
+	  private Integer id;
+     -->
+    <id name="id" column="id" >
+     <generator class="native" /> <!-- 資料庫自增長  --> 
+    </id>
+     
+     
+    <!-- Email 屬性  --> 
+    <!-- 
+      private String email;                                // 電子郵件
+    -->
+    <property name="email" /> 
+     
+  </class>
+
+</hibernate-mapping>

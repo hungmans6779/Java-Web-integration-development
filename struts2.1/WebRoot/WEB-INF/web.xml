@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="2.5" 
+	xmlns="http://java.sun.com/xml/ns/javaee" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee 
+	http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+	
+	
+  <display-name></display-name>	
+  <welcome-file-list>
+    <welcome-file>index.jsp</welcome-file>
+  </welcome-file-list>
+  
+  
+  <!-- Struts2.x 的入口(採過濾器的方式)
+       Struts2 的 Filter，所有的請求都被映射到  Struts2 上
+  -->
+  <filter>
+  	<filter-name>struts2</filter-name>
+  	<filter-class>org.apache.struts2.dispatcher.FilterDispatcher</filter-class>
+  	<init-param>
+  	  <param-name>struts.action.extension</param-name>  <!-- 該參數可省略，預設為 *.action  -->
+  	  <param-value>action</param-value>
+  	</init-param>
+  	<init-param>
+  	  <param-name>actionPackages</param-name>                                   <!-- 零設定所在的(用@註釋，不設定在 struts.xml)  -->
+  	  <param-value>com.helloweenvsfei.struts2.action.annotation</param-value>   <!-- 包名 -->
+  	</init-param>
+  </filter>
+  <filter-mapping>
+  	<filter-name>struts2</filter-name>
+  	<!-- 
+  	<url-pattern>*.action</url-pattern>
+  	-->
+  	<!-- 
+  	      如果 URI 中包含 "/struts/"，Struts 會傳回它整合的資源，例如  http://3w.eztravel.com.tw:8080/struts2.1/struts/dojo/struts_dojo.js 、
+  	  http://3w.eztravel.com.tw:8080/struts2.1/struts/xhtml/styles.css  等、這些檔案實際並不存在，而是位於 Struts2 的 jar 中。
+  	     因此設定 Fileter 時要把所有的 URI 都轉到 Filter 中，而不僅僅是 .action 結尾的URI。
+  	-->
+  	<url-pattern>*</url-pattern>
+  </filter-mapping>
+  
+  
+</web-app>

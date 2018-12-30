@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+
+<session-factory>
+
+	<mapping resource="com/hibernate/bean/Event.hbm.xml"    />
+	<mapping resource="com/hibernate/bean/Cat.hbm.xml"      />
+	
+	<mapping resource="com/hibernate/bean/Person3.hbm.xml"  />
+	
+	<mapping resource="com/hibernate/bean/Person2.hbm.xml"  />
+	<mapping resource="com/hibernate/bean/Email.hbm.xml"    />
+	
+	<mapping resource="com/hibernate/bean/Type.hbm.xml"     />
+	<mapping resource="com/hibernate/bean/Article.hbm.xml"  />
+	
+	<mapping resource="com/hibernate/bean/Clazz.hbm.xml"    />
+	<mapping resource="com/hibernate/bean/Student.hbm.xml"  />
+	
+	<mapping resource="com/hibernate/bean/Tag.hbm.xml"      />
+	<mapping resource="com/hibernate/bean/Post.hbm.xml"     />
+	
+	<mapping resource="com/hibernate/bean/Ship.hbm.xml"     />
+	<mapping resource="com/hibernate/bean/Sailor.hbm.xml"   />
+ 	
+	<mapping resource="com/hibernate/bean/Customer.hbm.xml" />
+	<mapping resource="com/hibernate/bean/Address.hbm.xml"  />
+
+</session-factory>
+
+</hibernate-configuration>

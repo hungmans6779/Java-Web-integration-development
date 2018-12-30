@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+
+<beans>
+  
+  <!-- 
+    跟 Struts 一樣，Spring 的 Controller 連同 ModelAndView 屬性都要設定到設定檔中。作為 Spring 的一個 Bean，
+    Controller 可以與其他 Bean 設定到 applicationContext.xml 中。不過一般使用另一個 XML 案設定 controller 等於 MVC 相關的 Bean。
+    Spring 支援多個設定檔。這樣可以使 Controller 與其他的業務元件分開。
+    
+    例如使用 spring-action.xml 專門設定 Web 相關的元件。Spring MVC 還需要設定 JSP 位置、URL 映射等。
+  -->   
+ 
+ 
+ 
+  <!-- 設定 JSP 字首副檔名 -->
+  <bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver" >
+    
+    <!-- JSP 字首，一般為資料夾 -->
+    <property name="prefix" >
+      <value>/WEB-INF/jsp/</value>
+    </property> 
+    
+    <!-- JSP 副檔名，一般為 JSP  -->
+    <property name="suffix" >
+      <value>.jsp</value>
+    </property>
+  </bean> 
+  
+  
+  
+  <!-- 設定分發器參數 -->
+  <!-- 
+      CatMultiActionController 需要設定以哪個位址欄參數分發，以及預設的方。
+      本例使用 Action 作為分發參數，如果沒有，則執行 list() 方法，catService 物件仍然由 Spring IoC 形式植入、
+  -->
+  <bean id="paraMethodResolver" class="org.springframework.web.servlet.mvc.multiaction.ParameterMethodNameResolver" >
+    <property name="paramName" >
+      <value>action</value>  <!-- 以地址欄參數 做為分發參數 -->
+    </property>    
+    <property name="defaultMethodName" >
+      <value>list</value>    <!--  如果 action 參數為空，則執行預設的list 方法 -->
+    </property>  
+  </bean>
+  
+  
+    
+  
+ 
+  <bean id="catController" class="com.spring.mvc.controller.CatController" >
+    <property name="catService" ref="catService" ></property>
+  </bean>
+
+
+  <!--  多業務分發器  -->
+  <bean id="catMultiController" class="com.spring.mvc.controller.CatMultiActionController" >
+     <property name="catService" ref="catService" ></property>
+  </bean>
+
+  
+  
+  
+
+
+  <!-- 設定 URL Mapping 映射  -->
+  <bean id="urlHandlerMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping" > 
+  
+    <!-- URL 映射 -->
+    <property name="mappings" >
+      <props>
+        <!-- URL映射，包含副檔案 .mvc  -->
+        <!-- 如果存取 cat.mvc，則交給 catController 處理  -->
+        <prop key="cat.mvc" >catController</prop>          
+        
+        <!-- 如果存取 catMulti.mvc，則交給 多業務分發單 catMultiController 處理  -->
+        <prop key="catMulti.mvc" >catMultiController</prop>  
+      </props>
+    </property>
+  </bean>
+  
+  
+
+</beans>

@@ -1,0 +1,50 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>第&#160;22&#160;章&#160;Spring郵件抽象層</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="pt04.html" title="部分&#160;IV.&#160;整合">
+<link rel="prev" href="ch21s05.html" title="21.5.&#160;事務">
+<link rel="next" href="ch22s02.html" title="22.2.&#160;使用Spring郵件抽象">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="chapter" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title">
+<a name="mail"></a>第&#160;22&#160;章&#160;Spring郵件抽象層</h2></div></div></div>
+<div class="toc">
+<p><b>目錄</b></p>
+<dl>
+<dt><span class="section"><a href="ch22.html#mail-introduction">22.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch22s02.html">22.2. 使用Spring郵件抽象</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch22s02.html#mail-usage-simple">22.2.1. <code class="interfacename">MailSender</code> 和 <code class="classname">SimpleMailMessage</code> 的基本用法</a></span></dt>
+<dt><span class="section"><a href="ch22s02.html#mail-usage-mime">22.2.2. 使用 <code class="interfacename">JavaMailSender</code> 和 <code class="classname">MimeMessagePreparator</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch22s03.html">22.3. 使用<code class="classname">MimeMessageHelper</code></a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch22s03.html#mail-javamail-mime-attachments">22.3.1. 發送附件和嵌入式資源(inline resources)</a></span></dt>
+<dt><span class="section"><a href="ch22s03.html#mail-templates">22.3.2. 使用模板來創建郵件內容</a></span></dt>
+</dl></dd>
+</dl>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="mail-introduction"></a>22.1.&#160;簡介</h2></div></div></div>
+<div class="sidebar">
+<p class="title"><b>資源類別資源庫依賴</b></p>
+<p>下面所列出的jar檔案必須加到你應用程序的classpath中，因為這些都是Spring Framework郵件抽象層所依賴的資源庫檔案。</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><a href="http://java.sun.com/products/javamail/" target="_top">JavaMail</a> <code class="filename">mail.jar</code>資源庫</p></li>
+<li><p><a href="http://java.sun.com/products/javabeans/jaf/downloads/index.html" target="_top">JAF</a> <code class="filename">activation.jar</code>資源庫</p></li>
+</ul></div>
+<p>所有這些依賴的資源庫都可以在Spring Framework的Spring-with-dependencies的release包中獲得 (同時也可以在網上免費獲得)。</p>
+</div>
+<p>Spring提供了一個發送電子郵件的高層級抽象層，它向使用者屏蔽了底層郵件系統的一些細節，同時代表客戶端負責底層的資源處理。</p>
+<p>Spring郵件抽象層的主要套件為<code class="literal">org.springframework.mail</code>。它包括了發送電子郵件的主要介面<code class="interfacename">MailSender</code>，和<span class="emphasis"><em>值物件</em></span><code class="classname">SimpleMailMessage</code>，它封裝了簡單郵件的屬性如<span class="emphasis"><em>from</em></span>, <span class="emphasis"><em>to</em></span>,<span class="emphasis"><em>cc</em></span>, <span class="emphasis"><em>subject</em></span>,<span class="emphasis"><em>text</em></span>。
+	包裡還包含一棵以<code class="classname">MailException</code>為根的checked Exception繼承階層樹，它們提供了對底層郵件系統異常的高層級別抽象。 要獲得關於郵件異常層次的更豐富的資訊，請參考Javadocs。</p>
+<p>為了使用<span class="emphasis"><em>JavaMail</em></span>中的一些特色, 比如MIME型別的信件, Spring提供了<code class="interfacename">MailSender</code>的一個子介面,	即<code class="classname">org.springframework.mail.javamail.JavaMailSender</code>。
+		Spring還提供了一個回調介面<code class="interfacename">org.springframework.mail.javamail.MimeMessagePreparator</code>, 用於準備JavaMail的MIME信件。</p>
+</div>
+</div></body>
+</html>

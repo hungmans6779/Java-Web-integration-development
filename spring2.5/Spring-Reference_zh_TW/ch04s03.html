@@ -1,0 +1,78 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>4.3.&#160;內置 Resource 實作</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch04.html" title="第&#160;4&#160;章&#160;資源">
+<link rel="prev" href="ch04s02.html" title="4.2.&#160;Resource介面">
+<link rel="next" href="ch04s04.html" title="4.4.&#160;ResourceLoader介面">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="resources-implementations"></a>4.3.&#160;內置 <code class="interfacename">Resource</code> 實作</h2></div></div></div>
+<p>Spring提供了很多 <code class="interfacename">Resource</code> 的實作：
+		</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="resources-implementations-urlresource"></a>4.3.1.&#160;
+				<code class="classname">UrlResource</code>
+			</h3></div></div></div>
+<p>
+				<code class="classname">UrlResource</code> 封裝了<code class="classname">java.net.URL</code>，它能夠被用來存取任何通過URL可以獲得的物件，例如：檔案、HTTP物件、FTP物件等。所有的URL都有個標準的 <code class="classname">String</code>表示，這些標準前綴可以標識不同的URL型別，包括<code class="literal">file:</code>存取檔案系統路徑，<code class="literal">http:</code> 通過HTTP協議存取的資源，<code class="literal">ftp:</code> 通過FTP存取的資源等等。
+			</p>
+<p>
+				<code class="classname">UrlResource</code> 物件可以在Java程式碼中顯式地使用 <code class="classname">UrlResource</code> 建構函數來創建。但更多的是通過調用帶表示路徑的 <code class="classname">String</code> 參數的API函數隱式地創建。在後一種情況下，JavaBeans的 <code class="interfacename">PropertyEditor</code> 會最終決定哪種型別的
+				<code class="interfacename">Resource</code> 被創建。如果這個字元串包含一些眾所周知的前綴，比如
+				<code class="literal">classpath:</code>，它就會創建一個對應的已串行化的 <code class="interfacename">Resource</code>。
+				然而，如果不能分辨出這個前綴，就會假定它是個標準的URL字元串，然後創建<code class="classname">UrlResource</code>。
+			</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="resources-implementations-classpathresource"></a>4.3.2.&#160;<code class="classname">ClassPathResource</code></h3></div></div></div>
+<p>這個類別標識從classpath獲得的資源。它會使用執行緒context的類別載入器(class loader)、給定的類別載入器或者用來載入資源的給定類別。</p>
+<p>如果類別路徑上的資源存在於檔案系統裡，這個 <code class="interfacename">Resource</code> 的實作會提供類似於<code class="classname">java.io.File</code>的功能。而如果資源是存在於還未解開(被servlet引擎或其它的環境解開)的jar包中，這些 <code class="interfacename">Resource</code> 實作會提供類似於<code class="classname">java.net.URL</code> 的功能。
+			</p>
+<p>
+				<code class="classname">ClassPathResource</code>對象可以在Java程式碼中顯式地使用<code class="classname">ClassPathResource</code> 建構函數來創建。但更多的是通過調用帶表示路徑的<code class="classname">String</code>參數的API函數隱式地創建。在後一種情況下，JavaBeans的 <code class="interfacename">PropertyEditor</code> 會分辨字元串中 <code class="literal">classpath:</code> 前綴，然後相應創建 <code class="classname">ClassPathResource</code>。
+			</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="resources-implementations-filesystemresource"></a>4.3.3.&#160;<code class="classname">FileSystemResource</code></h3></div></div></div>
+<p>這是為處理 <code class="classname">java.io.File</code> 而準備的<code class="interfacename">Resource</code>實作。它既可以作為<code class="classname">File</code>提供，也可以作為<code class="classname">URL</code>。
+			</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="resources-implementations-servletcontextresource"></a>4.3.4.&#160;
+				<code class="classname">ServletContextResource</code>
+			</h3></div></div></div>
+<p>這是為 <code class="interfacename">ServletContext</code> 資源提供的 <code class="interfacename">Resource</code> 實作，它負責解析相關web應用根目錄中的相對路徑。
+			</p>
+<p>它始終支持以串流和URL的方式存取。	但是只有當web應用包被解開並且資源在檔案系統的物理路徑上時，才允許以 <code class="classname">java.io.File</code> 方式存取。是否解開並且在檔案系統中存取，還是直接從JAR包存取或以其它方式存取如DB(這是可以想像的)，僅取決於Servlet容器。
+			</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="resources-implementations-inputstreamresource"></a>4.3.5.&#160;<code class="classname">InputStreamResource</code></h3></div></div></div>
+<p>這是為給定的 <code class="interfacename">InputStream</code> 而準備的 <code class="interfacename">Resource</code> 實作。它只有在沒有其它合適的 <code class="interfacename">Resource</code> 實作時才使用。而且，只要有可能就盡量使用 <code class="classname">ByteArrayResource</code> 或者其它基於檔案的<code class="interfacename">Resource</code> 實作。
+			</p>
+<p>與其它 <code class="interfacename">Resource</code> 實作不同的是，這是個 <span class="emphasis"><em>已經</em></span>
+				打開資源的描述符-因此 <code class="methodname">isOpen()</code> 函數返回 <code class="literal">true</code>。
+				如果你需要在其它位置保持這個資源的描述符或者多次讀取一個串流，請不要使用它。
+			</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="resources-implementations-bytearrayresource"></a>4.3.6.&#160;<code class="classname">ByteArrayResource</code></h3></div></div></div>
+<p>這是為給定的byte陣列準備的 <code class="interfacename">Resource</code> 實作。
+				它會為給定的byte陣列建構一個 <code class="classname">ByteArrayInputStream</code>。
+			</p>
+<p>它在從任何給定的byte陣列讀取內容時很有用，因為不用轉換成單一作用的 <code class="classname">InputStreamResource</code>。
+			</p>
+</div>
+</div></body>
+</html>

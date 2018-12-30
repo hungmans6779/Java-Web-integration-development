@@ -1,0 +1,55 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>16.3.&#160;ViewRendererServlet</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch16.html" title="第&#160;16&#160;章&#160;Portlet MVC框架">
+<link rel="prev" href="ch16s02.html" title="16.2.&#160; DispatcherPortlet">
+<link rel="next" href="ch16s04.html" title="16.4.&#160;控制器">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="portlet-viewservlet"></a>16.3.&#160;<code class="classname">ViewRendererServlet</code></h2></div></div></div>
+<p>Portlet MVC中的顯示過程比Web MVC的複雜一點，為了復用所有Spring Web MVC裡
+		的<a href="ch14.html" title="第&#160;14&#160;章&#160;整合視圖技術">視圖技術</a>，必須把
+		<code class="interfacename">PortletRequest</code> / 
+		<code class="interfacename">PortletResponse</code> 轉換到 
+		<code class="interfacename">HttpServletRequest</code> / 
+		<code class="interfacename">HttpServletResponse</code>，然後調用
+		<code class="interfacename">View</code>的
+		<code class="literal">render</code>方法。為此，<code class="classname">DispatcherPortlet</code>
+		使用了一個特殊的servlet：<code class="classname">ViewRendererServlet</code>。</p>
+<p>為了<code class="classname">DispatcherPortlet</code>能夠顯示，
+		必須在<code class="literal">web.xml</code>檔案裡為你的web應用宣告一個
+		<code class="classname">ViewRendererServlet</code>的實例，如下：</p>
+<pre class="programlisting">&lt;servlet&gt;
+    &lt;servlet-name&gt;ViewRendererServlet&lt;/servlet-name&gt;
+    &lt;servlet-class&gt;org.springframework.web.servlet.ViewRendererServlet&lt;/servlet-class&gt;
+&lt;/servlet&gt;
+
+&lt;servlet-mapping&gt;
+    &lt;servlet-name&gt;ViewRendererServlet&lt;/servlet-name&gt;
+    &lt;url-pattern&gt;/WEB-INF/servlet/view&lt;/url-pattern&gt;
+&lt;/servlet-mapping&gt;</pre>
+<p>在實際執行顯示時，<code class="classname">DispatcherPortlet</code>這樣做：</p>
+<div class="orderedlist"><ol type="1">
+<li><p>把
+			<code class="interfacename">WebApplicationContext</code>作為屬性綁定在請求上，
+			使用和<code class="classname">DispatcherServlet</code>相同的
+			<code class="literal">WEB_APPLICATION_CONTEXT_ATTRIBUTE</code>key。</p></li>
+<li><p>把<code class="interfacename">Model</code>和
+			<code class="interfacename">View</code>物件綁定在請求上，使它們對
+			<code class="classname">ViewRendererServlet</code>可見。</p></li>
+<li><p>建構 
+			<code class="interfacename">PortletRequestDispatcher</code>物件，利用
+			映射到<code class="classname">ViewRendererServlet</code>的<code class="literal">/WEB-
+			INF/servlet/view</code>URL來執行<code class="literal">include</code>操作。</p></li>
+</ol></div>
+<p>然後，<code class="classname">ViewRendererServlet</code>能夠以合適的參數
+		調用<code class="interfacename">View</code>的<code class="literal">render</code>方法。</p>
+<p>可以通過<code class="classname">DispatcherPortlet</code>的<code class="literal">viewRendererUrl</code>
+		配置參數來修改<code class="classname">ViewRendererServlet</code>的實際URL。</p>
+</div></body>
+</html>

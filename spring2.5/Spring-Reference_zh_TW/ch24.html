@@ -1,0 +1,70 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>第&#160;24&#160;章&#160;動態語言支持</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="pt04.html" title="部分&#160;IV.&#160;整合">
+<link rel="prev" href="ch23s04.html" title="23.4.&#160;SpringTaskExecutor抽象">
+<link rel="next" href="ch24s02.html" title="24.2.&#160;第一個範例">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="chapter" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title">
+<a name="dynamic-language"></a>第&#160;24&#160;章&#160;動態語言支持</h2></div></div></div>
+<div class="toc">
+<p><b>目錄</b></p>
+<dl>
+<dt><span class="section"><a href="ch24.html#dynamic-language-introduction">24.1. 介紹</a></span></dt>
+<dt><span class="section"><a href="ch24s02.html">24.2. 第一個範例</a></span></dt>
+<dt><span class="section"><a href="ch24s03.html">24.3. 定義動態語言支持的bean</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch24s03.html#dynamic-language-beans-concepts">24.3.1. 公共概念</a></span></dt>
+<dt><span class="section"><a href="ch24s03.html#dynamic-language-beans-jruby">24.3.2. JRuby beans</a></span></dt>
+<dt><span class="section"><a href="ch24s03.html#dynamic-language-beans-groovy">24.3.3. Groovy beans</a></span></dt>
+<dt><span class="section"><a href="ch24s03.html#dynamic-language-beans-bsh">24.3.4. BeanShell beans</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch24s04.html">24.4. 場景</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch24s04.html#dynamic-language-scenarios-controllers">24.4.1. Spring MVC控制器的文稿化</a></span></dt>
+<dt><span class="section"><a href="ch24s04.html#dynamic-language-scenarios-validators">24.4.2. Validator的文稿化</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch24s05.html">24.5. Bits and bobs</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch24s05.html#dynamic-language-final-notes-aop">24.5.1. AOP - 通知文稿化bean</a></span></dt>
+<dt><span class="section"><a href="ch24s05.html#dynamic-language-final-notes-scopes">24.5.2. 作用域</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch24s06.html">24.6. 更多的資源</a></span></dt>
+</dl>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="dynamic-language-introduction"></a>24.1.&#160;介紹</h2></div></div></div>
+<div class="sidebar">
+<p class="title"><b>為什麼只支持這些動態語言？</b></p>
+<p>
+                選擇支持這些語言的理由如下：
+				a）這些語言在Java企業社區具有相當的影響力；
+				b）在Spring 2.0的開發週期內沒有收到要求支持其他語言的申請；
+				c）Spring開發者對它們最為熟悉。
+            </p>
+<p>
+				當然這並不是說對於其他語言就不再提供支持了。如果你希望在新的版本中支持你鍾愛的動態語言，那麼請在Spring的<a href="http://opensource.atlassian.com/projects/spring/secure/Dashboard.jspa" target="_top">JIRA</a>頁面提出申請（或者自己實作）。
+            </p>
+</div>
+<p>Spring 2.0開始廣泛支持在Spring中使用動態語言（如JRuby）定義的類別和物件。Spring對動態語言的支持主要有：允許你使用所支持的動態語言編寫任意數目的類別，Spring容器能夠完全透明的實例化，配置，依賴注入其最終物件。</p>
+<p>目前支持的動態語言列表如下：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>JRuby</p></li>
+<li><p>Groovy</p></li>
+<li><p>BeanShell</p></li>
+</ul></div>
+<p>
+			在<a href="ch24s04.html" title="24.4.&#160;場景">第&#160;24.4&#160;節 「場景」</a>一節描述了一些可運行的範例，通過這些範例你可以體驗到Spring對動態語言的支持。
+        </p>
+<p>
+			注意<span class="emphasis"><em>只有</em></span>在Spring2.0及以上版本才可獲得本章所指的動態語言支持。目前Spring團隊還<span class="emphasis"><em>沒有</em></span>計劃要在以前的版本（如1.2.x）中提供對動態語言的支持。
+        </p>
+</div>
+</div></body>
+</html>

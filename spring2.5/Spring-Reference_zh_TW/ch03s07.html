@@ -1,0 +1,213 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>3.7.&#160;容器擴展點</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch03.html" title="第&#160;3&#160;章&#160;IoC(控制反轉)容器">
+<link rel="prev" href="ch03s06.html" title="3.6.&#160;bean定義的繼承">
+<link rel="next" href="ch03s08.html" title="3.8.&#160;The ApplicationContext">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="beans-factory-extension"></a>3.7.&#160;容器擴展點</h2></div></div></div>
+<p>Spring框架的IoC容器被設計為可擴展的。通常我們並不需要子類別化各個<code class="interfacename">BeanFactory</code>或<code class="interfacename">ApplicationContext</code>實作類別。而通過plugin各種整合介面實作來進行擴展。下面幾節專門描述這些不同的整合介面。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="beans-factory-extension-bpp"></a>3.7.1.&#160;用<code class="literal">BeanPostProcessor</code>定制bean</h3></div></div></div>
+<p>我們關注的第一個擴展點是<code class="interfacename">BeanPostProcessor</code>介面。它定義了幾個<em class="firstterm">回調方法</em>，實作該介面可提供自定義（或預設地來覆寫容器）的實例化邏輯、依賴解析邏輯等。如果你想在Spring容器完成bean的實例化、配置和其它的初始化後執行一些自定義邏輯，你可以插入一個或多個的<code class="interfacename">BeanPostProcessor</code>實作。</p>
+<p>如果配置了多個<code class="literal">BeanPostProcessor</code>，那麼可以通過設置<code class="literal">'order'</code>屬性來控制<code class="literal">BeanPostProcessor</code>的執行次序（僅當<code class="interfacename">BeanPostProcessor</code>實作了<code class="interfacename">Ordered</code>介面時，你才可以設置此屬性，因此在編寫自己的<code class="interfacename">BeanPostProcessor</code>實作時，就得考慮是否需要實作<code class="interfacename">Ordered</code>介面）；請參考<code class="interfacename">BeanPostProcessor</code>和<code class="interfacename">Ordered</code>介面的JavaDoc以獲取更詳細的資訊。</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p><code class="literal">BeanPostProcessor</code>可以對bean（或物件）的<span class="emphasis"><em>多個實例</em></span>進行操作；也就是說，Spring IoC容器會為你實例化bean，然後<code class="literal">BeanPostProcessor</code>去處理它。</p>
+<p>如果你想修改實際的bean定義，則會用到<code class="interfacename">BeanFactoryPostProcessor</code>（詳情見<a href="ch03s07.html#beans-factory-extension-factory-postprocessors" title="3.7.2.&#160;用BeanFactoryPostProcessor定制配置元資料">第&#160;3.7.2&#160;節 「用<code class="literal">BeanFactoryPostProcessor</code>定制配置元資料」</a>）。</p>
+<p><code class="literal">BeanPostProcessor</code>的作用域是容器級的，它只和所在容器有關。如果你在容器中定義了<code class="interfacename">BeanPostProcessor</code>，它<span class="emphasis"><em>僅僅</em></span>對此容器中的bean進行後置處理。<code class="literal">BeanPostProcessor</code>將不會對定義在另一個容器中的bean進行後置處理，即使這兩個容器都處在同一層次上。</p>
+</div>
+<p><code class="interfacename">org.springframework.beans.factory.config.BeanPostProcessor</code>介面有兩個回調方法可供使用。當一個該介面的實作類別被註冊（如何使這個註冊生效請見下文）為容器的後置處理器(post-processor)後，對於由此容器所創建的每個bean實例在初始化方法（如<span class="emphasis"><em>afterPropertiesSet</em></span>和任意已宣告的init方法）調用前，後置處理器都會從容器中分別獲取一個回調。後置處理器可以隨意對這個bean實例執行它所期望的動作，包括完全忽略此回調。一個bean後置處理器通常用來檢查標誌介面，或者做一些諸如將一個bean包裹成一個proxy的事情；一些Spring AOP的底層處理也是通過實作bean後置處理器來執行代理包裹邏輯。</p>
+<p>重要的一點是，<code class="interfacename">BeanFactory</code>和<code class="interfacename">ApplicationContext</code>對待bean後置處理器稍有不同。<code class="interfacename">ApplicationContext</code>會自動檢測在配置檔案中實作了<code class="interfacename">BeanPostProcessor</code>介面的所有bean，並把它們註冊為後置處理器，然後在容器創建bean的適當時候調用它。部署一個後置處理器同部署其他的bean並沒有什麼區別。而使用<code class="interfacename">BeanFactory</code>實作的時候，bean 後置處理器必須通過下面類似的程式碼顯式地去註冊：</p>
+<pre class="programlisting">ConfigurableBeanFactory factory = new XmlBeanFactory(...);
+            
+<em class="lineannotation"><span class="lineannotation">// now register any needed <code class="interfacename">BeanPostProcessor</code> instances</span></em>
+MyBeanPostProcessor postProcessor = new MyBeanPostProcessor();
+factory.addBeanPostProcessor(postProcessor);
+
+<em class="lineannotation"><span class="lineannotation">// now start using the factory</span></em></pre>
+<p>因為顯式註冊的步驟不是很方便，這也是為什麼在各種Spring應用中首選<code class="interfacename">ApplicationContext</code>的一個原因，特別是在使用<code class="literal">BeanPostProcessor</code>時。</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title"><code class="interfacename">BeanPostProcessors</code>和AOP自動代理(auto-proxying)</h3>
+<p>實作了<code class="interfacename">BeanPostProcessor</code> 介面的類別是<span class="emphasis"><em>特殊的</em></span>, 會被容器特別對待. 所有 <code class="interfacename">BeanPostProcessors</code><span class="emphasis"><em>和直接參考的bean</em></span> 會作為<code class="interfacename">ApplicationContext</code>一部分在啟動時初始化, <span class="emphasis"><em>然後</em></span>所有的<code class="interfacename">BeanPostProcessors</code>會註冊入一個列表並應用於之後的bean。AOP自動代理實作了<code class="interfacename">BeanPostProcessor</code>，所以<code class="interfacename">BeanPostProcessors</code>或bean的直接參考不會被自動代理(因此不會被aspects"織入")。</p>
+<p>對這些bean來說，你可能看到下面的日誌資訊：<span class="emphasis"><em>「<span class="quote">Bean 'foo' is not eligible for getting processed by all BeanPostProcessors (如：不能被auto_proxying)</span>」</em></span></p>
+</div>
+<p>關於如何在<code class="interfacename">ApplicationContext</code>中編寫、註冊並使用<code class="literal">BeanPostProcessor</code>，會在接下的例子中演示。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="beans-factory-extension-bpp-examples-hw"></a>3.7.1.1.&#160;使用<code class="interfacename">BeanPostProcessor</code>的Hello World範例</h4></div></div></div>
+<p>第一個實例似乎不太吸引人，但是它適合用來闡述<code class="interfacename">BeanPostProcessor</code>的基本用法。我們所有的工作是編寫一個<code class="interfacename">BeanPostProcessor</code>的實作，它僅僅在容器創建每個bean時調用bean的<code class="methodname">toString()</code>方法並且將結果列印到系統終端機。它是沒有很大的用處，但是可以讓我們對<code class="interfacename">BeanPostProcessor</code>有一個基本概念。</p>
+<p>下面是<code class="interfacename">BeanPostProcessor</code>具體實作類別的定義：</p>
+<pre class="programlisting">package scripting;
+
+import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.beans.BeansException;
+
+public class InstantiationTracingBeanPostProcessor implements BeanPostProcessor {
+
+    <em class="lineannotation"><span class="lineannotation">// simply return the instantiated bean as-is</span></em>
+    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+        return bean; <em class="lineannotation"><span class="lineannotation">// we could potentially return <span class="emphasis"><em>any</em></span> object reference here...</span></em>
+    }
+
+    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        System.out.println("Bean '" + beanName + "' created : " + bean.toString());
+        return bean;
+    }
+}</pre>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:lang="http://www.springframework.org/schema/lang"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.5.xsd"&gt;
+
+    &lt;lang:groovy id="messenger"
+          script-source="classpath:org/springframework/scripting/groovy/Messenger.groovy"&gt;
+        &lt;lang:property name="message" value="Fiona Apple Is Just So Dreamy."/&gt; 
+    &lt;/lang:groovy&gt;
+    
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- 
+        when the above bean ('messenger') is instantiated, this custom
+        <code class="interfacename">BeanPostProcessor</code> implementation will output the fact to the system console
+     --&gt;</span></em>
+    &lt;bean class="scripting.InstantiationTracingBeanPostProcessor"/&gt;
+
+&lt;/beans&gt;</pre>
+<p>注意<code class="classname">InstantiationTracingBeanPostProcessor</code>是如此簡單，甚至沒有名字，由於被定義成一個bean，因而它跟其它的bean沒什麼兩樣（上面的配置中也定義了由Groovy文稿支持的bean，Spring2.0動態語言支持的細節請見<a href="ch24.html" title="第&#160;24&#160;章&#160;動態語言支持">第&#160;24&#160;章 <i>動態語言支持</i></a>）。</p>
+<p>下面是測試程式碼：</p>
+<pre class="programlisting">import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.scripting.Messenger;
+
+public final class Boot {
+
+    public static void main(final String[] args) throws Exception {
+        ApplicationContext ctx = new ClassPathXmlApplicationContext("scripting/beans.xml");
+        Messenger messenger = (Messenger) ctx.getBean("messenger");
+        System.out.println(messenger);
+    }
+}</pre>
+<p>上面程序執行時的輸出將是（或象）下面這樣：</p>
+<pre class="programlisting">Bean 'messenger' created : org.springframework.scripting.groovy.GroovyMessenger@272961
+org.springframework.scripting.groovy.GroovyMessenger@272961</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="beans-factory-extension-bpp-examples-rabpp"></a>3.7.1.2.&#160;<code class="classname">RequiredAnnotationBeanPostProcessor</code>範例</h4></div></div></div>
+<p>在Spring的<code class="interfacename">BeanPostProcessor</code>實作中調用標誌介面或使用註釋是擴展Spring IoC容器的常用方法。對於註釋的用法詳見<a href="ch25s03.html#metadata-annotations-required" title="25.3.1.&#160;@Required">第&#160;25.3.1&#160;節 「@<code class="interfacename">Required</code>」</a>，這裡沒有做深入的說明。通過定制<code class="interfacename">BeanPostProcessor</code>實作，可以使用註釋來指定各種JavaBean屬性值並在發佈的時候被注入相應的bean中。</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="beans-factory-extension-factory-postprocessors"></a>3.7.2.&#160;用<code class="literal">BeanFactoryPostProcessor</code>定制配置元資料</h3></div></div></div>
+<p>我們將看到的下一個擴展點是<code class="interfacename">org.springframework.beans.factory.config.BeanFactoryPostProcessor</code>。這個介面跟<code class="interfacename">BeanPostProcessor</code>類似，<code class="literal">BeanFactoryPostProcessor</code>可以對bean的定義（配置元資料）進行處理。也就是說，Spring IoC容器允許<code class="literal">BeanFactoryPostProcessor</code>在容器實際實例化任何其它的bean之前讀取配置元資料，並有可能修改它。</p>
+<p>如果你願意，你可以配置多個<code class="literal">BeanFactoryPostProcessor</code>。你還能通過設置<code class="literal">'order'</code>屬性來控制<code class="interfacename">BeanFactoryPostProcessor</code>的執行次序（僅當<code class="interfacename">BeanFactoryPostProcessor</code>實作了<code class="interfacename">Ordered</code>介面時你才可以設置此屬性，因此在實作<code class="interfacename">BeanFactoryPostProcessor</code>時，就應當考慮實作<code class="interfacename">Ordered</code>介面）；請參考<code class="interfacename">BeanFactoryPostProcessor</code>和<code class="interfacename">Ordered</code>介面的JavaDoc以獲取更詳細的資訊。</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>如果你想改變實際的bean實例（例如從配置元資料創建的物件），那麼你最好使用<code class="interfacename">BeanPostProcessor</code>（見上面<a href="ch03s07.html#beans-factory-extension-bpp" title="3.7.1.&#160;用BeanPostProcessor定制bean">第&#160;3.7.1&#160;節 「用<code class="literal">BeanPostProcessor</code>定制bean」</a>中的描述）</p>
+<p>同樣地，<code class="literal">BeanFactoryPostProcessor</code>的作用域範圍是容器級的。它只和你所使用的容器有關。如果你在容器中定義一個<code class="interfacename">BeanFactoryPostProcessor</code>，它<span class="emphasis"><em>僅僅</em></span>對此容器中的bean進行後置處理。<code class="literal">BeanFactoryPostProcessor</code>不會對定義在另一個容器中的bean進行後置處理，即使這兩個容器都是在同一層次上。</p>
+</div>
+<p>bean處理器後置處理器可以手工（如果是<code class="interfacename">BeanFactory</code>）或自動（如果是<code class="interfacename">ApplicationContext</code>）地施加某些變化給定義在容器中的配置元資料。Spring自帶了許多bean處理器後置處理器，比如下面將提到的<code class="classname">PropertyResourceConfigurer</code>和<code class="classname">PropertyPlaceholderConfigurer</code>以及<code class="classname">BeanNameAutoProxyCreator</code>，它們用於對bean進行事務性包裹或者使用其他的proxy進行包裹。<code class="interfacename">BeanFactoryPostProcessor</code>也能被用來添加自定義屬性編輯器。</p>
+<p>在一個<code class="interfacename">BeanFactory</code>中，應用<code class="interfacename">BeanFactoryPostProcessor</code>的過程是手工的，如下所示：</p>
+<pre class="programlisting">XmlBeanFactory factory = new XmlBeanFactory(new FileSystemResource("beans.xml"));
+
+<em class="lineannotation"><span class="lineannotation">// bring in some property values from a <code class="classname">Properties</code> file</span></em>
+PropertyPlaceholderConfigurer cfg = new PropertyPlaceholderConfigurer();
+cfg.setLocation(new FileSystemResource("jdbc.properties"));
+
+<em class="lineannotation"><span class="lineannotation">// now actually do the replacement</span></em>
+cfg.postProcessBeanFactory(factory);</pre>
+<p>因為顯式註冊的步驟不是很方便，這也是為什麼在不同的Spring應用中首選<code class="interfacename">ApplicationContext</code>的原因，特別是在使用<code class="literal">BeanFactoryPostProcessor</code>時。</p>
+<a name="beans-factory-autodetect-beanfactorypostprocessors"></a><p><code class="interfacename">ApplicationContext</code>會檢測部署在它之上實作了<code class="interfacename">BeanFactoryPostProcessor</code>介面的bean，並在適當的時候會自動調用bean處理器後置處理器。部署一個後置處理器同部屬其他的bean並沒有什麼區別。</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>正如<code class="literal">BeanPostProcessor</code>的情況一樣，請不要將<code class="literal">BeanFactoryPostProcessors</code>標記為延遲載入。如果你這樣做，Spring容器將不會註冊它們，自定義邏輯就無法實作。如果你在<code class="literal">&lt;beans/&gt;</code>元素的定義中使用了<code class="literal">'default-lazy-init'</code>屬性，請確信你的各個<code class="interfacename">BeanFactoryPostProcessor</code>標記為<code class="literal">'lazy-init="false"'</code>。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="beans-factory-placeholderconfigurer"></a>3.7.2.1.&#160;<code class="interfacename">PropertyPlaceholderConfigurer</code>範例</h4></div></div></div>
+<p><code class="interfacename">PropertyPlaceholderConfigurer</code>是個bean處理器後置處理器的實作，可以將<code class="interfacename">BeanFactory</code>定義中的一些屬性值放到另一個單獨的標準Java <code class="classname">Properties</code>檔案中。這就允許使用者在部署應用時只需要在屬性檔案中對一些關鍵屬性（例如資料庫URL，使用者名和密碼）進行修改，而不用對主XML定義檔案或容器所用檔案進行複雜和危險的修改。</p>
+<p>考慮下面的XML配置元資料定義，它用佔位符定義了<code class="interfacename">DataSource</code>。我們在外部的<code class="classname">Properties</code>檔案中配置一些相關的屬性。在運行時，我們為元資料提供一個<code class="classname">PropertyPlaceholderConfigurer</code>，它將會替換dataSource的屬性值。</p>
+<pre class="programlisting">&lt;bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"&gt;
+    &lt;property name="locations"&gt;
+        &lt;value&gt;classpath:com/foo/jdbc.properties&lt;/value&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;
+
+&lt;bean id="dataSource" destroy-method="close"
+      class="org.apache.commons.dbcp.BasicDataSource"&gt;
+    &lt;property name="driverClassName" value="<span class="bold"><strong>${jdbc.driverClassName}</strong></span>"/&gt;
+    &lt;property name="url" value="<span class="bold"><strong>${jdbc.url}</strong></span>"/&gt;
+    &lt;property name="username" value="<span class="bold"><strong>${jdbc.username}</strong></span>"/&gt;
+    &lt;property name="password" value="<span class="bold"><strong>${jdbc.password}</strong></span>"/&gt;
+&lt;/bean&gt;</pre>
+<p>實際的值來自於另一個標準Java <code class="classname">Properties</code>格式的檔案：</p>
+<pre class="programlisting">jdbc.driverClassName=org.hsqldb.jdbcDriver
+jdbc.url=jdbc:hsqldb:hsql://production:9002
+jdbc.username=sa
+jdbc.password=root</pre>
+<p>在Spring 2.5中，<code class="literal">context</code>名字空間可能採用單一元素屬性佔位符的方式(多個路徑提供一個逗號分隔的列表)</p>
+<pre class="programlisting">&lt;context:property-placeholder location="classpath:com/foo/jdbc.properties"/&gt;</pre>
+<p><code class="classname">PropertyPlaceholderConfigurer</code>如果在指定的<code class="classname">Properties</code>檔案中找不到你想使用的屬性，它還會在Java的<code class="classname">System</code>類別屬性中尋找。這個行為可以通過設置<code class="literal">systemPropertiesMode</code>屬性來定制，它有三個值：讓配置一直覆寫、讓它永不覆寫及讓它僅僅在屬性檔案中找不到該屬性時才覆寫。請參考<code class="classname">PropertiesPlaceholderConfigurer</code>的JavaDoc以獲得更多的資訊。</p>
+<div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">類別名替代</h3>
+<p><code class="classname">PropertyPlaceholderConfigurer</code>可以在必須在運行時選擇一個特性實作類別時可以用來替代類別名。例如：</p>
+<pre class="programlisting">&lt;bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"&gt;
+    &lt;property name="locations"&gt;
+        &lt;value&gt;classpath:com/foo/strategy.properties&lt;/value&gt;
+    &lt;/property&gt;
+    &lt;property name="properties"&gt;
+        &lt;value&gt;custom.strategy.class=com.foo.DefaultStrategy&lt;/value&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;
+
+&lt;bean id="serviceStrategy" class="${custom.strategy.class}"/&gt;</pre>
+<p>如果類別在運行時無法變為有效。則這個bean會創建失敗（當對非延遲實例化bean執行<code class="interfacename">ApplicationContext</code>的<code class="methodname">preInstantiateSingletons()</code>方法的情況下）。</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="beans-factory-overrideconfigurer"></a>3.7.2.2.&#160;<code class="classname">PropertyOverrideConfigurer</code>範例</h4></div></div></div>
+<p>另一個bean處理器後置處理器<code class="classname">PropertyOverrideConfigurer</code>類似於<code class="classname">PropertyPlaceholderConfigurer</code>。但是與後者相比，前者對於bean屬性可以有缺省值或者根本沒有值。如果起覆寫作用的<code class="classname">Properties</code>檔案沒有某個bean屬性的內容，那麼將使用缺省的上下文定義。</p>
+<p>bean處理器並不會意識到被覆寫，所以僅僅察看XML定義檔案並不能立刻知道覆寫配置是否被使用了。在多個<code class="classname">PropertyOverrideConfigurer</code>實例中對一個bean屬性定義了不同的值時，最後定義的值將被使用（由於覆寫機制）。</p>
+<p>Properties檔案的配置應該是如下的格式：</p>
+<pre class="programlisting">beanName.property=value</pre>
+<p>An example properties file might look like this:</p>
+<p>一個properties檔案可能是下面這樣的：</p>
+<pre class="programlisting">dataSource.driverClassName=com.mysql.jdbc.Driver
+dataSource.url=jdbc:mysql:mydb</pre>
+<p>這個範例檔案可用在這樣一個bean容器：包含一個名為<span class="emphasis"><em>dataSource</em></span>的bean，並且這個bean有<span class="emphasis"><em>driver</em></span>和<span class="emphasis"><em>url</em></span>屬性。</p>
+<p>注意它也支持組合的屬性名稱，只要路徑中每個元件除了最後要被覆寫的屬性外全都是非空的（比如通過建構器來初始化），在下例中：</p>
+<pre class="programlisting">foo.fred.bob.sammy=123</pre>
+<p>... the <code class="literal">sammy</code> property of the
+        <code class="literal">bob</code> property of the <code class="literal">fred</code>
+        property of the <code class="literal">foo</code> bean is being set to the scalar
+        value <code class="literal">123</code>.</p>
+<p><code class="literal">foo</code> bean的<code class="literal">fred</code>屬性的<code class="literal">bob</code>屬性的<code class="literal">sammy</code>屬性被設置為數值123。</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="beans-factory-extension-factorybean"></a>3.7.3.&#160;使用<code class="literal">FactoryBean</code>定制實例化邏輯</h3></div></div></div>
+<p>處理器bean需要實作<code class="interfacename">org.springframework.beans.factory.FactoryBean</code>介面。</p>
+<p><code class="interfacename">FactoryBean</code>介面是插入到Spring IoC容器用來定制實例化邏輯的一個介面點。如果你有一些複雜的初始化程式碼用Java可以更好來表示，而不是用(可能)冗長的XML，那麼你就可以創建你自己的<code class="interfacename">FactoryBean</code>，並在那個類別中寫入複雜的初始化動作，然後把你定制的<code class="interfacename">FactoryBean</code>插入容器中。</p>
+<p><code class="interfacename">FactoryBean</code>介面提供三個方法：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><code class="methodname">Object getObject()</code>：返回一個由這個處理器創建的物件實例。這個實例可能被共享（取決於isSingleton()的返回值是singleton或prototype）。</p></li>
+<li><p><code class="methodname">boolean isSingleton()</code>：如果要讓這個FactoryBean創建的物件實例為singleton則返回true，否則返回false。</p></li>
+<li><p><code class="methodname">Class getObjectType()</code>：返回通過getObject()方法返回的物件型別，如果該型別無法預料則返回null。</p></li>
+</ul></div>
+<p>在Spring框架中<code class="interfacename">FactoryBean</code>的概念和介面被用於多個地方；在本文寫作時，Spring本身提供的<code class="interfacename">FactoryBean</code>介面實作超過了50個。</p>
+<p>最後，有時需要向容器請求一個真實的<code class="interfacename">FactoryBean</code>實例本身，而不是它創建的bean。這可以通過在<code class="interfacename">FactoryBean</code>（包括<code class="interfacename">ApplicationContext</code>）調用<code class="methodname">getBean</code>方法時在bean id前加<code class="literal">'&amp;'</code>(沒有單引號)來完成。因此對於一個假定id為<code class="literal">myBean</code>的<code class="interfacename">FactoryBean</code>，在容器上調用<code class="literal">getBean("myBean")</code>將返回<code class="interfacename">FactoryBean</code>創建的bean實例，但是調用<code class="literal">getBean("&amp;myBean")</code>將返回<code class="interfacename">FactoryBean</code>本身的實例。</p>
+</div>
+</div></body>
+</html>

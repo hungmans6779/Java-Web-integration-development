@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+       
+<!-- 類別所在的包名 -->       
+<hibernate-mapping package="com.helloweenvsfei.hibernate.bean.xml" >
+
+  <!-- 設定類別名與表名 --> 
+  <class name="com.helloweenvsfei.hibernate.bean.Person2" table="tb_person2" >
+  
+  
+    <!-- 主鍵屬性與列  -->
+    <!-- 
+      @Id                                             // 宣告主鍵
+      @GeneratedValue(strategy=GenerationType.AUTO)   // 宣告主鍵產生規則
+      private Integer id;
+    -->
+    <id name="id" column="id" >
+      <generator class="native" />     <!-- 資料庫自增長  -->
+    </id> 
+    
+  
+  
+  
+    <!-- name 屬性 -->
+    <!-- 
+      private String name;
+    -->
+    <property name="name" />           
+    
+    
+    
+    
+    <!-- 
+      @OneToMany(fetch=FetchType.EAGER,targetEntity=Email.class,cascade={CascadeType.PERSIST,CascadeType.REMOVE,CascadeType.MERGE,CascadeType.REFRESH})
+      @JoinColumns(value={@JoinColumn(name="person_id",referencedColumnName="id")})
+      @OrderBy(value="email desc")
+      private List<Email> emails = new ArrayList<Email>();
+      
+               ※提示：XML 設定 cascade 串聯關係時，可以用 "-" 設定多個串聯方式。例如 "persist-save-delete"。
+    -->
+    <!-- bag 設定List -->
+    <!-- 
+        bag 標籤設定List 類型屬性，cascade 設定串聯方式，lazy 設定載入方式，用order-by 為查處的Email 按列排序。
+                     除此之外，還可以用where 設定載入 Email 時的附屬條件(本例設定為只載入所有所含 '@' 的Email)。
+        <key>指定外鍵列，<one-to-many>設定多方的類型。由於用泛型設定了Lists<Email>，標籤<one-to-class> 的classes 屬性可以省略。  
+    -->
+    <!-- 
+                    本例的集合屬性使用了List ，裡面的元素是有先後順序的。如果集合屬性使用Set 而不是List 時，
+                    則XML 設定時需要使用<set> 標籤而不要使用<bag> 標籤，而且不能使用 order-by 設定(因為 Set 裡元素沒有先後順序)。
+                    對於 @ 註釋設定，Set 類型、List 類型的設定是不一樣的，只是Set 不能用 @OrderBy。
+    -->
+    <bag name="emails" cascade="all" lazy="false" where="email like '%@%' " order-by="email" >
+      <key column="person_id" ></key>  <!-- List 裡物件的設定 -->
+      <one-to-many class="com.helloweenvsfei.hibernate.bean.Email" />
+    </bag>
+    
+  </class>
+
+</hibernate-mapping>       
+       

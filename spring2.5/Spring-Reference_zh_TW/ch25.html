@@ -1,0 +1,74 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>第&#160;25&#160;章&#160;註釋和源程式碼級的元資料支持</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="pt04.html" title="部分&#160;IV.&#160;整合">
+<link rel="prev" href="ch24s06.html" title="24.6.&#160;更多的資源">
+<link rel="next" href="ch25s02.html" title="25.2.&#160;Spring的元資料支持">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="chapter" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title">
+<a name="metadata"></a>第&#160;25&#160;章&#160;註釋和源程式碼級的元資料支持</h2></div></div></div>
+<div class="toc">
+<p><b>目錄</b></p>
+<dl>
+<dt><span class="section"><a href="ch25.html#metadata-introduction">25.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch25s02.html">25.2. Spring的元資料支持</a></span></dt>
+<dt><span class="section"><a href="ch25s03.html">25.3. 註釋</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch25s03.html#metadata-annotations-required">25.3.1. @<code class="interfacename">Required</code></a></span></dt>
+<dt><span class="section"><a href="ch25s03.html#metadata-annotations-other">25.3.2. Spring中的其它@Annotations</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch25s04.html">25.4. Jakarta Commons Attributes整合</a></span></dt>
+<dt><span class="section"><a href="ch25s05.html">25.5. 元資料和Spring AOP自動代理</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch25s05.html#metadata-fundamentals">25.5.1. 基本原理</a></span></dt>
+<dt><span class="section"><a href="ch25s05.html#metadata-tx">25.5.2. 宣告式事務管理</a></span></dt>
+</dl></dd>
+</dl>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="metadata-introduction"></a>25.1.&#160;簡介</h2></div></div></div>
+<p>源程式碼級的元資料通常是對類別或方法這樣的程序元素的<span class="emphasis"><em>屬性</em></span>或<span class="emphasis"><em>註釋</em></span>的補充。 </p>
+<p>舉例來說，我們可以像下面這樣給一個類別添加元資料：</p>
+<pre class="programlisting">/**
+ * Normal comments here
+ * @@org.springframework.transaction.interceptor.DefaultTransactionAttribute()
+ */
+public class PetStoreImpl implements PetStoreFacade, OrderService {</pre>
+<p>我們也可以像下面這樣為一個方法添加元資料：</p>
+<pre class="programlisting">/**
+ * Normal comments here
+ * @@org.springframework.transaction.interceptor.RuleBasedTransactionAttribute()
+ * @@org.springframework.transaction.interceptor.RollbackRuleAttribute(Exception.class)
+ * @@org.springframework.transaction.interceptor.NoRollbackRuleAttribute("ServletException")
+ */
+public void echoException(Exception ex) throws Exception {
+    ....
+}</pre>
+<p>這兩個例子都使用了Jakarta Commons Attributes的語法。</p>
+<p>
+			源程式碼級的元資料隨著XDoclet(在Java世界中)和Microsoft的.NET平臺的發佈被引入主串流，
+			後者使用了源程式碼級的屬性來控制事務、緩衝池(pooling)和一些其他的行為。 
+		</p>
+<p>J2EE社區已經認識到了這種方法的價值。舉例來說，跟EJB中專用的傳統XML部署描述檔案比起來它要簡單很多。
+		與人們樂意做的把一些東西從程序源程式碼中提取出來的做法相反，一些重要的企業級設置 - 特別是事務特性 - 應該屬於程序程式碼。
+		並不像EJB規範中設想的那樣，調整一個方法的事務特性基本沒有什麼意義(儘管像事務逾時這樣的參數可能改變)。 </p>
+<p>雖然元資料屬性主要用於框架的基礎設施中，來描述應用程序的類別所需要的服務，但是它也可以在運行時被查詢。
+			這是它與XDoclet這樣的解決方案的關鍵區別，XDoclet主要把元資料作為產生程式碼的一種方式，比如產生EJB類別。 </p>
+<p>下面有幾種解決方案，包括：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><span class="bold"><strong>標準Java註釋</strong></span>：標準Java元資料實作(作為JSR-175標準被開發並可在 Java 5中找到)。
+				Spring已經在事務劃分、JMX和切面(準確地說它們是AspectJ的註釋)中支持Java 5註釋。 不過，
+				既然Spring也支持Java 1.4，我們仍需要一個JVM不同版本間的解決方案。Spring元資料支持就提供了這樣一個方案。</p></li>
+<li><p><span class="bold"><strong>XDoclet</strong></span>：成熟的解決方案，主要用於程式碼產生。</p></li>
+<li><p>在多種不同的針對Java 1.4的<span class="bold"><strong>開源屬性實作</strong></span>中，Commons Attributes看起來是最完整的實作。
+				所有的這些實作都需要一個特定的前置編譯或後置編譯的步驟。</p></li>
+</ul></div>
+</div>
+</div></body>
+</html>

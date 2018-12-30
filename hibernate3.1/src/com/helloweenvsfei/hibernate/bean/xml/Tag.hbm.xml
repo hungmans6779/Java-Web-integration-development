@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+       
+<hibernate-mapping package="com.helloweenvsfei.hibernate.bean.xml" >
+  
+  <class name="com.helloweenvsfei.hibernate.bean.Tag" table="tb_tag" >
+     
+    <!-- 
+      @Id                        // id 設定
+	  @GeneratedValue(strategy=GenerationType.AUTO)
+	  private Integer id;        // 主鍵
+    -->
+    <id name="id" column="id" >
+      <generator class="native" > </generator>
+    </id>
+     
+     
+    <!-- 
+      private String name;       // 標籤名稱,使用預設設定
+    -->
+    <property name="name" />
+    
+    
+    <!-- 
+       @ManyToMany(mappedBy="tags")
+	   private Set<Post> posts = new HashSet<Post>();
+	   inverse="true" ，作用相當於@註釋中的 mappedBy 屬性
+    -->
+    <set name="posts" table="tb_tag_post" inverse="true" >
+       <key column="tag_id" />
+       <many-to-many column="post_id"  class="com.helloweenvsfei.hibernate.bean.Post" ></many-to-many>
+    </set>
+    
+    
+  </class>
+
+</hibernate-mapping>

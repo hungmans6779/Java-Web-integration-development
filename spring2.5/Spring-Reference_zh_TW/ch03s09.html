@@ -1,0 +1,19 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>3.9.&#160;粘合程式碼和可怕的singleton</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch03.html" title="第&#160;3&#160;章&#160;IoC(控制反轉)容器">
+<link rel="prev" href="ch03s08.html" title="3.8.&#160;The ApplicationContext">
+<link rel="next" href="ch03s10.html" title="3.10.&#160;以J2EE RAR檔案的形式部署Spring ApplicationContext">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="beans-glue-code-and-singletons"></a>3.9.&#160;粘合程式碼和可怕的singleton</h2></div></div></div>
+<p>一個應用中的大多數程式碼最好寫成依賴注入（控制反轉）的樣式，這樣程式碼就和Spring IoC容器無關，它們在被創建時從容器得到自己的依賴，並且完全不知道容器的存在。然而，對於少量需要與其它程式碼粘合的粘合層程式碼來說，有時候就需要以一種singleton（或者類似singleton）的方式來存取Spring IoC容器。例如，第三方的程式碼可能試圖（以<code class="literal">Class.forName()</code>的方式）直接建構一個新的物件，但無法強制它們從Spring IoC容器中得到這些物件。如果第三方程式碼建構的物件只是一個小stub或proxy，並且使用singleton方式存取Spring IoC容器來獲得真正的物件，那麼大多數的程式碼（由容器產生的物件）仍然可以使用控制反轉。因此大多數的程式碼依然不需要知道容器的存在，或者它如何被存取，並保持與其它程式碼的解耦，這樣所帶來的益處是很顯然的。EJB也可以使用這種stub/proxy方案代理到由Spring IoC容器產生的普通的Java實作物件。雖然理想情況下Spring IoC容器不需要是singleton，但是如果每個bean使用它自己的non-singleton的Spring IoC容器（當在Spring IoC容器中使用bean時，如Hibernate <code class="interfacename">SessionFactory</code>），對於記憶體使用或初始化次數都是不切實際。</p>
+<p>另一個例子，在一個多層的複雜的J2EE應用中（比如不同的JAR，EJB，以及WAR打包成一個EAR），每一層都有自己的Spring IoC容器定義（有效地組成一個層次結構），如果頂層只有一個web-app（WAR）的話，比較好的做法是簡單地創建一個由不同層的XML定義檔案組成的組合Spring IoC容器。所有不同的Spring IoC容器實作都可以以這種方式從多個定義檔案建構出來。但是，如果在頂層有多個兄弟web-apps，為每一個web-app創建一個Spring IoC容器，而每個ApplicationContext都包含大部分相同的底層的bean定義。因而就會因記憶體使用，建bean的多個復本會花很長時間初始化（比如Hibernate <code class="interfacename">SessionFactory</code>），以及其它可能產生的副作用而產生問題。作為另一可選的方案，像<code class="literal"><a href="http://www.springframework.org/docs/api/org/springframework/context/access/ContextSingletonBeanFactoryLocator.html" target="_top">ContextSingletonBeanFactoryLocator</a></code>和<code class="literal"><a href="http://www.springframework.org/docs/api/org/springframework/beans/factory/access/SingletonBeanFactoryLocator.html" target="_top">SingletonBeanFactoryLocator</a></code>的類別可以在需要的時候以有效的singleton方式，載入多層次的（比如一個是另一個的父親）Spring IoC容器，這些將會作為web應用的Spring IoC容器的父容器。由此底層的bean定義只在需要的時候載入（並且只被載入一次）。</p>
+<p>你可以查看<a href="http://www.springframework.org/docs/api/org/springframework/beans/factory/access/SingletonBeanFactoryLocator.html" target="_top">SingletonBeanFactoryLocator</a>和<a href="http://www.springframework.org/docs/api/org/springframework/context/access/ContextSingletonBeanFactoryLocator.html" target="_top">ContextSingletonBeanFactoryLocator</a>的JavaDoc來獲得詳細的例子。正如在<a href="ch18.html" title="第&#160;18&#160;章&#160;Enterprise Java Beans (EJB) 整合">EJB</a>那章所提到的，Spring為EJB提供方便使用的基類別，通常使用一個non-singleton的<code class="interfacename">BeanFactoryLocator</code>實作，這樣在需要時就可以很容易地被<code class="classname">SingletonBeanFactoryLocator</code>和<code class="classname">ContextSingletonBeanFactoryLocator</code>替換。</p>
+</div></body>
+</html>

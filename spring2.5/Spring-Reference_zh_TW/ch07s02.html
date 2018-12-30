@@ -1,0 +1,191 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>7.2.&#160;Spring中的切入點API</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch07.html" title="第&#160;7&#160;章&#160;Spring AOP APIs">
+<link rel="prev" href="ch07.html" title="第&#160;7&#160;章&#160;Spring AOP APIs">
+<link rel="next" href="ch07s03.html" title="7.3.&#160;Spring的通知API">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="aop-api-pointcuts"></a>7.2.&#160;Spring中的切入點API</h2></div></div></div>
+<p>讓我們看看Spring是如何處理切入點這個重要概念的。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="aop-api-concepts"></a>7.2.1.&#160;概念</h3></div></div></div>
+<p>Spring的切入點模型使得切入點可以獨立於通知（advice）型別進行重用，這就使得針對不同通知使用相同的pointcut成為可能。</p>
+<p><code class="literal">org.springframework.aop.Pointcut</code>是最核心的介面，用來將通知應用於特定的類別和方法，完整的介面定義如下：</p>
+<pre class="programlisting">public interface Pointcut {
+
+    ClassFilter getClassFilter();
+
+    MethodMatcher getMethodMatcher();
+
+        }</pre>
+<p>將<code class="interfacename">Pointcut</code>介面分割成有利於重用類別和方法匹配的兩部分，
+        以及進行更細粒度的操作組合（例如與另一個方法匹配實作進行「或操作」）。</p>
+<p><code class="interfacename">ClassFilter</code>介面用來將切入點限定在一個給定的類別集合中。
+        如果<code class="literal">matches()</code>方法總是返回true，所有目標類別都將被匹配：</p>
+<pre class="programlisting">public interface ClassFilter {
+
+    boolean matches(Class clazz);
+        }</pre>
+<p><code class="interfacename">MethodMatcher</code>介面通常更重要，完整的介面定義如下：</p>
+<pre class="programlisting">public interface MethodMatcher {
+
+    boolean matches(Method m, Class targetClass);
+
+    boolean isRuntime();
+
+    boolean matches(Method m, Class targetClass, Object[] args);
+        }</pre>
+<p><code class="literal">matches(Method, Class)</code>方法用來測試這個切入點是否匹配目標類別的指定方法。
+        這將在AOP代理被創建的時候進行運算，這樣可以避免在每次方法調用的時候都運算。
+        如果<code class="literal">matches(Method, Class)</code>對於一個給定的方法返回true，並且<code class="literal">isRuntime()</code>也返回true，
+        那麼<code class="literal">matches(Method, Class, Object[])</code>將在每個方法調用的時候被調用。
+        這使得切入點在通知將被執行前可以查看傳入到方法的參數。</p>
+<p>大多數MethodMatcher是靜態的，這意味著<code class="literal">isRuntime()</code>方法返回false。
+        在這種情況下，<code class="literal">matches(Method, Class , Object[])</code>永遠不會被調用。 </p>
+<div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">提示</h3>
+<p>應盡可能地使切入點保持靜態，這就允許AOP框架在AOP代理被創建時快取記憶體對切入點的計算結果。</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="aop-api-pointcut-ops"></a>7.2.2.&#160;切入點運算</h3></div></div></div>
+<p>Spring在切入點上支持以下運算： <span class="emphasis"><em>或</em></span>和<span class="emphasis"><em>與</em></span>。</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>或運算表示只需有一個切入點被匹配就執行方法。</p></li>
+<li><p>與運算表示所有的切入點都匹配的情況下才執行。</p></li>
+<li><p>通常或運算要更有用一些。</p></li>
+<li><p>切入點可以使用<span class="emphasis"><em>org.springframework.aop.support.Pointcuts</em></span>類別中的靜態方法來進行組合，
+                或者使用同一個套件內的<span class="emphasis"><em>ComposablePointcut</em></span>類別。不過使用AspectJ切入點表達式通常會更簡單一些。 </p></li>
+</ul></div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="aop-api-pointcuts-aspectj"></a>7.2.3.&#160;AspectJ切入點表達式</h3></div></div></div>
+<p>從2.0開始，Spring中使用的最重要的切入點型別是<code class="literal">org.springframework.aop.aspectj.AspectJExpressionPointcut</code>。
+        這個切入點使用AspectJ提供的資源庫來解析滿足AspectJ語法切入點表達式字元串。 </p>
+<p>可以查看前一章關於所支持的AspectJ切入點原語的討論。 </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="aop-api-pointcuts-impls"></a>7.2.4.&#160;便利的切入點實作</h3></div></div></div>
+<p>Spring提供了一些很方便的切入點實作。一些可直接使用，其它的則是切入點應用規範的子集。 </p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="aop-api-pointcuts-static"></a>7.2.4.1.&#160;靜態切入點</h4></div></div></div>
+<p>靜態切入點基於方法和目標類別進行切入點判斷，不考慮方法的參數。在多數情況下，靜態切入點是高效的、最好的選擇。
+            Spring只在第一次調用方法時運算靜態切入點：以後每次調用這個方法時就不需要再運算了。 </p>
+<p>讓我們考慮Spring中的一些靜態切入點實作。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="aop-api-pointcuts-regex"></a>7.2.4.1.1.&#160;正則表達式切入點</h5></div></div></div>
+<p>顯而易見，一種描述靜態切入點的方式是使用正則表達式。包含Spring在內的一些AOP框架都支持這種方式。
+                    <code class="literal">org.springframework.aop.support.Perl5RegexpMethodPointcut</code>是一個最基本的正則表達式切入點，
+                    它使用Perl 5正則表達式語法。<code class="literal">Perl5RegexpMethodPointcut</code>依賴Jakarta ORO進行正則表達式匹配。
+                Spring也提供了<code class="literal">JdkRegexpMethodPointcut</code>類別，它使用JDK 1.4或更高版本裡提供的正則表達式支持。</p>
+<p>使用<code class="literal">Perl5RegexpMethodPointcut</code>類別，你可以提供一組模式字元串。
+                如果其中任意一個模式匹配，切入點將被解析為true。（實際上就是這些切入點的或集。）</p>
+<p>用法如下：</p>
+<p>
+                    </p>
+<pre class="programlisting">&lt;bean id="settersAndAbsquatulatePointcut" 
+                        class="org.springframework.aop.support.Perl5RegexpMethodPointcut"&gt;
+                        &lt;property name="patterns"&gt;
+                        &lt;list&gt;
+                        &lt;value&gt;.*set.*&lt;/value&gt;
+                        &lt;value&gt;.*absquatulate&lt;/value&gt;
+                        &lt;/list&gt;
+                        &lt;/property&gt;
+                    &lt;/bean&gt;</pre>
+<p>
+                </p>
+<p>Spring提供了一個方便的類別 <code class="literal">RegexpMethodPointcutAdvisor</code>，
+                    它也允許我們參考一個通知（記住這裡一個通知可以是攔截器，前置通知（before advice），異常通知（throws advice）等型別中的一個）。
+                    在背後，如果使用J2SE 1.4或者以上版本，Spring將使用<code class="literal">JdkRegexpMethodPointcut</code>，
+                    在之前版本的虛擬機器上，Spring將退回去使用<code class="literal">Perl5RegexpMethodPointcut</code>。
+                    可以通過設置<code class="literal">perl5</code>屬性為true來強制使用<code class="literal">Perl5RegexpMethodPointcut</code>。
+                    使用<code class="literal">RegexpMethodPointcutAdvisor</code>可以簡化織入，因為一個bean可以同時作為切入點和通知器（advisor），如下所示： </p>
+<p>
+                    </p>
+<pre class="programlisting">&lt;bean id="settersAndAbsquatulateAdvisor" 
+                        class="org.springframework.aop.support.RegexpMethodPointcutAdvisor"&gt;
+                        &lt;property name="advice"&gt;
+                        &lt;ref local="beanNameOfAopAllianceInterceptor"/&gt;
+                        &lt;/property&gt;
+                        &lt;property name="patterns"&gt;
+                        &lt;list&gt;
+                        &lt;value&gt;.*set.*&lt;/value&gt;
+                        &lt;value&gt;.*absquatulate&lt;/value&gt;
+                        &lt;/list&gt;
+                        &lt;/property&gt;
+                    &lt;/bean&gt;</pre>
+<p>
+                </p>
+<p><span class="emphasis"><em>RegexpMethodPointcutAdvisor</em></span>可以和任何通知型別一起使用</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="aop-api-pointcuts-attribute-driven"></a>7.2.4.1.2.&#160;屬性驅動的切入點</h5></div></div></div>
+<p>一個重要的靜態切入點是<span class="emphasis"><em>元資料驅動(metadata-driven)</em></span>切入點。這使用元資料參數：特別是源程式碼級別的元資料。
+                </p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="aop-api-pointcuts-dynamic"></a>7.2.4.2.&#160;動態切入點</h4></div></div></div>
+<p>動態切入點比起靜態切入點在執行時要消耗更多的資源。它們同時計算方法<span class="emphasis"><em>參數</em></span>和靜態資訊。
+            這意味著它們必須在每次方法調用時都被計算；由於參數的不同，結果不能被快取記憶體。 </p>
+<p>動態切入點的主要例子是<code class="literal">控制串流</code>切入點。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="aop-api-pointcuts-cflow"></a>7.2.4.2.1.&#160;控制串流切入點</h5></div></div></div>
+<p>Spring控制串流切入點在概念上和AspectJ的<span class="emphasis"><em>cflow</em></span> 切入點很相似，
+                    雖然它的功能不如後者那麼強大。（目前還不能讓一個切入點在另外一個切入點所匹配的連接點處執行）。
+                    一個控制串流切入點匹配當前的調用棧。例如，一個連接點被<code class="literal">com.mycompany.web</code>
+                    套件內的一個方法或者<code class="literal">SomeCaller</code>類別調用，切入點就可能被啟動。
+                    控制串流切入點是由<code class="literal">org.springframework.aop.support.ControlFlowPointcut</code>類別宣告的。 
+                    </p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>在運行時控制串流切入點的開銷是非常昂貴的，甚至與其它動態切入點比起來也是如此。在Java 1.4里，
+                        它的開銷差不多是其它動態切入點的5倍。</p>
+</div>
+<p>
+                </p>
+</div>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="aop-api-pointcuts-superclasses"></a>7.2.5.&#160;切入點的父級類別</h3></div></div></div>
+<p>Spring提供了很多有用的切入點父級類別來說明你實作你自己的切入點。</p>
+<p>因為靜態切入點是最常用的，你可能會像下面那樣繼承StaticMethodMatcherPointcut。這只需要實作一個抽象方法
+        （雖然也可以覆寫其它方法來定制行為）：</p>
+<pre class="programlisting">class TestStaticPointcut extends StaticMethodMatcherPointcut {
+                
+                public boolean matches(Method m, Class targetClass) {
+                // return true if custom criteria match
+                }
+        }</pre>
+<p>動態切入點也有很多父級類別。</p>
+<p>你可以在使用自定義切入點的同時結合Spring 1.0 RC2和更高版本中的任意通知型別。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="aop-api-pointcuts-custom"></a>7.2.6.&#160;自定義切入點</h3></div></div></div>
+<p>因為在Spring AOP中的切入點是Java類別而不是語言的特性（就像AspectJ那樣），所以可以宣告自定義的切入點，不論是靜態還是動態的。
+        自定義切入點在Spring裡可能很強大。即使這樣我們仍推薦盡可能使用AspectJ切入點表達式語言。</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>後續版本的Spring也許會提供「語義切入點」，像JAC所提供的那樣：例如，「所有方法可以修改目標物件中實例變數」</p>
+</div>
+</div>
+</div></body>
+</html>

@@ -1,0 +1,126 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>20.4.&#160;控制Bean的ObjectName</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch20.html" title="第&#160;20&#160;章&#160;JMX">
+<link rel="prev" href="ch20s03.html" title="20.3.&#160;控制Bean的管理介面">
+<link rel="next" href="ch20s05.html" title="20.5.&#160;JSR-160連接器">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="jmx-naming"></a>20.4.&#160;控制Bean的<code class="classname">ObjectName</code></h2></div></div></div>
+<p>
+    對於每個Bean的註冊，<code class="classname">MBeanExporter</code> 在後台委派給了 <code class="classname">ObjectNamingStrategy</code> 的一個實作來獲取 <code class="classname">ObjectName</code>。
+    缺省實作是 <code class="classname">KeyNamingStrategy</code>，它將預設使用 <code class="literal">beans</code> 上 <code class="interfacename">Map</code> 的鍵值作為 <code class="classname">ObjectName</code>。
+    此外，<code class="classname">KeyNamingStrategy</code> 可以將該鍵值與 <code class="classname">Properties</code> 檔案中的一個條目對應，以此解析 <code class="classname">ObjectName</code>。
+    除了 <code class="classname">KeyNamingStrategy</code> 之外，Spring還提供了另外兩個 <code class="classname">ObjectNamingStrategy</code> 的實作：
+    基於bean的JVM標識建構 <code class="classname">ObjectName</code> 的 <code class="classname">IdentityNamingStrategy</code>；
+    利用源程式碼級元資料獲取 <code class="classname">ObjectName</code> 的 <code class="classname">MetadataNamingStrategy</code>。
+    </p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jmx-naming-properties"></a>20.4.1.&#160;從<code class="classname">Properties</code>讀取<code class="classname">Properties</code></h3></div></div></div>
+<p>
+      你可以配置你自己的 <code class="classname">KeyNamingStrategy</code> 實例，配置它從一個 <code class="classname">Properties</code> 實例讀取 <code class="classname">ObjectName</code>，而不是用Bean的鍵值。
+      <code class="classname">KeyNamingStrategy</code> 首先會用bean的鍵值試圖從 <code class="classname">Properties</code> 中定位一個條目。
+      假若沒有找不到對應的條目，或者 <code class="classname">Properties</code> 實例為 <code class="literal">null</code>，最後才使用Bean的鍵值作為 <code class="classname">ObjectName</code>。
+      </p>
+<p>
+      以下程式碼顯示了關於<code class="classname">KeyNamingStrategy</code>的一份配置樣例：
+      </p>
+<pre class="programlisting">&lt;beans&gt;
+
+  &lt;bean id="exporter" class="org.springframework.jmx.export.MBeanExporter"&gt;
+    &lt;property name="beans"&gt;
+      &lt;map&gt;
+        &lt;entry key="testBean" value-ref="testBean"/&gt;
+      &lt;/map&gt;
+    &lt;/property&gt;
+    &lt;property name="namingStrategy" ref="namingStrategy"/&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="testBean" class="org.springframework.jmx.JmxTestBean"&gt;
+    &lt;property name="name" value="TEST"/&gt;
+    &lt;property name="age" value="100"/&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="namingStrategy" class="org.springframework.jmx.export.naming.KeyNamingStrategy"&gt;
+    &lt;property name="mappings"&gt;
+      &lt;props&gt;
+        &lt;prop key="testBean"&gt;bean:name=testBean1&lt;/prop&gt;
+      &lt;/props&gt;
+    &lt;/property&gt;
+    &lt;property name="mappingLocations"&gt;
+      &lt;value&gt;names1.properties,names2.properties&lt;/value&gt;
+    &lt;/property&gt;
+  &lt;/bean
+
+&lt;/beans&gt;</pre>
+<p>
+      這個 <code class="classname">KeyNamingStrategy</code> 實例配置了一個 <code class="classname">Properties</code> 實例，而這個 <code class="classname">Properties</code> 實例由mapping屬性和mappingLocations屬性所指定的路徑定位到的 <code class="classname">Properties</code> 檔案合成。
+      在這個配置裡，由於 <code class="classname">Properties</code> 實例有個鍵值對應該Bean的鍵值，因此 <code class="literal">testBean</code> 的 <code class="classname">ObjectName</code> 將被指定為 <code class="literal">bean:name=testBean1</code>。
+      </p>
+<p>
+      假若沒有任何條目可以從 <code class="classname">Properties</code> 實例找到，Bean的鍵值將會作為 <code class="classname">ObjectName</code>。
+      </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jmx-naming-metadata"></a>20.4.2.&#160;使用<code class="classname">MetadataNamingStrategy</code></h3></div></div></div>
+<p>
+      <code class="classname">MetadataNamingStrategy</code> 用每個Bean上 <code class="classname">ManagedResource</code> 屬性的 <code class="literal">objectName</code> 屬性來建構 <code class="literal">objectName</code>。
+      以下程式碼展示了對於 <code class="classname">MetadataNamingStrategy</code> 的配置：
+      </p>
+<pre class="programlisting">&lt;beans&gt;
+
+  &lt;bean id="exporter" class="org.springframework.jmx.export.MBeanExporter"&gt;
+    &lt;property name="beans"&gt;
+      &lt;map&gt;
+        &lt;entry key="testBean" value-ref="testBean"/&gt;
+      &lt;/map&gt;
+    &lt;/property&gt;
+    &lt;property name="namingStrategy" ref="namingStrategy"/&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="testBean" class="org.springframework.jmx.JmxTestBean"&gt;
+    &lt;property name="name" value="TEST"/&gt;
+    &lt;property name="age" value="100"/&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="namingStrategy" class="org.springframework.jmx.export.naming.MetadataNamingStrategy"&gt;
+    &lt;property name="attributeSource" ref="attributeSource"/&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="attributeSource"
+      class="org.springframework.jmx.export.metadata.AttributesJmxAttributeSource"/&gt;
+
+&lt;/beans&gt;</pre>
+<p>
+      假若沒有 <code class="literal">objectName</code> 在 <code class="classname">ManagedResource</code>裡提供，那麼一個 <code class="classname">ObjectName</code> 將以以下格式創建： 
+      <span class="emphasis"><em>[fully-qualified-package-name]:type=[short-classname],name=[bean-name]</em></span>。
+      例如，對於以下的Bean，產生的 <code class="classname">ObjectName</code> 將是 <span class="emphasis"><em>com.foo:type=MyClass,name=myBean</em></span>。
+      </p>
+<pre class="programlisting">&lt;bean id="myBean" class="com.foo.MyClass"/&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jmx-context-mbeanexport"></a>20.4.3.&#160;<code class="literal">&lt;context:mbean-export/&gt;</code>元素</h3></div></div></div>
+<p>
+      如果你至少在使用Java 5，那麼就可以使用一個方便的 <code class="classname">MBeanExporter</code> 子類別， <code class="classname">AnnotationMBeanExporter</code>。
+      當定義一個這個子類別的實例時，由於他將始終使用基於註釋的標準Java元資料（自動探測也將始終被啟動），<code class="literal">namingStrategy</code> 和 <code class="literal">attributeSource</code> 的配置也不再需要了。
+      </p>
+<pre class="programlisting">&lt;context:mbean-export/&gt;</pre>
+<p>
+      必要時，你可以提供某個MBean伺服器的參考，同時 <code class="literal">defaultDomain</code> 屬性
+      （<code class="classname">AnnotationMBeanExporter</code>的一個屬性）接受產生的MBean
+      <code class="classname">ObjectNames</code>域名的替代值。
+      這被用於替代前面章節 <a href="ch20s04.html#jmx-naming-metadata" title="20.4.2.&#160;使用MetadataNamingStrategy"><code class="classname">MetadataNamingStrategy</code></a> 提及的完整限定包名。
+      </p>
+<pre class="programlisting">&lt;context:mbean-export server="myMBeanServer" default-domain="myDomain"/&gt;</pre>.
+
+    </div>
+</div></body>
+</html>

@@ -1,0 +1,168 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>23.4.&#160;SpringTaskExecutor抽象</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch23.html" title="第&#160;23&#160;章&#160;Spring中的定時調度(Scheduling)和執行緒池(Thread Pooling)">
+<link rel="prev" href="ch23s03.html" title="23.3.&#160;使用JDK Timer支持類別">
+<link rel="next" href="ch24.html" title="第&#160;24&#160;章&#160;動態語言支持">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="scheduling-task-executor"></a>23.4.&#160;Spring<code class="interfacename">TaskExecutor</code>抽象</h2></div></div></div>
+<p>
+			Spring 2.0 為執行器(Executor)處理引入了一個新的抽象層。Executor是Java 5的名詞，用來表示執行緒池的概念。
+			之所以用這個奇怪的名詞，是因為實際上不能保證底層實作的確是一個池。實際上，很多情況下，executor只是單執行緒。
+			Spring的抽象層說明你把執行緒池引入到Java 1.3和1.4環境中，同時隱藏了 1.3, 1.4, 5, 和 Java EE環境中執行緒池實作的差異。
+		</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="scheduling-task-executor-interface"></a>23.4.1.&#160;<code class="interfacename">TaskExecutor</code>介面</h3></div></div></div>
+<p>
+				Spring的<code class="interfacename">TaskExecutor</code>介面等同於<code class="classname">java.util.concurrent.Executor</code>介面。
+				實際上，它存在的主要原因是為了在使用執行緒池的時候，將對Java 5的依賴抽象出來。
+				這個介面只有一個方法<code class="classname">execute(Runnable task)</code>，它根據執行緒池的語義和配置，來接受一個執行任務。
+		</p>
+<p>
+				最初創建<code class="interfacename">TaskExecutor</code>是為了在需要時給其他Spring元件提供一個執行緒池的抽象。
+				例如<code class="classname">ApplicationEventMulticaster</code>元件、JMS的 <code class="classname">AbstractMessageListenerContainer</code>和對Quartz的整合都使用了<code class="interfacename">TaskExecutor</code>抽象來提供執行緒池。
+				當然，如果你的bean需要執行緒池行為，你也可以使用這個抽象層。
+		</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="scheduling-task-executor-types"></a>23.4.2.&#160;<code class="interfacename">TaskExecutor</code>型別</h3></div></div></div>
+<p>
+				在Spring發行包中預定義了一些<code class="interfacename">TaskExecutor</code>實作。有了它們，你甚至不需要再自行實作了。
+			</p>
+<div class="itemizedlist"><ul type="disc">
+<li>
+<p>
+						<code class="classname">SimpleAsyncTaskExecutor</code>
+類別
+					</p>
+<p>
+					這個實作不重用任何執行緒，或者說它每次調用都啟動一個新執行緒。但是，它還是支持對並發總數設限，當超過執行緒並發總數限制時，阻塞新的調用，直到有位置被釋放。如果你需要真正的池，請繼續往下看。
+					</p>
+</li>
+<li>
+<p><a name="syncTaskExecutor"></a>
+						<code class="classname">SyncTaskExecutor</code>類別
+					</p>
+<p>
+						這個實作不會異步執行。相反，每次調用都在發起調用的執行緒中執行。它的主要用處是在不需要多執行緒的時候，比如簡單的test case。
+					</p>
+</li>
+<li>
+<p><a name="concurrentTaskExecutor"></a>
+						<code class="classname">ConcurrentTaskExecutor</code>
+類別
+					</p>
+<p>
+					這個實作是對Java 5 <code class="classname">java.util.concurrent.Executor</code>類別的套件裝。有另一個備選, <code class="classname">ThreadPoolTaskExecutor</code>類別，它暴露了<code class="classname">Executor</code>的配置參數作為bean屬性。很少需要使用<code class="classname">ConcurrentTaskExecutor</code>, 但是如果<a href="ch23s04.html#threadPoolTaskExecutor"><code class="classname">ThreadPoolTaskExecutor</code></a>不敷所需，<code class="classname">ConcurrentTaskExecutor</code>是另外一個備選。
+					</p>
+</li>
+<li>
+<p><a name="simpleThreadPoolTaskExecutor"></a>
+						<code class="classname">SimpleThreadPoolTaskExecutor</code>
+類別
+					</p>
+<p>
+						這個實作實際上是Quartz的<code class="classname">SimpleThreadPool</code>類別的子類別，它會監聽Spring的生命週期回調。當你有執行緒池，需要在Quartz和非Quartz元件中共用時，這是它的典型用處。
+					</p>
+</li>
+<li>
+<p><a name="threadPoolTaskExecutor"></a>
+						<code class="classname">ThreadPoolTaskExecutor</code>
+類別
+					</p>
+<div class="sidebar">
+<p class="title"><b></b></p>
+<p>
+							它不支持任何對<code class="classname">java.util.concurrent</code>套件的替換或者下行移植。Doug Lea和Dawid Kurzyniec對<code class="classname">java.util.concurrent</code>的實作都採用了不同的套件結構，導致它們無法正確運行。
+						</p>
+</div>
+<p>
+					這個實作只能在Java 5環境中使用，但是卻是這個環境中最常用的。它暴露的bean properties可以用來配置一個<code class="classname">java.util.concurrent.ThreadPoolExecutor</code>，把它包裹到一個<code class="interfacename">TaskExecutor</code>中。如果你需要更加先進的類別，比如<code class="classname">ScheduledThreadPoolExecutor</code>,我們建議你使用<a href="ch23s04.html#concurrentTaskExecutor"><code class="classname">ConcurrentTaskExecutor</code></a>來替代。
+                    </p>
+</li>
+<li>
+<p>
+						<code class="classname">TimerTaskExecutor</code>類別
+					</p>
+<p>
+						這個實作使用一個<code class="classname">TimerTask</code>作為其背後的實作。它和<a href="ch23s04.html#syncTaskExecutor"><code class="classname">SyncTaskExecutor</code></a>的不同在於，方法調用是在一個獨立的執行緒中進行的，雖然在那個執行緒中是同步的。
+					</p>
+</li>
+<li>
+<p>
+						<code class="classname">WorkManagerTaskExecutor</code>類別
+					</p>
+<div class="sidebar">
+<p class="title"><b></b></p>
+<p>
+							CommonJ 是BEA和IBM聯合開發的一套規範。這些規範並非Java EE的標準，但它是BEA和IBM的應用伺服器實作的共同標準
+						</p>
+</div>
+<p>
+					這個實作使用了CommonJ WorkManager作為其底層實作，是在Spring context中配置CommonJ WorkManager應用的最重要的類別。和<a href="ch23s04.html#simpleThreadPoolTaskExecutor"><code class="classname">SimpleThreadPoolTaskExecutor</code></a>類似，這個類別實作了WorkManager介面，因此可以直接作為WorkManager使用。
+					</p>
+</li>
+</ul></div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="scheduling-task-executor-usage"></a>23.4.3.&#160;使用<code class="interfacename">TaskExecutor</code></h3></div></div></div>
+<p>
+				Spring的<code class="interfacename">TaskExecutor</code>實作作為一個簡單的JavaBeans使用。在下面的範例中，我們定義一個bean,使用 <code class="classname">ThreadPoolTaskExecutor</code>來異步列印出一系列字元串。
+			</p>
+<pre class="programlisting">import org.springframework.core.task.TaskExecutor;
+
+public class TaskExecutorExample {
+
+  private class MessagePrinterTask implements Runnable {
+
+    private String message;
+
+    public MessagePrinterTask(String message) {
+      this.message = message;
+    }
+
+    public void run() {
+      System.out.println(message);
+    }
+
+  }
+
+  private TaskExecutor taskExecutor;
+
+  public TaskExecutorExample(TaskExecutor taskExecutor) {
+    this.taskExecutor = taskExecutor;
+  }
+
+  public void printMessages() {
+    for(int i = 0; i &lt; 25; i++) {
+      taskExecutor.execute(new MessagePrinterTask("Message" + i));
+    }
+  }
+}</pre>
+<p>
+				可以看到，無需你自己從池中獲取一個執行緒來執行，你把自己的<code class="classname">Runnable</code>類別加入到隊列中去，<code class="interfacename">TaskExecutor</code>使用它自己的內置規則來決定何時應該執行任務。
+			</p>
+<p>
+				為了配置<code class="interfacename">TaskExecutor</code>使用的規則，暴露了簡單的bean properties。
+			</p>
+<pre class="programlisting">&lt;bean id="taskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor"&gt;
+  &lt;property name="corePoolSize" value="5" /&gt;
+  &lt;property name="maxPoolSize" value="10" /&gt;
+  &lt;property name="queueCapacity" value="25" /&gt;
+&lt;/bean&gt;
+
+&lt;bean id="taskExecutorExample" class="TaskExecutorExample"&gt;
+  &lt;constructor-arg ref="taskExecutor" /&gt;
+&lt;/bean&gt;</pre>
+</div>
+</div></body>
+</html>

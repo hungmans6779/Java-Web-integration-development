@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<students>
+	<student>
+		<id>1</id>
+		<name>张三</name>
+		<email>zhangsan@host.com</email>
+		<description>Software Engine</description>
+	</student>
+	<student>
+		<id>2</id>
+		<name>李四</name>
+		<email>lisi@somehost.com</email>
+		<description>Sales</description>
+	</student>
+	<student>
+		<id>3</id>
+		<name>王五</name>
+		<email>wangwu@someweb.com</email>
+		<description>Manager</description>
+	</student>
+</students>

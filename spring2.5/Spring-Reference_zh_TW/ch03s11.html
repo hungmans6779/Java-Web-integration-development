@@ -1,0 +1,392 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>3.11.&#160;基於註釋（Annotation-based）的配置</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch03.html" title="第&#160;3&#160;章&#160;IoC(控制反轉)容器">
+<link rel="prev" href="ch03s10.html" title="3.10.&#160;以J2EE RAR檔案的形式部署Spring ApplicationContext">
+<link rel="next" href="ch03s12.html" title="3.12.&#160;對受管元件的Classpath掃瞄">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="beans-annotation-config"></a>3.11.&#160;基於註釋（Annotation-based）的配置</h2></div></div></div>
+<p>在<a href="ch03s07.html#beans-factory-extension-bpp-examples-rabpp" title="3.7.1.2.&#160;RequiredAnnotationBeanPostProcessor範例">第&#160;3.7.1.2&#160;節 「<code class="classname">RequiredAnnotationBeanPostProcessor</code>範例」</a>一節中我們提到了基於註釋的配置方式，使用<code class="interfacename">BeanPostProcessor</code>與註釋是 Spring IoC 容器的一個普通擴展方法。例如，Spring 2.0 對必須的屬性引入了<a href="ch25s03.html#metadata-annotations-required" title="25.3.1.&#160;@Required">@Required</a>註釋。在 Spring 2.5中已經可以用註釋的方式去驅動 Spring 的依賴注射了。更重要的是，<code class="interfacename">@Autowired</code>註釋提供了與<a href="ch03s03.html#beans-factory-autowire" title="3.3.5.&#160;自動裝配（autowire）協作者">第&#160;3.3.5&#160;節 「自動裝配（autowire）協作者」</a>一節中描述的同樣功能，並且提供了更細緻的控制與更好的適應性。Spring 2.5 也支持 JSR-250 中的一些註釋，例如<code class="interfacename">@Resource</code>，<code class="interfacename">@PostConstruct</code>，以及<code class="interfacename">@PreDestroy</code>。當然，要使註釋可用，您必須使用 Java 5 (Tiger)或更新的版本，以使得可以存取源程式碼層次的註釋。這些註釋可以被註冊為獨立 bean 的定義，但它們也可以被隱式地註冊，通過基於 XML 的配置方式，如下例（請注意包含 '<code class="literal">context</code>' 命名空間）：</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       <em class="lineannotation"><span class="lineannotation">xmlns:context="http://www.springframework.org/schema/context"</span></em>
+       xsi:schemaLocation="http://www.springframework.org/schema/beans 
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context-2.5.xsd"&gt;
+               
+     <em class="lineannotation"><span class="lineannotation">&lt;context:annotation-config/&gt;</span></em>
+     
+&lt;/beans&gt;</pre>
+<p>（隱式註冊 post-processors 套件括了 <a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/beans/factory/annotation/AutowiredAnnotationBeanPostProcessor.html" target="_top"><code class="classname">AutowiredAnnotationBeanPostProcessor</code></a>，<a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/context/annotation/CommonAnnotationBeanPostProcessor.html" target="_top"><code class="classname">CommonAnnotationBeanPostProcessor</code></a>，<a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/orm/jpa/support/PersistenceAnnotationBeanPostProcessor.html" target="_top"><code class="classname">PersistenceAnnotationBeanPostProcessor</code></a>，也包括了前面提到的 <a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/beans/factory/annotation/RequiredAnnotationBeanPostProcessor.html" target="_top"><code class="classname">RequiredAnnotationBeanPostProcessor</code></a>。）</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="beans-autowired-annotation"></a>3.11.1.&#160;<code class="interfacename">@Autowired</code></h3></div></div></div>
+<p><code class="interfacename">@Autowired</code> 註釋可以用於「傳統的」setter 方法，如下例：</p>
+<pre class="programlisting">public class SimpleMovieLister {
+
+    private MovieFinder movieFinder;
+
+    @Autowired
+    public void setMovieFinder(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+
+    <em class="lineannotation"><span class="lineannotation">// ...</span></em>
+}</pre>
+<p>這個註釋也可以用於以屬性為參數／多個參數的方法</p>
+<pre class="programlisting">public class MovieRecommender {
+
+    private MovieCatalog movieCatalog;
+    
+    private CustomerPreferenceDao customerPreferenceDao;
+
+    @Autowired
+    public void prepare(MovieCatalog movieCatalog, CustomerPreferenceDao customerPreferenceDao) {
+        this.movieCatalog = movieCatalog;
+        this.customerPreferenceDao = customerPreferenceDao;
+    }
+
+    <em class="lineannotation"><span class="lineannotation">// ...</span></em>
+}</pre>
+<p><code class="interfacename">@Autowired</code>註釋甚至可以用於建構器與欄位：</p>
+<pre class="programlisting">public class MovieRecommender {
+
+    @Autowired
+    private MovieCatalog movieCatalog;
+    
+    private CustomerPreferenceDao customerPreferenceDao;
+
+    @Autowired
+    public MovieRecommender(CustomerPreferenceDao customerPreferenceDao) {
+        this.customerPreferenceDao = customerPreferenceDao;
+    }
+
+    <em class="lineannotation"><span class="lineannotation">// ...</span></em>
+}</pre>
+<p>也可以一種提供來自<code class="interfacename">ApplicationContext</code>的特殊型別的<span class="emphasis"><em>所有</em></span> beans，註釋欄位或者方法，例如：</p>
+<pre class="programlisting">public class MovieRecommender {
+
+    @Autowired
+    private MovieCatalog[] movieCatalogs;
+
+    <em class="lineannotation"><span class="lineannotation">// ...</span></em>
+}</pre>
+<p>這同樣適用於集合型別：</p>
+<pre class="programlisting">public class MovieRecommender {
+
+    private Set&lt;MovieCatalog&gt; movieCatalogs;
+    
+    @Autowired
+    public void setMovieCatalogs(Set&lt;MovieCatalog&gt; movieCatalogs) {
+        this.movieCatalogs = movieCatalogs;
+    }
+
+    <em class="lineannotation"><span class="lineannotation">// ...</span></em>
+}</pre>
+<p>甚至是 Maps 也可以這樣註釋，只要這個 Map 的 key 型別為 <code class="classname">String</code>。這個 Map 的 values 應該是已知的型別，並且 keys 應該套件含符合 bean 的命名：</p>
+<pre class="programlisting">public class MovieRecommender {
+
+    private Map&lt;String, MovieCatalog&gt; movieCatalogs;
+    
+    @Autowired
+    public void setMovieCatalogs(Map&lt;String, MovieCatalog&gt; movieCatalogs) {
+        this.movieCatalogs = movieCatalogs;
+    }
+
+    <em class="lineannotation"><span class="lineannotation">// ...</span></em>
+}</pre>
+<p>在缺省情況下，當出現<span class="emphasis"><em>0</em></span>個候選的 beans時自動連接將失敗；缺省行為把連接方法，建構器，欄位假設為 <span class="emphasis"><em>required</em></span> 的依賴。這樣的行為如下所示：</p>
+<pre class="programlisting">public class SimpleMovieLister {
+
+    private MovieFinder movieFinder;
+
+    @Autowired(required=false)
+    public void setMovieFinder(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+
+    <em class="lineannotation"><span class="lineannotation">// ...</span></em>
+}</pre>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>雖然當 <span class="emphasis"><em>一個類別只有一個連接建構器時</em></span>它將被標記為 <span class="emphasis"><em>required</em></span>， 但是還是可以標記多個建構器的。在這種情況下，每一個建構器都有可能被認為是連接建構器， Spring 將會把依賴關係能夠滿足的建構器認為是<span class="emphasis"><em>greediest</em></span> 的建構器。</p>
+</div>
+<p><code class="interfacename">@Autowired</code>也能用於總所周知的「可解決的依賴」：<code class="interfacename">BeanFactory</code>介面，<code class="interfacename">ApplicationContext</code>介面，<code class="interfacename">ResourceLoader</code>介面，<code class="interfacename">ApplicationEventPublisher</code>介面，還有<code class="interfacename">MessageSource</code>介面。這些介面（還有它們的擴展，例如<code class="interfacename">ConfigurableApplicationContext</code>或者<code class="interfacename">ResourcePatternResolver</code>）將可以自動解決依賴，沒有任何特殊必須的其它步驟需要。</p>
+<pre class="programlisting">public class MovieRecommender {
+
+    @Autowired
+    private ApplicationContext context;
+
+    public MovieRecommender() {
+    }
+
+    <em class="lineannotation"><span class="lineannotation">// ...</span></em>
+}</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="beans-autowired-annotation-qualifiers"></a>3.11.2.&#160;基於註釋的自動連接微調</h3></div></div></div>
+<p>因為通過型別的自動連接可能會有多個候選，因此經常需要在選擇過程中加以控制。一種方法去完成這個控制就是使用<code class="interfacename">@Qualifier</code>註釋。在最簡單的情況下，您能夠通過命名方式去實作這個自動連接：</p>
+<pre class="programlisting">public class MovieRecommender {
+
+    @Autowired
+    <span class="bold"><strong>@Qualifier("mainCatalog")</strong></span>
+    private MovieCatalog movieCatalog;
+
+    <em class="lineannotation"><span class="lineannotation">// ...</span></em>
+}</pre>
+<p><code class="interfacename">@Qualifier</code>註釋也能夠被指定為建構器的參數或者方法的參數：</p>
+<pre class="programlisting">public class MovieRecommender {
+
+    private MovieCatalog movieCatalog;
+    
+    private CustomerPreferenceDao customerPreferenceDao;
+
+    @Autowired
+    public void prepare(<span class="bold"><strong>@Qualifier("mainCatalog")</strong></span> MovieCatalog movieCatalog, CustomerPreferenceDao customerPreferenceDao) {
+        this.movieCatalog = movieCatalog;
+        this.customerPreferenceDao = customerPreferenceDao;
+    }
+
+    <em class="lineannotation"><span class="lineannotation">// ...</span></em>
+}</pre>
+<p>您也可以創建您自定義的限定器註釋。您只要在定義一個註釋時提供<code class="interfacename">@Qualifier</code>註釋就可以了：</p>
+<pre class="programlisting">@Target({ElementType.FIELD, ElementType.PARAMETER})
+@Retention(RetentionPolicy.RUNTIME)
+<span class="bold"><strong>@Qualifier</strong></span>
+public @interface Genre {
+
+    String value();
+
+}</pre>
+<p>然後您就能夠將這個自定義的限定器與參數用於自動連接的欄位：</p>
+<pre class="programlisting">public class MovieRecommender {
+
+    @Autowired
+    <span class="bold"><strong>@Genre("Action")</strong></span>
+    private MovieCatalog actionCatalog;
+    
+    private MovieCatalog comedyCatalog;
+    
+    @Autowired
+    public void setComedyCatalog(<span class="bold"><strong>@Genre("Comedy")</strong></span> MovieCatalog comedyCatalog) {
+        this.comedyCatalog = comedyCatalog;
+    }
+
+    <em class="lineannotation"><span class="lineannotation">// ...</span></em>
+}</pre>
+<p>下一步就是提供資訊給候選的 bean 的定義。您能夠添加<code class="literal">&lt;qualifier/&gt;</code>標籤作為<code class="literal">&lt;bean/&gt;</code>標籤的子元素，然後指定<code class="literal">'type'</code>還有<code class="literal">'value'</code>以匹配您的自定義限定器註釋。型別必須匹配註釋的全名，或者是一個不危險的、方便一點的名字，您也可以使用「短」 類別名。參看下例：</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd"&gt;
+
+    &lt;context:annotation-config/&gt;
+
+    &lt;bean class="example.SimpleMovieCatalog"&gt;
+        <span class="bold"><strong>&lt;qualifier type="Genre" value="Action"/&gt;</strong></span>
+        <em class="lineannotation"><span class="lineannotation">&lt;!-- inject any dependencies required by this bean --&gt;</span></em>
+    &lt;/bean&gt;
+
+    &lt;bean class="example.SimpleMovieCatalog"&gt;
+        <span class="bold"><strong>&lt;qualifier type="example.Genre" value="Comedy"/&gt;</strong></span>
+        <em class="lineannotation"><span class="lineannotation">&lt;!-- inject any dependencies required by this bean --&gt;</span></em>
+    &lt;/bean&gt;
+    
+    &lt;bean id="movieRecommender" class="example.MovieRecommender"/&gt;
+
+&lt;/beans&gt;
+</pre>
+<p>在下一節，題目是<a href="ch03s12.html" title="3.12.&#160;對受管元件的Classpath掃瞄">第&#160;3.12&#160;節 「對受管元件的Classpath掃瞄」</a>，您將看到使用XML提供給限定器元資料且基於註釋的可選解決方案。特別地，請參看：<a href="ch03s12.html#beans-scanning-qualifiers" title="3.12.6.&#160;用註釋提供限定符元資料">第&#160;3.12.6&#160;節 「用註釋提供限定符元資料」</a>。</p>
+<p>在某些情況下，有足夠充分的理由去使用不帶值的註釋。這使得註釋可以提供更多解決不同型別依賴的能力。例如，在 Internet 連接不可用時，您可以提供一個<span class="emphasis"><em>離線</em></span>的搜尋目錄。首先就要定義一個簡單的註釋：</p>
+<pre class="programlisting">@Target({ElementType.FIELD, ElementType.PARAMETER})
+@Retention(RetentionPolicy.RUNTIME)
+@Qualifier
+public @interface Offline {
+
+}</pre>
+<p>然後添加這個註釋給欄位作為自動連接：</p>
+<pre class="programlisting">public class MovieRecommender {
+
+    @Autowired
+    <span class="bold"><strong>@Offline</strong></span>
+    private MovieCatalog offlineCatalog;
+
+    <em class="lineannotation"><span class="lineannotation">// ...</span></em>
+}</pre>
+<p>現在，這個 bean 的定影只組要一個限定器了：</p>
+<pre class="programlisting">&lt;bean class="example.SimpleMovieCatalog"&gt;
+    <span class="bold"><strong>&lt;qualifier type="Offline"/&gt;</strong></span>
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- inject any dependencies required by this bean --&gt;</span></em>
+&lt;/bean&gt;</pre>
+<p>另外，也可以定制自己的限定器註釋去使用命名的屬性或者簡單的<code class="literal">'value'</code>屬性。如果自動連接時多個屬性值被指定給了一個欄位或者參數，那麼一個 bean 的定義必須<span class="emphasis"><em>全部</em></span>匹配這些屬性的值。例如，考慮如下的註釋定義： </p>
+<pre class="programlisting">@Target({ElementType.FIELD, ElementType.PARAMETER})
+@Retention(RetentionPolicy.RUNTIME)
+@Qualifier
+public @interface MovieQualifier {
+
+    String genre();
+    
+    Format format();
+
+}</pre>
+<p>在這種情況下，<code class="literal">Format</code>是一個列舉：</p>
+<pre class="programlisting">public enum Format {
+    
+    VHS, DVD, BLURAY
+}</pre>
+<p>這些欄位將與自定義的限定器進行自動連接，包括了每個屬性的值：<code class="literal">'genre'</code> 以及 <code class="literal">'format'</code>。</p>
+<pre class="programlisting">public class MovieRecommender {
+
+    @Autowired
+    @MovieQualifier(format=Format.VHS, genre="Action")
+    private MovieCatalog actionVhsCatalog;
+
+    @Autowired
+    @MovieQualifier(format=Format.VHS, genre="Comedy")
+    private MovieCatalog comedyVhsCatalog;
+
+    @Autowired
+    @MovieQualifier(format=Format.DVD, genre="Action")
+    private MovieCatalog actionDvdCatalog;
+
+    @Autowired
+    @MovieQualifier(format=Format.BLURAY, genre="Comedy")
+    private MovieCatalog comedyBluRayCatalog;
+   
+    <em class="lineannotation"><span class="lineannotation">// ...</span></em>
+}</pre>
+<p>最終，這個 bean 的定義應該與限定器匹配的值。這個列子將說明bean 的<span class="emphasis"><em>元</em></span>屬性可以用於替代<code class="literal">&lt;qualifier/&gt;</code>的子元素。那樣的話，<code class="literal">&lt;qualifier/&gt;</code>以及它的屬性將優先考慮，但是如果沒有限定器的話（參看如下定義的後兩個 bean ），自動連接機制將取消以<code class="literal">&lt;meta/&gt;</code>標籤標記的值。</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd"&gt;
+
+    &lt;context:annotation-config/&gt;
+
+    &lt;bean class="example.SimpleMovieCatalog"&gt;
+        &lt;qualifier type="MovieQualifier"&gt;
+            &lt;attribute name="format" value="VHS"/&gt;
+            &lt;attribute name="genre" value="Action"/&gt;
+        &lt;/qualifier&gt;
+        <em class="lineannotation"><span class="lineannotation">&lt;!-- inject any dependencies required by this bean --&gt;</span></em>
+    &lt;/bean&gt;
+
+    &lt;bean class="example.SimpleMovieCatalog"&gt;
+        &lt;qualifier type="MovieQualifier"&gt;
+            &lt;attribute name="format" value="VHS"/&gt;
+            &lt;attribute name="genre" value="Comedy"/&gt;
+        &lt;/qualifier&gt;
+        <em class="lineannotation"><span class="lineannotation">&lt;!-- inject any dependencies required by this bean --&gt;</span></em>
+    &lt;/bean&gt;
+
+    &lt;bean class="example.SimpleMovieCatalog"&gt;
+        &lt;meta key="format" value="DVD"/&gt;
+        &lt;meta key="genre" value="Action"/&gt;
+        <em class="lineannotation"><span class="lineannotation">&lt;!-- inject any dependencies required by this bean --&gt;</span></em>
+    &lt;/bean&gt;
+    
+    &lt;bean class="example.SimpleMovieCatalog"&gt;
+        &lt;meta key="format" value="BLURAY"/&gt;
+        &lt;meta key="genre" value="Comedy"/&gt;
+        <em class="lineannotation"><span class="lineannotation">&lt;!-- inject any dependencies required by this bean --&gt;</span></em>
+    &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="beans-custom-autowire-configurer"></a>3.11.3.&#160;<code class="classname">CustomAutowireConfigurer</code></h3></div></div></div>
+<p><a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/beans/factory/config/CustomAutowireConfigurer.html" target="_top"><code class="classname">CustomAutowireConfigurer</code></a>是一個<code class="interfacename">BeanFactoryPostProcessor</code>，它可以使得在自動連接過程中做更多的自定義選擇。特殊地，它允許您註冊您自己的自定義限定器註釋型別，甚至是它們沒有使用 Spring 的<code class="interfacename">@Qualifier</code>註釋標注它們自己。</p>
+<pre class="programlisting">&lt;bean id="customAutowireConfigurer" class="org.springframework.beans.factory.annotation.CustomAutowireConfigurer"&gt;
+    &lt;property name="customQualifierTypes"&gt;
+        &lt;set&gt;
+            &lt;value&gt;example.CustomQualifier&lt;/value&gt;
+        &lt;/set&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;</pre>
+<p>請注意，<code class="interfacename">AutowireCandidateResolver</code>的實作將依賴於 Java 版本。如果在 Java 5 以下，限定器註釋是不被支持的，因此自動連接後選將被<code class="literal">'autowire-candidate'</code>的值或者在<code class="literal">&lt;beans/&gt;</code>中元素<code class="literal">'default-autowire-candidates'</code>可用的模式所決定。如果運行在 Java 5 或者更新的版本上，<code class="interfacename">@Qualifier</code>註釋或者任何自定義並在<code class="classname">CustomAutowireConfigurer</code>上註冊過的註釋都將正常工作。</p>
+<p>忽略 Java 版本，決定「主要」的後選（當多個 beans 都配置為自動連接後選時）都是一樣的：在這些後選中只要一個 bean 的<code class="literal">'primary'</code>屬性定義為<code class="literal">'true'</code>即可。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="beans-resource-annotation"></a>3.11.4.&#160;<code class="interfacename">@Resource</code></h3></div></div></div>
+<p>Spring 也提供了使用 JSR-250 bean 屬性支持的注射方式。這是一種在 Java EE 5 與 Java 6 中普遍使用的方式（例如，在 JSF 1.2 中映射 beans 或者 JAX-WS 2.0 端點），對於Spring 托管的物件 Spring 可以以這種方式支持映射。</p>
+<p><code class="interfacename">@Resource</code>有一個『name』屬性，缺省時，Spring 將這個值解釋為要注射的 bean 的名字。換句話說，如果遵循<span class="emphasis"><em>by-name</em></span>的語法，如下例：</p>
+<pre class="programlisting">public class SimpleMovieLister {
+
+    private MovieFinder movieFinder;
+
+    <span class="bold"><strong>@Resource(name="myMovieFinder")</strong></span>
+    public void setMovieFinder(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+}</pre>
+<p>如果沒有顯式地給出名字，缺省的名字將繼承於欄位名或者 setter 方法名：如果是欄位名，它將簡化或者等價於欄位名；如果是 setter 方法名，它將等價於 bean 屬性名。下面這個例子使用名字 "movieFinder" 注射到它的 setter 方法：</p>
+<pre class="programlisting">public class SimpleMovieLister {
+
+    private MovieFinder movieFinder;
+
+    <span class="bold"><strong>@Resource</strong></span>
+    public void setMovieFinder(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+}</pre>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>註釋提供的名字將被<code class="interfacename">BeanFactory</code>解析為 bean 名。請注意，這些名字也可能通過 JNDI 被解析（需要配置 Spring 的<a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/jndi/support/SimpleJndiBeanFactory.html" target="_top"><code class="classname">SimpleJndiBeanFactory</code></a>）。不過，建議您依靠缺省行為與 Spring 的 JNDI 尋找功能。</p>
+</div>
+<p>與<code class="interfacename">@Autowired</code>類似，<code class="interfacename">@Resource</code>可以回退為與標準 bean 型別匹配（例如，使用原始型別匹配取代特殊命名 bean）來解決著名的"resolvable dependencies"：<code class="interfacename">BeanFactory</code> 介面，<code class="interfacename">ApplicationContext</code> 介面，<code class="interfacename">ResourceLoader</code> 介面，<code class="interfacename">ApplicationEventPublisher</code> 介面以及 <code class="interfacename">MessageSource</code> 介面。請注意：這只有適用於未指定命名的<code class="interfacename">@Resource</code>！</p>
+<p>下面的例子有一個<code class="literal">customerPreferenceDao</code>欄位，首先要尋找一個名叫 「customerPreferenceDao」 的 bean，然後回退為一個原始型別以匹配型別<code class="classname">CustomerPreferenceDao</code>。"context" 欄位將基於已知解決的依賴型別<code class="interfacename">ApplicationContext</code>而被注入。</p>
+<pre class="programlisting">public class MovieRecommender {
+
+    @Resource
+    private CustomerPreferenceDao customerPreferenceDao;
+
+    @Resource
+    private ApplicationContext context;
+
+    public MovieRecommender() {
+    }
+
+    <em class="lineannotation"><span class="lineannotation">// ...</span></em>
+}</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="beans-postconstruct-and-predestroy-annotations"></a>3.11.5.&#160;<code class="interfacename">@PostConstruct</code> 與 <code class="interfacename">@PreDestroy</code></h3></div></div></div>
+<p><code class="classname">CommonAnnotationBeanPostProcessor</code> 不只是能識別<code class="interfacename">@Resource</code>註釋，而且也能識別 JSR-250 <span class="emphasis"><em>lifecycle</em></span>註釋。在 Spring 2.5 中，這些註釋的描述請參看<a href="ch03s05.html#beans-factory-lifecycle-initializingbean" title="3.5.1.1.&#160;初始化回調">initialization callbacks</a> 與 <a href="ch03s05.html#beans-factory-lifecycle-disposablebean" title="3.5.1.2.&#160;析構回調">destruction callbacks</a>節。<code class="classname">CommonAnnotationBeanPostProcessor</code>已經在 Spring 的<code class="interfacename">ApplicationContext</code>中註冊，當一個方法帶有這些註釋之一時，將被在其生命週期與 Spring 生命週期介面的方法或者顯式宣告回調方法同一刻上調用。下面的例子裡，快取記憶體將預置於初始化與銷毀階段。</p>
+<pre class="programlisting">public class CachingMovieLister {
+
+    @PostConstruct
+    public void populateMovieCache() {
+        <em class="lineannotation"><span class="lineannotation">// populates the movie cache upon initialization...</span></em>
+    }
+    
+    @PreDestroy
+    public void clearMovieCache() {
+        <em class="lineannotation"><span class="lineannotation">// clears the movie cache upon destruction...</span></em>
+    }
+}</pre>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>
+		關於組合不同的生命週期機制，請查看<a href="ch03s05.html#beans-factory-lifecycle-combined-effects" title="3.5.1.4.&#160;組合生命週期機制">第&#160;3.5.1.4&#160;節 「組合生命週期機制」</a>。</p>
+</div>
+</div>
+</div></body>
+</html>

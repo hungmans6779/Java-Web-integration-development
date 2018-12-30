@@ -1,0 +1,41 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>第&#160;18&#160;章&#160;Enterprise Java Beans (EJB) 整合</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="pt04.html" title="部分&#160;IV.&#160;整合">
+<link rel="prev" href="ch17s08.html" title="17.8.&#160;在選擇這些技術時的一些考慮">
+<link rel="next" href="ch18s02.html" title="18.2.&#160;存取EJB">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="chapter" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title">
+<a name="ejb"></a>第&#160;18&#160;章&#160;Enterprise Java Beans (EJB) 整合</h2></div></div></div>
+<div class="toc">
+<p><b>目錄</b></p>
+<dl>
+<dt><span class="section"><a href="ch18.html#ejb-introduction">18.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch18s02.html">18.2. 存取EJB</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch18s02.html#ejb-access-concepts">18.2.1. 概念</a></span></dt>
+<dt><span class="section"><a href="ch18s02.html#ejb-access-local">18.2.2. 存取本地的無狀態Session Bean(SLSB)</a></span></dt>
+<dt><span class="section"><a href="ch18s02.html#ejb-access-remote">18.2.3. 存取遠端SLSB</a></span></dt>
+<dt><span class="section"><a href="ch18s02.html#ejb-access-ejb2-ejb3">18.2.4. Accessing EJB 2.x SLSBs versus EJB 3 SLSBs</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch18s03.html">18.3. 使用Spring提供的輔助類別實作EJB元件</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch18s03.html#ejb-implementation-ejb2">18.3.1. EJB 2.x base classes</a></span></dt>
+<dt><span class="section"><a href="ch18s03.html#ejb-implementation-ejb3">18.3.2. EJB 3 注入攔截</a></span></dt>
+</dl></dd>
+</dl>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="ejb-introduction"></a>18.1.&#160;簡介</h2></div></div></div>
+<p>做為一個輕量級的容器，Spring常被認為是EJB的替代品。我們也相信，對於很多（甚至是絕大多數）應用和情況，採用Spring作為容器，並借助它對事務、ORM和JDBC存取等的支持，是一種比採用EJB及EJB容器以實作同樣的功能更好的選擇。</p>
+<p>然而，需要特別注意的是，使用了Spring並不是說我們就不能用EJB了。實際上，Spring使得存取和實作EJB及其功能更加方便。另外，如果通過Spring來存取EJB元件服務，以後就可以在本地EJB元件，遠端EJB元件，或者是POJO(簡單Java物件)這些變體之間透明地切換實作方式，而不需要改變客戶端的程式碼。</p>
+<p>本章，我們來看看Spring是如何說明我們存取和實作EJB元件的。Spring在存取無狀態Session Bean(SLSBs)的時候特別有用，現在我們就由此開始討論。</p>
+</div>
+</div></body>
+</html>

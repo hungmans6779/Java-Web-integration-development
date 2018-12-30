@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<!-- 
+      利用外鍵與主鍵實現一對一關聯性各有各的特點。外鍵實現的特點是比較靈活，適用於經常改動映射關係的場景中，
+     例如修改艦船的船長。主鍵實現的特點是設定簡單，適用於不修改映射的場景中，例如客戶與位址關係。   
+-->
+ 
+<!-- 類別所在的包名 -->    
+<hibernate-mapping package="com.helloweenvsfei.hibernate.bean.xml" >
+
+  <class name="com.helloweenvsfei.hibernate.bean.Address" table="tb_address" >
+    
+    
+    <!-- 
+      @Id                                                 // 主鍵
+	  // @GeneratedValue(strategy = GenerationType.AUTO)  // 不能使用資料庫自動分配 id
+	  private Integer id;
+    -->
+    <id name="id" column="id" />
+     
+     
+    <!-- 
+      // 位址，使用預設設定
+	  private String address;
+    -->
+    <property name="address" />
+    
+    
+    <!-- 
+      // 郵遞區號，使用預設設定
+	  private String zip;
+    -->
+    <property name="zip" />
+    
+    
+    <!-- 
+      // 電話號碼，使用預設設定
+	  private String telephone;
+    -->
+    <property name="telephone" />
+    
+    
+    <!-- 
+      @OneToOne                                           // 一對一關聯性
+	  @PrimaryKeyJoinColumn                               // 一對一實體的主鍵相同 
+	  private Customer customer;
+    -->
+    <one-to-one name="customer" />
+    
+  </class>
+  
+</hibernate-mapping>  

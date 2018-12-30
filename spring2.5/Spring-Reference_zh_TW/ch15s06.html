@@ -1,0 +1,47 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>15.6.&#160;WebWork</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch15.html" title="第&#160;15&#160;章&#160;整合其它Web框架">
+<link rel="prev" href="ch15s05.html" title="15.5.&#160;Tapestry">
+<link rel="next" href="ch15s07.html" title="15.7.&#160;更多資源">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="webwork"></a>15.6.&#160;WebWork</h2></div></div></div>
+<p>
+			摘自 <a href="http://www.opensymphony.com/webwork/" target="_top">WebWork 主頁</a>...
+		</p>「<span class="quote">
+			<span class="emphasis"><em>
+				WebWork 是一個 Java Web 應用開發框架。這個框架充分考慮了如何提高開發者的效率和簡化程式碼。
+				它支持建構可重複使用的 UI 模版（例如表單控制），UI 主題，國際化，動態表單參數映射到 JavaBean，
+				健壯的客戶端與伺服器端校驗等更多功能。
+			</em></span>
+		</span>」<p>
+          WebWork （在本章作者的眼中）是一個非常簡潔、優雅的 Web 框架。它的架構和關鍵概念容易理解，並且它具有一個豐富的
+        	標籤資源庫，漂亮的分離了校驗，非常簡單高效並且花不了多少時間（另外，它的文檔和指南都非常完善）。
+        </p>
+<p>
+          WebWork 技術堆棧的一個關鍵的創新就是提供 <a href="http://www.opensymphony.com/webwork/wikidocs/IoC%20Overview.html" target="_top">一個 IoC 容器</a>
+        	來管理 WebWork Action，處理「綁定（wiring）」的業務物件等等。WebWork 2.2 以前，WebWork 使用自己的 IoC 容器
+        	（並且提供了整合點這樣就可以整合其他 IoC 容器例如 Spring 來混合使用）。在WebWork 2.2中，預設使用的 IoC 容器
+        	<span class="emphasis"><em>就是</em></span> Spring。對於 Spring 開發者來說這顯然是一個好訊息，因為它意味著開發人員立即就熟悉了在 WebWork 
+        	中的 IoC 配置，習慣用法等等。
+        </p>
+<p>
+            根據 DRY （不要重複自己 - Don't Repeat Yourself）的原則，我們沒必要再去編寫自己的 Spring-WebWork 整合方法了，
+        	WebWork 團隊已經寫了一個。請參考在
+        	<a href="http://wiki.opensymphony.com/display/WW/WebWork" target="_top">WebWork wiki</a> 上的 
+        	<a href="http://www.opensymphony.com/webwork/wikidocs/Spring.html" target="_top">Spring-WebWork 整合頁面</a>。
+        </p>
+<p>
+            注意，Spring-WebWork 整合程式碼是由 WebWork 開發者自行開發（並且也是由他們負責維護和改進），所以如果
+        	遇到整合上的問題，首先請參考 WebWork 站點和論壇。也請大家在 
+        	<a href="http://forum.springframework.org/forumdisplay.php?f=25" target="_top">Spring 支持論壇</a> 
+        	上自由發表評論和查詢 Spring-WebWork 整合方面的問題。
+        </p>
+</div></body>
+</html>

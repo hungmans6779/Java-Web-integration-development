@@ -1,0 +1,286 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>13.3.&#160;控制器</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch13.html" title="第&#160;13&#160;章&#160;Web MVC framework Web框架">
+<link rel="prev" href="ch13s02.html" title="13.2.&#160;DispatcherServlet">
+<link rel="next" href="ch13s04.html" title="13.4.&#160;處理器映射（handler mapping）">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="mvc-controller"></a>13.3.&#160;控制器</h2></div></div></div>
+<p>控制器的概念是MVC設計模式的一部分（確切地說，是MVC中的<span class="emphasis"><em>C</em></span>）。應用程序的行為通常被定義為服務介面，
+    而控制器使得使用者可以存取應用所提供的服務。控制器解析使用者輸入，並將其轉換成合理的模型資料，從而可以進一步由視圖展示給使用者。
+    Spring以一種抽象的方式實作了控制器概念，這樣可以支持不同型別的控制器。Spring本身包含表單控制器、命令控制器、嚮導型控制器等多種多樣的控制器。
+    </p>
+<p>Spring控制器架構的基礎是<code class="interfacename">org.springframework.mvc.Controller</code>介面，其程式碼如下：</p>
+<pre class="programlisting">public interface Controller {
+
+    /**
+     * Process the request and return a ModelAndView object which the DispatcherServlet
+     * will render.
+     */
+    ModelAndView handleRequest(
+        HttpServletRequest request,
+        HttpServletResponse response) throws Exception;
+
+}</pre>
+<p>可以發現<code class="interfacename">Controller</code>介面僅僅宣告了一個方法，它負責處理請求並返回合適的模型和視圖。Spring MVC實作的基礎
+    就是這三個概念：Mdel、View（<code class="classname">ModelAndView</code>）以及 <code class="interfacename">Controller</code>。雖然<code class="interfacename">
+    Controller</code>介面是完全抽象的，但Spring也提供了許多你可能會用到的控制器。Controller介面僅僅定義了每個控制器都必須提供的基本功能：
+    處理請求並返回一個模型和一個視圖。
+    </p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-controller-abstractcontroller"></a>13.3.1.&#160;<code class="classname">AbstractController</code> 和 <code class="classname">WebContentGenerator</code></h3></div></div></div>
+<p>為提供一套基礎設施，所有的Spring控制器都繼承了 <code class="classname">AbstractController</code> ，<code class="classname">AbstractController
+      </code> 提供了諸如快取記憶體支持和mimetype設置這樣的功能。
+      </p>
+<div class="table">
+<a name="mvc-controller-abstract-features"></a><p class="title"><b>表&#160;13.3.&#160;<code class="classname">AbstractController</code>提供的功能</b></p>
+<div class="table-contents"><table summary="AbstractController提供的功能" border="1">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>功能</th>
+<th>描述</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code class="literal">supportedMethods</code></td>
+<td>
+              指定這個控制器應該接受什麼樣的請求方法。通常它被設置成同時支持GET和POST，但是可以選擇你想支持的方法。如果控制器不支持請求發送的方法，
+              客戶端會得到通知（通常是拋出一個<code class="classname">ServletException</code>）。
+              </td>
+</tr>
+<tr>
+<td><code class="literal">requiresSession</code></td>
+<td>
+              表明這個控制器是否需要HTTP session才能正常工作。如果控制器在沒有session的情況下接收到請求，客戶端會因為拋出<code class="classname">ServletException
+              </code>而得到通知。
+              </td>
+</tr>
+<tr>
+<td><code class="literal">synchronizeOnSession</code></td>
+<td>
+              指定controller是否同步使用者的HTTP session。</td>
+</tr>
+<tr>
+<td><code class="literal">cacheSeconds</code></td>
+<td>
+              指定controller通知客戶端對資料內容快取記憶體的秒數，一般為大於零的整數。預設值為<span class="emphasis"><em>-1</em></span>，即不快取記憶體。</td>
+</tr>
+<tr>
+<td><code class="literal">useExpiresHeader</code></td>
+<td>
+              指定Controller在響應請求時是否相容HTTP 1.0 <span class="emphasis"><em>Expires</em></span> header。缺省值為<code class="literal">true</code>。</td>
+</tr>
+<tr>
+<td><code class="literal">useCacheHeader</code></td>
+<td>
+              指定Controller在相應請求時是否相容HTTP 1.1 <span class="emphasis"><em>Cache-Control</em></span> header。預設值為<code class="literal">true</code>。</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><p>當從<code class="classname">AbstractController</code>繼承時，只需要實作<code class="literal">handleRequestInternal(HttpServletRequest, 
+      HttpServletResponse)</code>抽象方法，該方法將用來實作自定義的邏輯，並返回一個<code class="classname">ModelAndView</code>物件。下面這個簡單的例子演示
+      了如何從<code class="classname">AbstractController</code>繼承以及如何在applicationContext.xml中進行配置。
+      </p>
+<pre class="programlisting">package samples;
+
+public class SampleController extends AbstractController {
+
+    public ModelAndView handleRequestInternal(
+        HttpServletRequest request,
+        HttpServletResponse response) throws Exception {
+
+        ModelAndView mav = new ModelAndView("hello");
+        mav.addObject("message", "Hello World!");
+        return mav;        
+    }
+}</pre>
+<pre class="programlisting">&lt;bean id="sampleController" class="samples.SampleController"&gt;
+    &lt;property name="cacheSeconds" value="120"/&gt;
+&lt;/bean&gt;</pre>
+<p>要讓該簡單控制器工作，
+      除創建一個handler mapping（請參考<a href="ch13s04.html" title="13.4.&#160;處理器映射（handler mapping）">第&#160;13.4&#160;節 「處理器映射（handler mapping）」</a>一節）外，
+      需要的全部就是上面的類別和在web application context中的宣告。
+      該controller在再次檢查前，通知客戶端將響應資料快取記憶體2分鐘，並返回使用硬編碼的視圖名（儘管這樣做不好）。
+      </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-controller-othersimplecontrollers"></a>13.3.2.&#160;其它的簡單控制器</h3></div></div></div>
+<p>儘管可以繼承<code class="classname">AbstractController</code>來實作自己的控制器，不過Spring提供的眾多控制器減輕了我們開發簡單MVC應用時的負擔。
+      <code class="classname">ParameterizableViewController</code>基本上和上面例子中的一樣，不同的是，可以在application context中指定返回的視圖名稱（從而
+      避免了在Java程式碼中的硬編碼）。
+      </p>
+<p><code class="classname">UrlFilenameViewController</code>會檢查URL，獲取檔案請求的檔案名，並把它作為視圖名加以使用。。例如，<code class="literal">
+      http://www.springframework.org/index.html</code>對應的視圖檔案名是<code class="literal">index</code>。
+      </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-controller-multiaction"></a>13.3.3.&#160;<code class="classname">MultiActionController</code></h3></div></div></div>
+<p>Spring提供了<code class="classname">MultiActionController</code>來將多個請求處理方法合併在一個控制器裡，這樣可以把相關功能組合在一起。<code class="classname">
+      （如果你很熟悉Struts，會發現這與Struts的<code class="classname">DispatchAction</code>很像）
+      MultiActionController</code>位於<code class="literal">org.springframework.web.mvc.multiaction</code>包中，它可以定義頁面請求到控制器方法名的映射，
+      然後在處理相應請求時調用該方法。當你有很多比較小的且相關的功能時使用<code class="classname">MultiActionController</code>很方便，這樣就不必為每個小功能創建
+      一個單獨的<code class="interfacename">Controller</code>了。但是一般來說<code class="classname">MultiActionController</code>不適合處理複雜邏輯，或者完全不相關
+      的功能，這時應該堅持使用標準方法，當在一個控制器存在大量公共的行為，但是有多個調用入口時，使用<code class="classname">MultiActionController</code>就特別方便。
+      </p>
+<p><code class="classname">MultiActionController</code>有兩種使用方式：一是創建<code class="classname">MultiActionController</code>的子類別，並指定將被
+      <code class="interfacename">MethodNameResolver</code>解析的方法（這種情況下不需要這個delegate參數）；二是定義一個委託物件，<code class="interfacename">
+      MethodNameResolver</code>解析出目標方法後將調用該物件的相應方法。這種情況下需要定義<code class="classname">MultiActionController</code>
+      的實例並將委託物件作為協作者注入（可通過建構參數或者<code class="methodname">setDelegate</code>方法）。
+      </p>
+<p><code class="classname">MultiActionController</code>需要一種策略，使其可以通過解析請求資訊來獲得要調用的方法。這個解析策略由<code class="interfacename">
+      MethodNameResolver</code>介面定義。<code class="classname">MultiActionController</code>提供了'<code class="literal">methodNameResolver</code>'
+      屬性使得你可以注入需要的<code class="interfacename">MethodNameResolver</code>。在自己的<code class="classname">MultiActionController</code>（或者前面說的委託物件）
+      上定義的請求處理方法必須符合如下簽章：
+      </p>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation">// '<code class="literal">anyMeaningfulName</code>'指任意方法名</span></em>
+public [ModelAndView | Map | void] anyMeaningfulName(HttpServletRequest, HttpServletResponse [,HttpSession] [,AnyObject])</pre>
+<p>上述方法的詳細資訊可參考<a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/web/servlet/mvc/multiaction/MultiActionController.html" target="_top">
+      MultiActionController類別 Javadoc</a>。如果打算使用<code class="classname">MultiActionController</code>，那最好看看它的Javadoc。不過，下面提供了
+      一些關於合法的請求處理方法的基本例子。</p>
+<p>標準格式（跟<code class="interfacename">Controller</code>介面定義的一樣）。</p>
+<pre class="programlisting">public ModelAndView displayCatalog(HttpServletRequest, HttpServletResponse)</pre>
+<p>下面這個方法接收<code class="classname">Login</code>參數，該參數中包含從請求中抽取出來的資訊。</p>
+<pre class="programlisting">public ModelAndView login(HttpServletRequest, HttpServletResponse, Login)</pre>
+<p>下面這個方法要求請求中已經存在合法的session物件。</p>
+<pre class="programlisting">public ModelAndView viewCart(HttpServletRequest, HttpServletResponse, HttpSession)</pre>
+<p>下面這個方法接受一個<code class="classname">Product</code>參數，這個參數包含從請求中抽取出來的資訊，<span class="emphasis"><em>並且</em></span>要求請求中已經存在一個
+      合法的session物件。注意參數的順序很重要：session必須是第三個參數，而綁定參數必須是final的，並位於session之後。
+      </p>
+<pre class="programlisting">public ModelAndView updateCart(HttpServletRequest, HttpServletResponse, HttpSession, Product)</pre>
+<p>下面這個方法宣告返回<code class="literal">void</code>型別，這說明它會直接寫response。</p>
+<pre class="programlisting">public void home(HttpServletRequest, HttpServletResponse)</pre>
+<p>下面這個方法返回<code class="interfacename">Map</code>，表明視圖解析器應該從請求中抽取視圖名，而返回資料將被放入model
+      （參考<a href="ch13s11.html" title="13.11.&#160;慣例優先原則（convention over configuration）">第&#160;13.11&#160;節 「慣例優先原則（convention over configuration）」</a>）。
+      </p>
+<pre class="programlisting">public Map list(HttpServletRequest, HttpServletResponse)</pre>
+<p><code class="interfacename">MethodNameResolver</code>負責從請求中解析出需要調用的方法名稱。Spring本身已經提供了一系列<code class="interfacename">
+      MethodNameResolver</code>的實作，當然也可以編寫自己的實作。注意，如果沒有明確注入自己的實作，Spring預設使用<code class="classname">
+      InternalPathMethodNameResolver</code>。
+      </p>
+<div class="itemizedlist"><ul type="disc">
+<li>
+<p><code class="classname">InternalPathMethodNameResolver</code> -從請求路徑中獲取檔案名作為方法名</p>
+<p>比如，<code class="literal">http://www.sf.net/testing.view</code>的請求會調用<code class="literal">testing(HttpServletRequest,HttpServletResponse)</code>方法。</p>
+</li>
+<li>
+<p><code class="classname">ParameterMethodNameResolver</code> - 解析請求參數，並將它作為方法名。</p>
+<p>比如，對應<code class="literal">http://www.sf.net/index.view?method=testIt</code>的請求，會調用
+          <code class="literal">testIt(HttpServletRequest, HttpServletResponse)</code>方法)。使用<code class="literal">paramName</code>屬性定義要使用的請求參數名稱。
+          </p>
+</li>
+<li><p><code class="classname">PropertiesMethodNameResolver</code> - 使用使用者自定義的屬性（Properties）物件，將請求的URL映射到方法名。比如，當屬性中包含
+          <code class="literal">/index/welcome.html=doIt</code>時，對<code class="literal">/index/welcome.html</code> 的請求會調用
+          <code class="literal">doIt(HttpServletRequest, HttpServletResponse)</code>方法。 <code class="classname">PropertiesMethodNameResolver</code>內部使用了
+          Spring的<code class="literal">PathMatcher</code>，所以支持路徑通配符，比如上邊那個URL寫成<code class="literal">/**/welcom?.html</code>也是可以的。
+          </p></li>
+</ul></div>
+<p>可以宣告自己的方法來處理請求處理過程中產生的<code class="classname">Exceptions</code>。該方法的簽章與請求處理方法的簽章類似：第一個參數必須是
+      <code class="interfacename">HttpServletRequest</code>，第二個參數必須是<code class="interfacename">HttpServletResponse</code>。不過與請求處理
+      方法不同的是，該方法的名字可以任意，具體匹配策略由該方法的第三個參數（參數型別必須是一種<code class="classname">Exception</code>）決定。Spring根據最接近的
+      異常型別進行匹配。下面是一個這種異常處理方法簽章的例子：
+      </p>
+<pre class="programlisting">public ModelAndView processException(HttpServletRequest, HttpServletResponse, IllegalArgumentException)</pre>
+<p>我們來看一個例子，其中展示了<code class="classname">MultiActionController</code>與<code class="classname">ParameterMethodNameResolver</code>一同使用的委託方式。</p>
+<pre class="programlisting">&lt;bean id="paramMultiController"
+      class="org.springframework.web.servlet.mvc.multiaction.MultiActionController"&gt;
+
+    &lt;property name="methodNameResolver"&gt;
+        &lt;bean class="org.springframework.web.servlet.mvc.multiaction.ParameterMethodNameResolver"&gt;
+            &lt;property name="paramName" value="method"/&gt;
+        &lt;/bean&gt;
+    &lt;/property&gt;
+
+    &lt;property name="delegate"&gt;
+        &lt;bean class="samples.SampleDelegate"/&gt;
+    &lt;/property&gt;
+
+&lt;/bean&gt;
+}</pre>
+<pre class="programlisting">public class SampleDelegate {
+
+    public ModelAndView retrieveIndex(HttpServletRequest req, HttpServletResponse resp) {
+        return new ModelAndView("index", "date", new Long(System.currentTimeMillis()));
+    }
+}</pre>
+<p>當使用上述的委託方式時，我們需要配置<code class="classname">PropertiesMethodNameResolver</code>，來完成與我們定義的方法的任意數量的URL的匹配。</p>
+<pre class="programlisting">&lt;bean id="propsResolver"
+      class="org....mvc.multiaction.PropertiesMethodNameResolver"&gt;
+    &lt;property name="mappings"&gt;
+        &lt;value&gt;
+/index/welcome.html=retrieveIndex
+/**/notwelcome.html=retrieveIndex
+/*/user?.html=retrieveIndex
+        &lt;/value&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;
+
+&lt;bean id="paramMultiController" class="org....mvc.multiaction.MultiActionController"&gt;
+
+    &lt;property name="methodNameResolver" ref="propsResolver"/&gt;
+    &lt;property name="delegate"&gt;
+        &lt;bean class="samples.SampleDelegate"/&gt;
+    &lt;/property&gt;
+
+&lt;/bean&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-controller-command"></a>13.3.4.&#160;命令控制器</h3></div></div></div>
+<p>Spring的<span class="emphasis"><em>command controllers</em></span>是Spring MVC的重要部分。
+      命令控制器提供了一種和資料物件交互的方式，並動態地將來自<code class="interfacename">HttpServletRequest</code>的參數綁定到指定的資料物件上。
+      它的功能和Struts中的<code class="classname">ActionForm</code>有點像，不過在Spring中，不需要實作任何介面來實作資料綁定。
+      首先，讓我們看一下有哪些可以使用的命令控制器：
+      </p>
+<div class="itemizedlist"><ul type="disc" compact>
+<li><p><code class="classname">AbstractCommandController</code> － 可以使用該抽象命令控制器來創建自己的命令控制器，它能夠將請求參數綁定到指定的命令物件。
+          這個類別並不提供任何表單功能，但是它提供驗證功能，並且讓你在控制器中去實作如何處理由請求參數值產生的命令物件。			
+			</p></li>
+<li><p><code class="classname">AbstractFormController</code> － 一個支持表單提交的抽象控制器類別。
+          使用這個控制器，可以定義表單，並使用從控制器獲取的資料物件建構表單。
+          當使用者輸入表單內容，<code class="classname">AbstractFormController</code>將使用者輸入的內容綁定到命令物件，驗證表單內容，
+          並將該物件交給控制器，完成相應的操作。它支持的功能有防止重複提交、表單驗證以及一般的表單處理串流程。
+          子類別需要實作自己的方法來指定採用哪個視圖來顯示輸入表單，哪個視圖顯示表單正確提交後的結果。
+          如果需要表單，但不想在應用上下文中指定顯示給使用者的視圖，可使用該控制器。
+			</p></li>
+<li><p>
+            <code class="classname">SimpleFormController</code> － 這是一個form controller，當需要根據命令物件來創建相應的form的時候，該類別可以提供更多的支持。
+            可以為其指定一個命令物件，顯示表單的視圖名，當表單提交成功後顯示給使用者的視圖名等等。
+          </p></li>
+<li>
+<p><code class="classname">AbstractWizardFormController</code> － 這是一個抽象類別，繼承這個類別需要實作<code class="literal">validatePage()</code>、<code class="literal">processFinish()</code> 和<code class="literal">processCancel()</code> 方法。</p>
+<p>你有可能也需要寫一個contractor，它至少需要調用<code class="literal">setPages()</code>和<code class="literal">setCommandName()</code>方法。setPages()的參數是一個String陣列，這個陣列包含了組成嚮導的視圖名。
+            setCommandName()的參數是一個String，該參數將用來在視圖中調用你的命令物件。
+            </p>
+<p>和<code class="classname">AbstractFormController</code>的實例一樣, 需要使用命令物件（其實就是一個JavaBean， 這個bean中包含了表單的資訊）。
+            這裡有兩個選擇：在建構函數中調用<code class="literal">setCommandClass()</code>方法（參數是命令物件的類別名），或者實作<code class="literal">formBackingObject()</code>方法。
+            </p>
+<p><code class="classname">AbstractWizardFormController</code> 有多個可以覆寫（override）的方法。
+            最有用的一個是<code class="literal">referenceData(..)</code>。
+            這個方法允許把模型資料以<code class="interfacename">Map</code>的格式傳遞給視圖；<code class="literal">getTargetPage()</code> 允許動態地更改嚮導的頁面順序，
+            或者直接跳過某些頁面；<code class="literal">onBindAndValidate()</code> 允許覆寫內置的綁定和驗證串流程。
+            </p>
+<p>最後，我們有必要提一下<code class="literal">setAllowDirtyBack()</code> 和<code class="literal">setAllowDirtyForward()</code>兩個方法。 
+            可以在<code class="literal">getTargetPage()</code>中調用這兩個方法，這兩個方法將決定在當前頁面驗證失敗時，是否允許嚮導前移和後退。
+            </p>
+<p><code class="classname">AbstractWizardFormController</code>的更完整的方法列表請參考JavaDoc。
+            在Spring發行版本附帶的例子jPetStore中，有一個關於嚮導實作的例子：
+            <code class="classname">org.springframework.samples.jpetstore.web.spring.OrderFormController</code>。
+            </p>
+</li>
+</ul></div>
+</div>
+</div></body>
+</html>

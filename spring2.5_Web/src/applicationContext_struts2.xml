@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+
+  <!-- 
+      ORM 模組對 Hibernate、JDO、TopLink、iBatis 等 ORMFramework 提供支援。
+      本節以 Hibernate 為例介紹 ORM 模組。 Spring 支援的 ORM 方式類似於對 JDBC 的支援，
+      例如在 DAO 層提供 HibernateDaoSupport 類別與 HibernateTemplate 類別。
+     
+      ORM 查組相依於 dom4j-1.6.jar 、antlr.jar、MyEclipse 附帶的 Spring ORM 類別函式庫可能沒有這兩個類別函式庫，需要自己增加。
+
+
+      Spring 對流行的 ORMFramework 如 TopLink、JDO、iBatis 都提供了支援，
+      把具有不同的 API 的各種 ORM 封裝為形如 XxxDaoSupport、XxxTemplate 等統一的 Spring API，
+ 　　 使用 XxxTransactionManager 進行交易管理。例如 TopLinkDaoSupport、TopLinkTemplate、TopLinkTransactionManager等。
+ 　　 它們的用法是類似的，設定也相似。
+ 
+ 
+      Spring ORM 模組對市面上的 ORMFramework 如 Hiberante 等進行了封裝。 Spring 能夠管理、維護 Hibernate 。
+      使用時可直接繼承 HiberanteDaoSupport 類別，該類別內建一個 HibernateTemplate 物件。Hibernate 的設定也轉移到 Spring 設定檔中。
+     
+
+
+
+
+
+     
+      Spring 的 Web 模組用於整合 WebFramework 、例如 Struts1、Struts 2、WebWork、JSF 等。
+      一個 Web 程式可能會同時用到多個 Framework 如 Struts、Hibernate、多個Framework 同時工作會增加程式的複雜性。
+      而如果把這些 Framework 交給Spring 來統一管理，問題將會簡單得多。 
+      
+      如果由 Spring 統一管理各種 Framework ，由 Spring 負責產生實體，那麼 Spring 就是一個小的容器。
+      Framework 能夠從 Spring 容器中獲得各種資源，包含資料來源、DAO物件、Service 物件、交易管理者、攔截器等，
+      並能使用 Spring 的特徵如 IoC、AOP 等，這樣程式將會變得相當靈活。這也是 SpringFramework 得到廣泛應用的原因。 
+      
+
+      Web 模組供對 Framework 的支援，將 WebFramework 也納入 Spring 的管理之中。 Spring 提供繼承方式與代理方式整合 Struts1.x。
+      繼承方式不需要更改任何設定檔，只把 Action 繼承自 ActionSupport 即可，但會對 Spring 產生相依。
+      代理方式需要在 struts-config.xml 中設定 <controller />，由 Spring 全碟代理，因此可以使用 Spring 的各種資源、攔截器等。
+      推薦使用代理方式。另外 Spring 也支援 Struts2.x 。
+     
+     
+      
+      ※此設定檔的說明：
+     
+      CatServiceImpl 實現了ICatService 介面。程式碼中定了一個 DAO 類型屬性，以及 getter、setter 方法。
+      Spring 將透過 getter、setter 方法注射在 DAO 物件。Service 層透過 DAO 物件實現業務邏輯。
+      DAO 層：負責資料的儲存、儲存;
+      Service 層：負責檢查資料的完整性，例如檢查是否重名等;
+     
+  -->
+
+
+
+
+
+
+  <!-- 資料庫連線設定 -->
+  <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"  destroy-method="close" >
+    <property name="driverClassName"    value="com.mysql.jdbc.Driver"                                             />
+    <property name="url"                value="jdbc:mysql://localhost:3306/spring2_web?characterEncoding=UTF-8"   />
+    <property name="username"           value="root"                                                              />
+    <property name="password"           value="19786779"                                                          />
+  </bean>
+
+
+
+  <!--  Hibernate SessionFactory 實現類別  -->
+  <bean id="sessionFactory" class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean" destroy-method="destroy" >   
+    <!-- 資料庫 -->
+    <property name="dataSource" ref="dataSource" />
+    
+    <!-- 該 Package 下所有類別都會被當作實體類別表載入  -->
+    <property name="annotatedPackages" value="classpath:/com/spring/orm/annotated" />
+    
+    <!-- 載入所設定實體類別 -->
+    <property name="annotatedClasses" >
+      <list>
+        <value>com.spring.orm.entity.Cat</value>    <!-- 設定 Cat 類別 -->
+      </list>
+    </property>
+    
+    <!-- Hibernate 屬性 -->
+    <property name="hibernateProperties" >
+      <props>
+        <prop key="hibernate.dialect" >org.hibernate.dialect.MySQLDialect</prop>  <!-- SQL 方言 -->
+        <prop key="hibernate.show_sql" >true</prop>                               <!-- 輸出 SQL 敘述 -->
+        <prop key="hibernate.format_sql" >true</prop>                             <!-- 格式化 SQL 敘述  -->
+        <prop key="hibernate.hbm2ddl.auto" >create</prop>                         <!-- 建立表結構，(create 策略自動建立資料庫指令碼)  -->
+      </props>
+    </property>
+  </bean>
+ 
+   
+  
+  
+   
+  
+  <!-- Struts 2.x 沒有透過 spring 所提供的 ActionSupport 的方式引入 Spring  -->
+  <!-- 
+     Spring 負責產生 Action 物件。 id 屬性對應 struts.xml 中 <action> 的 class 屬性。
+     因為 Struts2.x 的 Action 不是單一實例，因此 scope 屬性需要設定為 prototyope (預設為 singleton，只會產生一個實例)。
+   -->
+  <bean id="catAction" scope="prototype" class="com.struts2.action.CatAction" >
+    <property name="catService" ref="catService" />
+  </bean>
+
+  
+  
+  
+  </beans>

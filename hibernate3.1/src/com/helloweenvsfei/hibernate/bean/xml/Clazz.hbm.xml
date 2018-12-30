@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+       
+<hibernate-mapping package="com.helloweenvsfei.hibernate.bean.xml" >
+ 
+  <class name="com.helloweenvsfei.hibernate.bean.Clazz" table="tb_class" >
+  
+    <!-- 
+      	@Id
+	    @GeneratedValue(strategy = GenerationType.AUTO
+    -->
+    <id name="id" column="id" >
+      <generator class="native" ></generator>
+    </id>  
+    
+    
+    <!-- 班級名稱 -->
+    <property name="name" />  
+    
+    <!-- 
+                所有學生
+	     班級與學生的關係是一對多
+	  @OneToMany(mappedBy = "clazz")  // OneToMany,使用反向設定
+	  @Cascade(value = CascadeType.DELETE_ORPHAN)
+    -->
+    <!-- List 集合元素  -->
+    <bag name="students" inverse="true" order-by="id desc" >
+      <key column="class_id" ></key>
+      <one-to-many class="com.helloweenvsfei.hibernate.bean.Student" ></one-to-many>
+    </bag>
+    
+   
+    <!-- 
+      XML 中使用<map/>設定Map 類型屬性，用name 指定Java 中的屬性名，cascade 指定串聯操作方式，
+      inverse 指定是否反向屬性(等於@標記中的mappedBy)，lazy 指定是否使用延遲載入。<key/>設定外鍵約束，
+      <map-key/>設定索引列，type 設定類型，column 設定列名。<one-to-many/>設定一對多屬性。
+    -->
+    <!-- 
+    <map name="students" cascade="all-delete-orphan" inverse="false" lazy="false" >
+      <key column="class_id" />
+      <map-key type="string" column="name" />
+      <one-to-many class="com.helloweenvsfei.hibernate.bean.Student" />
+    </map>
+    --> 
+     
+    
+  </class>
+
+</hibernate-mapping>

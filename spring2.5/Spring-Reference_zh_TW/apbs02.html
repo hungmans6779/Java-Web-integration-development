@@ -1,0 +1,72 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>B.2.&#160;Authoring the schema</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="apb.html" title="附錄&#160;B.&#160;Extensible XML authoring">
+<link rel="prev" href="apb.html" title="附錄&#160;B.&#160;Extensible XML authoring">
+<link rel="next" href="apbs03.html" title="B.3.&#160;Coding a NamespaceHandler">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="extensible-xml-schema"></a>B.2.&#160;Authoring the schema</h2></div></div></div>
+<p>Creating an XML configuration extension for use with Spring's IoC container
+    	starts with authoring an XML Schema to describe the extension. What follows
+    	is the schema we'll use to configure <code class="classname">SimpleDateFormat</code>
+    	objects.</p>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation">&lt;!-- myns.xsd (inside package org/springframework/samples/xml) --&gt;</span></em>
+
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;xsd:schema xmlns="http://www.mycompany.com/schema/myns"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:beans="http://www.springframework.org/schema/beans"
+    targetNamespace="http://www.mycompany.com/schema/myns"
+    elementFormDefault="qualified"
+    attributeFormDefault="unqualified"&gt;
+
+   &lt;xsd:import namespace="http://www.springframework.org/schema/beans"/&gt;
+
+   &lt;xsd:element name="dateformat"&gt;
+      &lt;xsd:complexType&gt;
+         &lt;xsd:complexContent&gt;
+            <span class="bold"><strong>&lt;xsd:extension base="beans:identifiedType"&gt;</strong></span>
+               &lt;xsd:attribute name="lenient" type="xsd:boolean"/&gt;
+               &lt;xsd:attribute name="pattern" type="xsd:string" use="required"/&gt;
+            &lt;/xsd:extension&gt;
+         &lt;/xsd:complexContent&gt;
+      &lt;/xsd:complexType&gt;
+   &lt;/xsd:element&gt;
+
+&lt;/xsd:schema&gt;</pre>
+<p>(The emphasized line contains an extension base for all tags that
+    	will be identifiable (meaning they have an <code class="literal">id</code> attribute
+    	that will be used as the bean identifier in the container). We are able to use this
+    	attribute because we imported the Spring-provided <code class="literal">'beans'</code>
+    	namespace.)</p>
+<p>The above schema will be used to configure <code class="classname">SimpleDateFormat</code>
+		objects, directly in an XML application context file using the
+		<code class="literal">&lt;myns:dateformat/&gt;</code> element.</p>
+<pre class="programlisting">&lt;myns:dateformat id="dateFormat" 
+    pattern="yyyy-MM-dd HH:mm"
+    lenient="true"/&gt;
+</pre>
+<p>Note that after we've created the infrastructure classes, the above snippet of XML
+		will essentially be exactly the same as the following XML snippet. In other words,
+		we're just creating a bean in the container, identified by the name
+		<code class="literal">'dateFormat'</code> of type <code class="classname">SimpleDateFormat</code>, with a
+		couple of properties set.</p>
+<pre class="programlisting">&lt;bean id="dateFormat" class="java.text.SimpleDateFormat"&gt;
+    &lt;constructor-arg value="yyyy-HH-dd HH:mm"/&gt;
+    &lt;property name="lenient" value="true"/&gt;
+&lt;/bean&gt;</pre>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>The schema-based approach to creating configuration format allows for
+			tight integration with an IDE that has a schema-aware XML editor. Using a properly
+			authored schema, you can use autocompletion to have a user choose between several
+			configuration options defined in the enumeration.</p>
+</div>
+</div></body>
+</html>

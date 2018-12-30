@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FlowViewLayout Version="1.2">
+  <StrutsActivity path="/hello.do" location="120,150" dimension="301,91" />
+  <StrutsActivity path="/useBean.do" location="620,150" dimension="341,91" />
+  <StrutsActivity path="/login.do" location="1365,45" dimension="76,68" />
+  <StrutsActivity path="/logout.do" location="1095,45" dimension="85,68" />
+  <StrutsActivity path="/person.do" location="120,615" dimension="299,100" />
+  <StrutsActivity path="/tag.do" location="630,630" dimension="301,91" />
+  <StrutsActivity path="/beanTag.do" location="1005,630" dimension="151,76" />
+  <StrutsActivity path="/logicTag.do" location="1245,630" dimension="196,76" />
+  <StrutsActivity path="/nestedTag.do" location="1575,630" dimension="376,106" />
+  <StrutsActivity path="/case2.do" location="2130,630" dimension="181,61" />
+  <StrutsActivity path="/tiles.do" location="2430,645" dimension="281,100" />
+  <StrutsActivity path="/dispatch.do" location="600,1140" dimension="331,106" />
+  <StrutsActivity path="/upload.do" location="1095,1140" dimension="316,106" />
+  <StrutsActivity path="/validator.do" location="1635,1140" dimension="361,106" />
+  <StrutsActivity path="/dyna.do" location="2265,1140" dimension="361,106" />
+  <StrutsActivity path="/edit*.do" location="135,1425" dimension="318,100" />
+  <StrutsActivity path="list;6" location="150,1035" dimension="181,91" />
+  <StrutsActivity path="/form/helloFail.jsp" location="300,300" dimension="166,61" />
+  <StrutsActivity path="/form/helloSuccess.jsp" location="75,300" dimension="181,61" />
+  <StrutsActivity path="/form/hello.jsp" location="195,45" dimension="166,61" />
+  <StrutsActivity path="/form/useBean.jsp" location="720,45" dimension="151,61" />
+  <StrutsActivity path="/form/loginNoAction.jsp" location="1320,150" dimension="169,52" />
+  <StrutsActivity path="/form/logoutNoAction.jsp" location="1050,150" dimension="178,52" />
+  <StrutsActivity path="/form/listPerson.jsp" location="315,780" dimension="139,52" />
+  <StrutsActivity path="/form/addPersonSuccess.jsp" location="60,780" dimension="190,52" />
+  <StrutsActivity path="/form/addPerson.jsp" location="195,495" dimension="147,52" />
+  <StrutsActivity path="/form/tag.jsp" location="720,495" dimension="105,52" />
+  <StrutsActivity path="/form/beanTag.jsp" location="1005,495" dimension="137,52" />
+  <StrutsActivity path="/form/logicTag.jsp" location="1260,495" dimension="136,52" />
+  <StrutsActivity path="/form/nestedTagListPerson.jsp" location="1560,810" dimension="202,52" />
+  <StrutsActivity path="/form/nestedTagSuccess.jsp" location="1800,810" dimension="189,52" />
+  <StrutsActivity path="/form/nestedTag1.jsp" location="1650,495" dimension="271,61" />
+  <StrutsActivity path="/form/case2.jsp" location="2130,495" dimension="151,67" />
+  <StrutsActivity path="listLayout" location="2610,780" dimension="151,61" />
+  <StrutsActivity path="viewLayout" location="2430,780" dimension="136,61" />
+  <StrutsActivity path="/form/tiles.jsp" location="2490,495" dimension="181,61" />
+  <StrutsActivity path="/form/dispatch.jsp" location="675,1020" dimension="166,61" />
+  <StrutsActivity path="/form/upload.jsp" location="1170,1020" dimension="166,61" />
+  <StrutsActivity path="/form/validator.jsp" location="1740,1020" dimension="166,61" />
+  <StrutsActivity path="/form/dyna.jsp" location="2355,1020" dimension="181,61" />
+  <StrutsActivity path="/form/special/fail.jsp" location="330,1590" dimension="147,52" />
+  <StrutsActivity path="/form/special/{1}Success.jsp" location="105,1590" dimension="188,52" />
+  <StrutsActivity path="/form/beanTagList.jsp" location="165,1170" dimension="155,52" />
+  <StrutsActivity path="/form/special/PersonSuccess.jsp" location="1250,850" dimension="211,52" />
+  <StrutsActivity path="/tiles/case2.jsp" location="650,850" dimension="113,52" />
+  <StrutsTransition id="/form/tiles.jsp,null,/tiles.do,2" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="2570,556" />
+      <AbsolutePoint location="2570,645" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/hello.do,success,/form/helloSuccess.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="165,241" />
+      <AbsolutePoint location="165,300" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/case2.do,null,/form/case2.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="2205,630" />
+      <AbsolutePoint location="2205,562" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/logout.do,null,/form/logoutNoAction.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1139,113" />
+      <AbsolutePoint location="1139,150" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/form/tag.jsp,null,/tag.do,2" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="780,547" />
+      <AbsolutePoint location="780,630" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/hello.do,fail,/form/helloFail.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="383,241" />
+      <AbsolutePoint location="383,300" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/edit*.do,success,/form/special/{1}Success.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="199,1525" />
+      <AbsolutePoint location="199,1590" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/form/hello.jsp,null,/hello.do,2" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="270,106" />
+      <AbsolutePoint location="270,150" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/beanTag.do,null,/form/beanTag.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1073,630" />
+      <AbsolutePoint location="1073,547" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/case2.do,null,/tiles/case2.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="2220,691" />
+      <AbsolutePoint location="2220,947" />
+      <AbsolutePoint location="706,947" />
+      <AbsolutePoint location="706,902" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/login.do,null,/form/loginNoAction.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1404,113" />
+      <AbsolutePoint location="1404,150" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/form/useBean.jsp,null,/useBean.do,2" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="790,106" />
+      <AbsolutePoint location="790,150" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/form/addPerson.jsp,null,/person.do,2" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="269,547" />
+      <AbsolutePoint location="269,615" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tiles.do,list,listLayout111,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="2581,745" />
+      <AbsolutePoint location="2581,977" />
+      <AbsolutePoint location="1002,977" />
+      <AbsolutePoint location="1002,902" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/person.do,success,/form/addPersonSuccess.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="155,715" />
+      <AbsolutePoint location="155,780" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/logicTag.do,null,/form/logicTag.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1328,630" />
+      <AbsolutePoint location="1328,547" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/form/dyna.jsp,null,/dyna.do,2" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="2445,1081" />
+      <AbsolutePoint location="2445,1140" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/nestedTag.do,success,/form/nestedTagSuccess.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1894,736" />
+      <AbsolutePoint location="1894,810" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/edit*.do,failure,/form/special/fail.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="403,1525" />
+      <AbsolutePoint location="403,1590" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="list;6,null,/form/beanTagList.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="242,1126" />
+      <AbsolutePoint location="242,1170" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/form/upload.jsp,null,/upload.do,2" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1253,1081" />
+      <AbsolutePoint location="1253,1140" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/person.do,list,/form/listPerson.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="384,715" />
+      <AbsolutePoint location="384,780" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/nestedTag.do,list,/form/nestedTagListPerson.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1661,736" />
+      <AbsolutePoint location="1661,810" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/form/nestedTag1.jsp,null,/nestedTag.do,2" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1763,556" />
+      <AbsolutePoint location="1763,630" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tiles.do,list,listLayout,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="2685,745" />
+      <AbsolutePoint location="2685,780" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/form/validator.jsp,null,/validator.do,2" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1815,1081" />
+      <AbsolutePoint location="1815,1140" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/form/dispatch.jsp,null,/dispatch.do,2" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="765,1081" />
+      <AbsolutePoint location="765,1140" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tiles.do,view,viewLayout,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="2498,745" />
+      <AbsolutePoint location="2498,780" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+</FlowViewLayout>
+

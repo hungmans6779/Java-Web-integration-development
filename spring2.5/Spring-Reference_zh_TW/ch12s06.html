@@ -1,0 +1,417 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>12.6.&#160;JPA</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch12.html" title="第&#160;12&#160;章&#160;使用ORM工具進行資料存取">
+<link rel="prev" href="ch12s05.html" title="12.5.&#160;iBATIS SQL Maps">
+<link rel="next" href="ch12s07.html" title="12.7.&#160;事務管理">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="orm-jpa"></a>12.6.&#160;JPA</h2></div></div></div>
+<p>（<code class="literal">org.springframework.orm.jpa</code> 套件下的）Spring JPA以類似整合Hibernate或者JDO的方式，
+		提供了對 <a href="http://java.sun.com/developer/technicalArticles/J2EE/jpa/index.html" target="_top">Java Persistence API</a>
+		的全面支持，同時為提供附加的特性，必須瞭解底層的實作。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="orm-jpa-setup"></a>12.6.1.&#160;在Spring環境中建立JPA</h3></div></div></div>
+<p>Spring JPA 提供了三種方法創建JPA <code class="interfacename">EntityManagerFactory</code>：</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="orm-jpa-setup-lemfb"></a>12.6.1.1.&#160;<code class="classname">LocalEntityManagerFactoryBean</code></h4></div></div></div>
+<p>
+			<code class="classname">LocalEntityManagerFactoryBean</code>負責創建一個適合於僅使用JPA進行資料存取的環境的
+					<code class="interfacename">EntityManager</code>。
+			Factory bean將使用JPA <code class="interfacename">PersistenceProvider</code> 類別的自動檢測機制（根據JPA的
+			Java SE啟動），而在絕大多數情況下，只需要指定persistence unit名稱：</p>
+<pre class="programlisting">&lt;beans&gt;
+
+   &lt;bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalEntityManagerFactoryBean"&gt;
+      &lt;property name="persistenceUnitName" value="myPersistenceUnit"/&gt;
+   &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<p>這種JPA部署方式最為簡單，但卻最受限制。例如，不能連接到現有的JDBC<code class="interfacename">DataSource</code>，
+        並且不支持全局事務。甚至，持久化類別的織入（位元組碼轉換）也是特定於提供者的，經常需要在啟動時指定一個特定的JVM代理。
+        總之，這種方法實際上只適用於獨立的應用程序和測試環境（這正是JPA規範設計它的原因）。</p>
+<p><span class="emphasis"><em>僅在簡單部署環境中只使用這種方式，比如獨立的應用程序和整合測試。</em></span></p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="orm-jpa-setup-jndi"></a>12.6.1.2.&#160;從JNDI中獲取 <code class="classname">EntityManagerFactory</code> </h4></div></div></div>
+<p>從JNDI獲取 <code class="interfacename">EntityManagerFactory</code> （例如在Java EE 5環境中），僅通過修改XML配置即可實作：</p>
+<pre class="programlisting">&lt;beans&gt;
+
+    &lt;jee:jndi-lookup id="entityManagerFactory" jndi-name="persistence/myPersistenceUnit"/&gt;
+
+&lt;/beans&gt;</pre>
+<p>在標準的Java EE 5啟動過程中，Java EE伺服器自動檢測持久化單元（例如應用程序檔案包中的<code class="literal">META-INF/persistence.xml</code>）
+        ，以及Java EE部署描述符中定義給那些持久化單元命名上下文位置的環境的<code class="literal">persistence-unit-ref</code>項（例如<code class="literal">web.xml</code>）。</p>
+<p>在這種情況下，整個持久化單元部署，包括持久化類別的織入（字碼碼轉換）都取決於Java EE伺服器。
+        JDBC <code class="interfacename">DataSource</code> 通過在<code class="literal">META-INF/persistence.xml</code>
+        檔案中的JNDI位置進行定義；EntityManager事務與伺服器的JTA子系統整合。Spring僅僅用獲得的<code class="interfacename">EntityManagerFactory</code>,
+        通過依賴注入將它傳遞給應用程序物件，並為它管理事務（一般通過<code class="classname">JtaTransactionManager</code>）。</p>
+<p>注意，如果在同一個應用程序中使用了多個持久化單元，JNDI獲取的這種持久化單元的bean名稱
+        應該與應用程序用來參考它們的持久化單元名稱相符（例如<code class="literal">@PersistenceUnit</code>和
+        <code class="literal">@PersistenceContext註釋）。</code></p>
+<p><span class="emphasis"><em>在部署到Java EE 5伺服器時使用該方法。關於如何將自定義JPA提供者部署到伺服器，以及允許使用伺服器提供的缺省提供者之外的JPA提供者，請查看伺服器文檔的相關說明。</em></span></p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="orm-jpa-setup-lcemfb"></a>12.6.1.3.&#160;<code class="classname">LocalContainerEntityManagerFactoryBean</code></h4></div></div></div>
+<p><code class="classname">LocalContainerEntityManagerFactoryBean</code> 提供了對JPA <code class="interfacename">EntityManagerFactory</code> 
+		的全面控制，非常適合那種需要細粒度定制的環境。<code class="classname">LocalContainerEntityManagerFactoryBean</code> 將基於 
+		<code class="literal">persistence.xml</code> 檔案創建 <code class="interfacename">PersistenceUnitInfo</code> 類別，並提供 <code class="literal">dataSourceLookup</code> 策略和 <code class="literal">loadTimeWeaver</code>。
+		因此它可以在JNDI之外的使用者定義的資料源之上工作，並控制織入串流程。</p>
+<pre class="programlisting">&lt;beans&gt;
+        
+ &lt;bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean"&gt;
+  &lt;property name="dataSource" ref="someDataSource"/&gt;
+  &lt;property name="loadTimeWeaver"&gt;
+    &lt;bean class="org.springframework.instrument.classloading.InstrumentationLoadTimeWeaver"/&gt;
+  &lt;/property&gt;
+ &lt;/bean&gt;
+ 
+&lt;/beans&gt;</pre>
+<p>這是最為強大的JPA配置方式，允許在應用程序中靈活進行本地配置。它支持連接現有JDBC <code class="interfacename">DataSource</code> ，
+        支持本地事務和全局事務等等。然而，它也將需求強加到了運行時環境中，例如，如果持久化提供者需要位元組碼轉換，則必須有織入ClassLoader的能力。</p>
+<p>注意，這個選項可能與Java EE 5伺服器內建的JPA功能相衝突。因此，當運行在完全Java EE 5環境中時，
+        要考慮從JNDI獲取<code class="interfacename">EntityManagerFactory</code>。另一種可以替代的方法是，在
+        <code class="classname">LocalContainerEntityManagerFactoryBean</code>定義中通過「persistenceXmlLocation」指定相關位置，
+        例如「META-INF/my-persistence.xml」，並且只將包含該名稱的描述符放在應用程序包檔案中。因為Java EE 5伺服器將只
+        尋找預設的<code class="literal">META-INF/persistence.xml</code>檔案，它會忽略這種定制的持久化單元，因而避免與前面Spring
+        驅動的JPA配置衝突。（例如，適用於Rdsin 3.1）。</p>
+<p><span class="emphasis"><em>在基於Spring的應用程序環境中使用該方式可獲得全部JPA功能。這包括web容器，如Tomcat，
+        以及獨立的應用程序和包含複雜持久化需求的整合測試。</em></span></p>
+<div class="sidebar">
+<p class="title"><b>何時需要載入時織入？</b></p>
+<p>並非所有的JPA提供者都需要JVM代理(Hibernate就是一個例子)。
+          如果你的提供者不需要代理(agent)或者你有其他選擇(例如通過自定義編譯器或者ant任務在建構時進行增強)，那麼就<span class="bold"><strong>不應該</strong></span>使用載入時織入。</p>
+</div>
+<p><code class="interfacename">LoadTimeWeaver</code> 介面由Spring提供，允許JPA <code class="interfacename">ClassTransformer</code> 實例
+		能夠根據環境（web容器/應用伺服器）以特定的方式插入。
+		通過Java 5 <a href="http://java.sun.com/j2se/1.5.0/docs/api/java/lang/instrument/package-summary.html" target="_top">代理</a>掛鉤
+		<code class="literal">ClassTransformers</code>經常是無效的 —— 代理通常在 <span class="emphasis"><em>整個虛擬機器</em></span> 環境下工作，並且監控
+		<span class="emphasis"><em>每一個</em></span> 被載入的類別 —— 這在生產環境下一般是不提倡的。</p>
+<p>Spring提供了大量用於不同環境的 <code class="interfacename">LoadTimeWeaver</code> 實作類別，
+		允許 <code class="interfacename">ClassTransformer</code> 實例能夠僅用於<span class="emphasis"><em>每個classloader</em></span> ，而不是每個虛擬機器。</p>
+<p>接下來的一節將討論在Tomcat以及使用Spring的VM代理情況下的典型JPA織入配置。關於設置常用載入時織入的詳細內容，
+        請參見AOP一章中的<a href="ch06s08.html#aop-aj-ltw-spring" title="6.8.4.5.&#160;Spring配置">第&#160;6.8.4.5&#160;節 「Spring配置」</a>一節，它涵蓋了Tomcat、VM代理以及WebLogic、OC4J、GlassFish和Resin。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="orm-jpa-setup-lcemfb-tomcat"></a>12.6.1.3.1.&#160;Tomcat（5.0以上）載入時的織入配置</h5></div></div></div>
+<p><a href="http://tomcat.apache.org/" target="_top">Apache Tomcat</a> 缺省的ClassLoader（類別裝載器）並不支持類別的切換，
+		  但是它允許使用使用者自定義的類別裝載器。Spring提供了 <code class="classname">TomcatInstrumentableClassLoader</code> 類別
+		  （在<code class="literal">org.springframework.instrument.classloading.tomcat</code> 套件中），這個類別繼承自Tomcat的類別裝載器
+		  （<code class="classname">WebappClassLoader</code>）並且允許JPA <code class="classname">ClassTransformer</code> 的實例來「增強」所有由它載入的類別。
+		簡單說，JPA轉化器（JPA transformer）僅僅在（使用 <code class="classname">TomcatInstrumentableClassLoader</code> 的）特定web應用程序中才能被使用。</p>
+<p>為使用使用者自定義的類別裝載器：</p>
+<div class="itemizedlist">
+<div class="orderedlist"><ol type="1">
+<li><p>將 <code class="literal">spring-tomcat-weaver.jar</code> 複製到 <span class="emphasis"><em>$CATALINA_HOME</em></span>/server/lib 下
+				（其中<span class="emphasis"><em>$CATALINA_HOME</em></span> 表示Tomcat的安裝路徑）。</p></li>
+<li>
+<p>通過修改web application context使Tomcat使用使用者自定義的類別裝載器（而不是預設的類別裝載器）：</p>
+<pre class="programlisting">&lt;Context path="/myWebApp" docBase="/my/webApp/location"&gt;
+    &lt;Loader loaderClass="org.springframework.instrument.classloading.tomcat.TomcatInstrumentableClassLoader"/&gt;
+&lt;/Context&gt;</pre>
+<p>Tomcat 5.0.x 和 5.5.x 系列支持多個上下文路徑（context locations）：
+							伺服器配置檔案(<span class="emphasis"><em>$CATALINA_HOME/conf/server.xml</em></span>)，
+							預設的上下文配置（<span class="emphasis"><em>$CATALINA_HOME/conf/context.xml</em></span>）會影響所有被部署的web應用程序、
+							單獨部署在Server端的web應用程序的配置<span class="emphasis"><em>（$CATALINA_HOME/conf/[enginename]/[hostname]/my-webapp-context.xml</em></span>）
+							或者與web應用程序一起（<span class="emphasis"><em>your-webapp.war/META-INF/context.xml</em></span>）。從效率的角度說，
+							我們推薦在web-app的內部配置的方式，因為僅僅使用JPA的應用程序會使用使用者自定義的類別裝載器。
+							更多具體有關可用的上下文路徑的內容請參見Tomcat 5.x的<a href="http://tomcat.apache.org/tomcat-5.5-doc/config/context.html" target="_top">文檔</a>。</p>
+<p>注意，5.5.20之前的版本有一個XML配置解析的bug，造成<span class="emphasis"><em> server.xml </em></span>
+							中無法使用<code class="literal">Loader</code>標籤，無論是否指定了classloader，也不管這個classloader是官方的還是自定義的。</p>
+
+　　　　　　　　<p>如果你正在使用的是Tomcat 5.5.20以上的版本，就可以將<span class="emphasis"><em>useSystemClassLoaderAsParent</em></span>設置成
+　　　　　　　　<code class="literal">false</code>來解決這個問題：</p>
+<pre class="programlisting">&lt;Context path="/myWebApp" docBase="/my/webApp/location"&gt;
+    &lt;Loader loaderClass="org.springframework.instrument.classloading.tomcat.TomcatInstrumentableClassLoader"
+            useSystemClassLoaderAsParent="false"/&gt;
+&lt;/Context&gt;</pre>
+</li>
+</ol></div>
+<div class="orderedlist"><ol type="1">
+<li><p>將<code class="literal">spring-tomcat-weaver.jar</code>複製到<span class="emphasis"><em>$CATALINA_HOME</em></span>/lib (where
+                <span class="emphasis"><em>$CATALINA_HOME</em></span>表示Tomcat安裝根目錄的位置）。</p></li>
+<li>
+<p>通過編輯web應用程序上下文檔案，使Tomcat使用自定義的ClassLoader（而不是預設的ClassLoader）：</p>
+<pre class="programlisting">&lt;Context path="/myWebApp" docBase="/my/webApp/location"&gt;
+    &lt;Loader loaderClass="org.springframework.instrument.classloading.tomcat.TomcatInstrumentableClassLoader"/&gt;
+&lt;/Context&gt;</pre>
+<p>Tomcat 6.0.x (類似於5.0.x/5.5.x)系列支持幾種上下文路徑：（context locations）：
+							伺服器配置檔案(<span class="emphasis"><em>$CATALINA_HOME/conf/server.xml</em></span>)，
+							預設的上下文配置（<span class="emphasis"><em>$CATALINA_HOME/conf/context.xml</em></span>）會影響所有被部署的web應用程序、
+							單獨部署在Server端的web應用程序的配置<span class="emphasis"><em>（$CATALINA_HOME/conf/[enginename]/[hostname]/my-webapp-context.xml</em></span>）
+							或者與web應用程序一起（<span class="emphasis"><em>your-webapp.war/META-INF/context.xml</em></span>）。從效率的角度說，
+							我們推薦在web-app的內部配置的方式，因為僅僅使用JPA的應用程序會使用使用者自定義的類別裝載器。
+							更多具體有關可用的上下文路徑的內容請參見Tomcat 5.x <a href="http://tomcat.apache.org/tomcat-6.0-doc/config/context.html" target="_top">documentation</a>。</p>
+</li>
+</ol></div>
+<ul type="disc">
+<li><p>Tomcat 5.0.x/5.5.x</p></li>
+<li><p>Tomcat 6.0.x</p></li>
+</ul>
+</div>
+<p>所有Tomcat版本所需的最後一步，是在配置<code class="classname">LocalContainerEntityManagerFactoryBean</code>的時，使用
+          相應的<code class="interfacename">LoadTimeWeaver</code>：</p>
+<pre class="programlisting">&lt;bean id="emf" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean"&gt;
+  &lt;property name="loadTimeWeaver"&gt;
+    &lt;bean class="org.springframework.instrument.classloading.ReflectiveLoadTimeWeaver"/&gt;
+  &lt;/property&gt;
+&lt;/bean&gt;</pre>
+<p>利用這種方法，依賴工具的JPA應用程序無需代理就可以在Tomcat上運行。這在宿主應用程序依賴不同的JPA實作時尤為重要，
+          因為JPA轉化器只適用於ClassLoader級別，它們之間是彼此隔離的。</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>如果Tomcat使用TopLink作為JPA提供者，請將核心的toplink jar包放在<span class="emphasis"><em>$CATALINA_HOME</em></span>/shared/lib檔案夾中，而不再放到war中。</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="orm-jpa-setup-lcemfb-agent"></a>12.6.1.3.2.&#160;使用VM代理的全局載入時織入</h5></div></div></div>
+<p>對於需要類別工具，同時現有的LoadTimeWeaver實作不提供這種支持的環境，JDK代理是唯一的解決方案。對於這種情況，Spring提供了
+          需要特定於Spring（但非常常用）的VM代理（<code class="filename">spring-agent.jar</code>）的<code class="classname">InstrumentationLoadTimeWeaver</code>：</p>
+<pre class="programlisting">&lt;bean id="emf" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean"&gt;
+  &lt;property name="loadTimeWeaver"&gt;
+    &lt;bean class="org.springframework.instrument.classloading.InstrumentationLoadTimeWeaver"/&gt;
+  &lt;/property&gt;
+&lt;/bean&gt;</pre>
+<p>請注意在啟動虛擬機器時，同時啟動Spring代理，方法是提供下列JVM選項：</p>
+<pre class="programlisting">-javaagent:/path/to/spring-agent.jar</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="orm-jpa-setup-lcemfb-weaver"></a>12.6.1.3.3.&#160;上下文範圍內的載入時織入配置</h5></div></div></div>
+<p>自Spring 2.5，可以使用<code class="literal">context:load-time-weaver</code>元素來配置
+          上下文範圍的<code class="interfacename">LoadTimeWeaver</code>了。這種「全局」織入器由所有JPA
+          <code class="classname">LocalContainerEntityManagerFactoryBeans</code>自動揀選。</p>
+<p>這是配置載入時織入器的推薦方法，提供平臺（ebLogic, OC4J, GlassFish, Tomcat, Resin, VM agent）的自動檢測，以及織入器到所有織入器知道的bean的自動傳播。</p>
+<pre class="programlisting">&lt;context:load-time-weaver/&gt;
+
+&lt;bean id="emf" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean"&gt;
+    ...
+&lt;/bean&gt;</pre>
+<p>關於如何建立常用載入時織入的詳細內容，請參見<a href="ch06s08.html#aop-aj-ltw-spring" title="6.8.4.5.&#160;Spring配置">第&#160;6.8.4.5&#160;節 「Spring配置」</a>一節，它涵蓋了
+          Tomcat、VM代理，以及WebLogic, OC4J, GlassFish和Resin。</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="orm-jpa-multiple-pu"></a>12.6.1.4.&#160;處理多持久化單元</h4></div></div></div>
+<p>對於那些依靠多個持久化單元位置(例如存放在classpath中的多個jar中)的應用程序，
+        Spring提供了作為中央倉資源庫的<code class="literal">PersistenceUnitManager</code>，
+        避免了持久化單元尋找過程(的潛在開銷)。缺省實作允許指定多個位置
+        (預設情況下classpath會搜尋META-INF/persistence.xml檔案)，它們會被解析然後通過持久化單元名稱被獲取：</p>
+<pre class="programlisting">&lt;bean id="pum" class="org.springframework.orm.jpa.persistenceunit.DefaultPersistenceUnitManager"&gt;
+  &lt;property name="persistenceXmlLocation"&gt;
+    &lt;list&gt;
+     &lt;value&gt;org/springframework/orm/jpa/domain/persistence-multi.xml&lt;/value&gt;
+     &lt;value&gt;classpath:/my/package/**/custom-persistence.xml&lt;/value&gt;
+     &lt;value&gt;classpath*:META-INF/persistence.xml&lt;/value&gt;
+    &lt;/list&gt;
+  &lt;/property&gt;
+  &lt;property name="dataSources"&gt;
+   &lt;map&gt;
+    &lt;entry key="localDataSource" value-ref="local-db"/&gt;
+    &lt;entry key="remoteDataSource" value-ref="remote-db"/&gt;
+   &lt;/map&gt;
+  &lt;/property&gt;
+  <em class="lineannotation"><span class="lineannotation">&lt;!-- if no datasource is specified, use this one --&gt;</span></em>
+  &lt;property name="defaultDataSource" ref="remoteDataSource"/&gt;
+&lt;/bean&gt;
+
+&lt;bean id="emf" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean"&gt;
+  &lt;property name="persistenceUnitManager" ref="pum"/&gt;
+&lt;/bean&gt;</pre>
+<p>要注意的是，缺省實作允許在將持久化單元資訊傳入JPA provider之前用
+        <code class="literal">PersistenceUnitPostProcessor</code>(它允許選擇持久化單元)修改它們，
+        傳入的過程可以是通過屬性宣告式地傳入(影響其中所有的單元)或程式式地傳入。
+        如果沒有指定persistenceUnitManager，<code class="literal">LocalContainerEntityManagerFactoryBean</code>
+        會創建一個並在內部使用它。</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="orm-jpa-template"></a>12.6.2.&#160;<code class="classname">JpaTemplate</code> 和 <code class="classname">JpaDaoSupport</code></h3></div></div></div>
+<p>每個基於JPA的DAO都將通過依賴注入接收一個 <code class="interfacename">EntityManagerFactory</code> 實例。
+		這樣的DAO可以通過指定的 <code class="interfacename">EntityManagerFactory</code> 來操作原生JPA的API進行資料存取，
+		也可以直接使用Spring的 <code class="classname">JpaTemplate</code>：</p>
+<pre class="programlisting">&lt;beans&gt;
+
+  &lt;bean id="myProductDao" class="product.ProductDaoImpl"&gt;
+    &lt;property name="entityManagerFactory" ref="entityManagerFactory"/&gt;
+  &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<pre class="programlisting">public class JpaProductDao implements ProductDao {
+  
+    private JpaTemplate jpaTemplate;
+
+    public void setEntityManagerFactory(EntityManagerFactory emf) {
+        this.jpaTemplate = new JpaTemplate(emf);
+    }
+
+    public Collection loadProductsByCategory(final String category) throws DataAccessException {
+        return (Collection) this.jpaTemplate.execute(new JpaCallback() {
+            public Object doInJpa(EntityManager em) throws PersistenceException {
+                Query query = em.createQuery("from Product as p where p.category = :category");
+                query.setParameter("category", category);
+                List result = query.getResultList(); 
+                <em class="lineannotation"><span class="lineannotation">// do some further processing with the result list</span></em>
+                return result;
+            }
+        });
+    }
+}</pre>
+<p>
+	<code class="interfacename">JpaCallback</code> 實作允許任意型別的JPA資料存取。
+<code class="classname">JpaTemplate</code> 將確保 <code class="interfacename">EntityManager</code> 正確地打開和關閉，並且能夠自動地參與到事務中去。
+除此之外，<code class="classname">JpaTemplate</code> 能夠恰當地處理異常，確保資源的及時清理以及必要時的事務回滾。
+Template實例不僅是執行緒安全的，而且它是可重用的，因而它能夠作為實例變數被一個類別持有。
+注意， <code class="classname">JpaTemplate</code> 提供了簡單的諸如find、load、merge等操作的快捷函數來替代預設的回調實作。</p>
+<p>不僅如此，Spring還提供了一個方便的 <code class="classname">JpaDaoSupport</code> 基類別，提供了
+			<code class="literal">get/setEntityManagerFactory</code> 方法以及 <code class="literal">getJpaTemplate()</code> 方法供子類別調用：</p>
+<pre class="programlisting">public class ProductDaoImpl extends JpaDaoSupport implements ProductDao {
+  
+    public Collection loadProductsByCategory(String category) throws DataAccessException {
+        Map&lt;String, String&gt; params = new HashMap&lt;String, String&gt;();
+        params.put("category", category);
+        return getJpaTemplate().findByNamedParams("from Product as p where p.category = :category", params);
+    }
+}</pre>
+<p>除了直接使用Spring的 <code class="classname">JpaTemplate</code>之外，也可以使用原生JPA的API來實作基於Spring的DAO，
+		此時你需要自行明確地處理<code class="literal">EntityManager</code>。正如在相應的Hibernate章節描述的一樣，這種做法的主要優
+		點在於你的資料存取程式碼可以在整個過程中拋出checked exceptions。<code class="classname">JpaDaoSupport</code> 為這種情況提
+		供了多種函數支持，包括獲取和釋放一個具備事務管理功能的 <code class="interfacename">EntityManager</code> 和相關的異常轉化。</p>
+<p><span class="emphasis"><em>JpaTemplate主要以JdoTemplate和HibernateTemplate的同胞而存在，為使用它的人們提供相同的樣式。
+      對於新啟動的項目，要考慮採用原生的JPA樣式編寫資料存取物件的程式碼，基於通過JPA<code class="literal">@PersistenceContext</code>註釋
+      獲取的一個「共享EntityManager」參考（利用Spring的<code class="classname">PersistenceAnnotationBeanPostProcessor</code>；詳情如下。）</em></span></p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="orm-jpa-straight"></a>12.6.3.&#160;基於原生的JPA實作DAO</h3></div></div></div>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>雖然<code class="interfacename">EntityManagerFactory</code>實例是執行緒安全的，
+        但<code class="interfacename">EntityManager</code>實例確實不是這樣。被注入的JPA 
+        <code class="interfacename">EntityManager</code>的行為和從應用伺服器JNDI環境中獲取的沒有區別，
+        和JPA規範定義的一樣。如果存在一個被注入的JPA <code class="interfacename">EntityManager</code>，
+        它會代理對當前事務化的<code class="interfacename">EntityManager</code>的所有調用；
+        否則每個操作都會創建一個<code class="interfacename">EntityManager</code>，確保執行緒安全。</p>
+</div>
+<p>你完全可以使用原生的JPA的API進行程式，而無需對Spring產生任何依賴，這可以通過一個被注入的 
+			<code class="interfacename">EntityManagerFactory</code> 或 <code class="interfacename">EntityManager</code> 來完成。
+		注意，如果 <code class="classname">PersistenceAnnotationBeanPostProcessor</code> 被啟用，Spring就能夠識別欄位或者方法級別的 <code class="interfacename">@PersistenceUnit</code> 和 
+		<code class="interfacename">@PersistenceContext</code> 註釋。相應的DAO實作看起來像這樣：</p>
+<pre class="programlisting">public class ProductDaoImpl implements ProductDao {
+
+    private EntityManagerFactory emf;
+
+    @PersistenceUnit
+    public void setEntityManagerFactory(EntityManagerFactory emf) {
+        this.emf = emf;
+    }
+
+    public Collection loadProductsByCategory(String category) {
+        EntityManager em = this.emf.createEntityManager();
+        try {
+             Query query = em.createQuery("from Product as p where p.category = ?1");
+             query.setParameter(1, category);
+             return query.getResultList();
+        }
+        finally {
+            if (em != null) {
+                em.close();
+            }
+        }
+    }
+}</pre>
+<p>上述的DAO不對Spring產生任何依賴，而它就如同使用Spring的 <code class="classname">JpaTemplate</code> 那樣，仍然非常適合
+			在Spring的application context中進行配置。此外，這樣的DAO可以利用註釋來要求缺省<code class="interfacename">EntityManagerFactory</code> 的注入：</p>
+<pre class="programlisting">&lt;beans&gt;
+
+  <em class="lineannotation"><span class="lineannotation">&lt;!-- bean post-processor for JPA annotations --&gt;</span></em>
+  &lt;bean class="org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor"/&gt;
+
+  &lt;bean id="myProductDao" class="product.ProductDaoImpl"/&gt;
+
+&lt;/beans&gt;</pre>
+<p>注意：作為顯式定義<code class="classname">PersistenceAnnotationBeanPostProcessor</code>的另一種方法，
+      可以考慮在應用程序上下文配置中使用Spring 2.5的<code class="literal">context:annotation-config</code> XML元素。
+      它會自動為基於註釋的配置註冊Spring所有標準的後置處理器（包括<code class="classname">CommonAnnotationBeanPostProcessor</code>等等）。</p>
+<pre class="programlisting">&lt;beans&gt;
+
+  <em class="lineannotation"><span class="lineannotation">&lt;!-- post-processors for all standard config annotations --&gt;</span></em>
+  &lt;context:annotation-config/&gt;
+
+  &lt;bean id="myProductDao" class="product.ProductDaoImpl"/&gt;
+
+&lt;/beans&gt;</pre>
+<p>這類別DAO的主要問題在於每次總是從處理器中獲取一個新的 <code class="interfacename">EntityManager</code> 實例。
+這一點可以通過對 <code class="interfacename">EntityManager</code> 而不是factory進行注入來解決：</p>
+<pre class="programlisting">public class ProductDaoImpl implements ProductDao {
+
+    @PersistenceContext
+    private EntityManager em;
+
+    public Collection loadProductsByCategory(String category) {
+       Query query = em.createQuery("from Product as p where p.category = :category");
+       query.setParameter("category", category);
+       return query.getResultList(); 
+    }
+}</pre>
+<p>注意：<code class="literal">@PersistenceContext</code>註釋有一個可選的屬性<code class="literal">type</code>，它的預設值是
+      <code class="literal">PersistenceContextType.TRANSACTION</code>。該預設需要你接收一個「共享EntityManager」代理。
+      另一種方式，<code class="literal">PersistenceContextType.EXTENDED</code>則完全不同：它會產生一個所謂的「擴展EntityManager」,
+      這個<span class="emphasis"><em>不是執行緒安全的</em></span>，因此不應該用在當前被存取的元件中，例如Spring管理的singleton bean。
+      擴展的EntityManager只能用在有狀態的元件中，例如，在Session中，EntityManager的生命週期與當前事務無關，完全取決於應用程序。</p>
+<div class="sidebar">
+<p class="title"><b>方法級和屬性級的注入</b></p>
+<p>表明依賴注入的註釋(例如@PersistenceUnit和@PersistenceContext)能被用於類別內的屬性或者方法，
+        這就叫做「方法/屬性級注入」。屬性級註釋的使用十分簡單、簡潔，而方法級註釋則允許處理注入的依賴。
+        這兩種情況對成員可見性(public, protected, private)均沒有要求。</p>
+<p>那麼類別級的註釋又會怎麼樣呢？</p>
+<p>在JEE 5平臺上，它們是用於依賴宣告，而非資源注入。</p>
+</div>
+<p>被注入的 <code class="interfacename">EntityManager</code> 由Spring管理（能夠感知當前的事務）。
+		值得注意的是，即使這種新的實作更傾向於方法級別的注入（使用 <code class="interfacename">EntityManager</code> 
+		而不是 <code class="interfacename">EntityManagerFactory</code>），
+		對於註釋的使用，application context的XML配置則無需任何改變。</p>
+<p>這種DAO樣式的主要優點在於它僅僅依賴JPA，而無需依賴任何的Spring的類別。除此之外，由於JPA的註釋可被理解，注入能夠被Spring容器自動應用。
+從無入侵性的角度來說，這一點非常有吸引力，它對於JPA開發者來說也更自然。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="orm-jpa-exceptions"></a>12.6.4.&#160;異常轉化</h3></div></div></div>
+<p>然而，DAO不僅會拋出普通的 <code class="classname">PersistenceException</code> 異常（這是一個無需宣告和捕獲的unchecked exception），
+			還會拋出諸如 <code class="classname">IllegalArgumentException</code> 和 <code class="classname">IllegalStateException</code> 之類別的異常。
+		這意味著，DAO的調用者只能以普通的錯誤來處理這些異常，除非完全依賴JPA自身的異常體系。因而，除非你將DAO的調用者綁定到具體的實作策略上去，
+		否則將無法捕獲特定的異常原因（諸如樂觀鎖異常）。這種折中平衡或許可以被接受，如果你的應用完全基於JPA或者無需進行特殊的異常處理。不過，
+		Spring提供了一個允許你進行透明的異常轉化的解決方案：通過使用 <code class="interfacename">@Repository</code> 註釋：</p>
+<pre class="programlisting">@Repository
+public class ProductDaoImpl implements ProductDao {
+
+    <em class="lineannotation"><span class="lineannotation">// class body here...</span></em>
+
+}</pre>
+<pre class="programlisting">&lt;beans&gt;
+
+  <em class="lineannotation"><span class="lineannotation">&lt;!-- <code class="classname">Exception</code> translation bean post processor --&gt;</span></em>
+  &lt;bean class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor"/&gt;
+
+  &lt;bean id="myProductDao" class="product.ProductDaoImpl"/&gt;
+
+&lt;/beans&gt;</pre>
+<p>後置處理器將自動地尋找所有的異常轉化器（<code class="interfacename">PersistenceExceptionTranslator</code> 介面的實作），
+			並通知所有標有 <code class="interfacename">@Repository</code> 註釋的bean，從而能夠使得被找到的異常轉化器能夠在拋出異常時進行相應的異常轉化工作。</p>
+<p>總之：DAO能夠基於普通的Java持久層API和註釋來實作，但同樣也能享受到由Spring管理事務、IoC和透明的異常轉化
+			（轉化成為Spring的異常體系）等好處。</p>
+</div>
+</div></body>
+</html>

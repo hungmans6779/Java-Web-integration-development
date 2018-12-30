@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+       
+<hibernate-mapping package="com.helloweenvsfei.hibernate.bean.xml" >
+  
+  <class name="com.helloweenvsfei.hibernate.bean.Post" table="tb_post" >
+    
+    <!-- 
+      @Id                                                 // id 設定
+	  @GeneratedValue(strategy = GenerationType.AUTO) 	// 自增長
+	  private Integer id;
+    -->
+    <id name="id" column="id" >
+      <generator class="native" />
+    </id>
+     
+     
+    <!-- 
+      private String tilte;                               // 標題，使用預設設定  
+    -->
+    <property name="tilte" />
+    
+    
+    <!-- 
+      @Column(columnDefinition = "text")                  // 資料庫中該列為 text 類型
+	  private String content;                             // 內容
+    -->
+    <property name="content" type="text" />
+    
+    
+    <!-- 
+      @ManyToMany(fetch=FetchType.EAGER,cascade={CascadeType.PERSIST})
+	  @JoinTable(                                         // 中間表關係
+	    name="tb_tag_post",
+	    joinColumns = @JoinColumn(name = "post_id",referencedColumnName="id"),
+	    inverseJoinColumns = @JoinColumn(name="tag_id",referencedColumnName="id")
+	  )
+	  private Set<Tag> tags = new HashSet<Tag>();
+    -->
+    <!-- 
+       <set/> 設定Set 屬性，table 指定中間表的名稱，cascade 設定串聯儲存，lazy 設定延遲載入。<key />設定中間表與本實體表(也就是Post表)的對應關係，
+       <many-to-many/>的column 設定中間表與對方實體(也就是Tag表)的對應關係。
+    -->
+    <set name="tags" table="tb_tag_post" cascade="persist" lazy="false" >
+      <key column="post_id" />
+      <many-to-many column="tag_id" class="com.helloweenvsfei.hibernate.bean.Tag" where=" name!='' " not-found="exception" ></many-to-many>
+    </set> 
+     
+  </class>
+
+</hibernate-mapping>

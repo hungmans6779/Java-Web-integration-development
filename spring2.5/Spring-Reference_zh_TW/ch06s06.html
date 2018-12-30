@@ -1,0 +1,157 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>6.6.&#160;代理機制</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch06.html" title="第&#160;6&#160;章&#160;使用Spring進行切面導向程式（AOP）">
+<link rel="prev" href="ch06s05.html" title="6.5.&#160;混合切面型別">
+<link rel="next" href="ch06s07.html" title="6.7.&#160;以程式方式創建@AspectJ代理">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="aop-proxying"></a>6.6.&#160;代理機制</h2></div></div></div>
+<p>Spring AOP部分使用JDK動態代理或者CGLIB來為目標物件創建代理。（建議優先使用JDK的動態代理）</p>
+<p>
+          如果被代理的目標物件實作了至少一個介面，則會使用JDK動態代理。所有該目標型別實作的介面都將被代理。
+          若該目標物件沒有實作任何介面，則創建一個CGLIB代理。
+        </p>
+<p>如果你希望強制使用CGLIB代理，（例如：希望代理目標物件的所有方法，而不只是實作自介面的方法）
+          那也可以。但是需要考慮以下問題:
+        </p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>無法通知（advise）<code class="literal">Final</code>方法，因為他們不能被覆寫。</p></li>
+<li><p>你需要將CGLIB 2二進制發行包放在classpath下面，與之相較JDK本身就提供了動態代理。
+                當需要CGLIB而在classpath下又沒有找到CGLIB類別資源庫的話，Spring會自動提醒。</p></li>
+<li><p>代理物件的建構器會被調用兩次。這是很自然的結果因為在CGLIB代理模式下每一個代理對象都會
+                產生一個子類別。每一個代理實例會產生兩個物件：實際代理物件和它的一個實作了通知的子類別實例
+                而是用JDK代理時不會出現這樣的行為。通常情況下，調用代理型別的建構器兩次並不是問題，
+                因為除了會發生指派外沒有任何真正的邏輯被實作。</p></li>
+</ul></div>
+<p><a name="aop-autoproxy-force-CGLIB"></a>
+        強制使用CGLIB代理需要將<code class="literal">&lt;aop:config&gt;</code>的<code class="literal">proxy-target-class</code>
+        屬性設為true:</p>
+<pre class="programlisting">&lt;aop:config <span class="bold"><strong>proxy-target-class="true"</strong></span>&gt;
+            <em class="lineannotation"><span class="lineannotation">&lt;!-- other beans defined here... --&gt;</span></em>
+        &lt;/aop:config&gt;</pre>
+<p>當使用@AspectJ自動代理時要強制使用CGLIB，請將<code class="literal">&lt;aop:aspectj-autoproxy&gt;</code>
+        的<code class="literal">proxy-target-class</code>屬性設置為<code class="literal">true</code>:</p>
+<pre class="programlisting">&lt;aop:aspectj-autoproxy <span class="bold"><strong>proxy-target-class="true"</strong></span>/&gt;</pre>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>
+                多個<code class="literal">&lt;aop:config/&gt;</code>片段在運行時被包含到一個統一的自動代理建構器中，
+                它為任何<code class="literal">&lt;aop:config/&gt;</code>片段（一般來自不同的XML bean定義檔案）中指定的內容應用
+                <span class="emphasis"><em>最強</em></span>的代理設置。此設置同樣也適用於<code class="literal">&lt;tx:annotation-driven/&gt;</code>
+                和<code class="literal">&lt;aop:aspectj-autoproxy/&gt;</code>元素。
+            </p>
+<p>
+                清楚地講，在<code class="literal">&lt;tx:annotation-driven/&gt;</code>、
+                <code class="literal">&lt;aop:aspectj-autoproxy/&gt;</code>或者<code class="literal">&lt;aop:config/&gt;</code>
+                元素上使用'<code class="literal">proxy-target-class="true"</code>'會導致將CGLIB代理應用於此三者之上。
+            </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="aop-understanding-aop-proxies"></a>6.6.1.&#160;理解AOP代理</h3></div></div></div>
+<p>
+                Spring AOP是<span class="emphasis"><em>基於代理機制</em></span>的。實際上在你編寫自己的切面或者
+                使用任何由Spring框架提供的基於Spring AOP切面之前，深刻領會這一句的意思是非常重要的。
+            </p>
+<p>
+                考慮如下場景，當你拿到一個無代理的、無任何特殊之處的POJO物件參考時，如以下程式碼段所示
+            </p>
+<pre class="programlisting">public class SimplePojo implements Pojo {
+                
+                public void foo() {
+                <em class="lineannotation"><span class="lineannotation">// this next method invocation is a <span class="bold"><strong>direct</strong></span> call on the 'this' reference</span></em>
+                this.bar();
+                }
+                
+                public void bar() {
+                <em class="lineannotation"><span class="lineannotation">// some logic...</span></em>
+                }
+            }</pre>
+<p>
+                當你調用一個物件參考的方法時，此物件參考上的方法<span class="emphasis"><em>直接</em></span>被調用，如下所示
+            </p>
+<div class="mediaobject" align="center"><img src="images/aop-proxy-plain-pojo-call.png" align="middle"></div>
+<pre class="programlisting">public class Main {
+                
+                public static void main(String[] args) {
+                
+                Pojo pojo = new SimplePojo();
+                
+                <em class="lineannotation"><span class="lineannotation">// this is a <span class="bold"><strong>direct</strong></span> method call on the 'pojo' reference</span></em>
+                pojo.foo();
+                }
+            }</pre>
+<p>
+                當客戶程式碼所持有的參考是一個代理的時候則略有不同了。請考慮如下圖示和程式碼段片斷
+            </p>
+<div class="mediaobject" align="center"><img src="images/aop-proxy-call.png" align="middle"></div>
+<pre class="programlisting">public class Main {
+                
+                public static void main(String[] args) {
+                
+                ProxyFactory factory = new ProxyFactory(new SimplePojo());
+                factory.addInterface(Pojo.class);
+                factory.addAdvice(new RetryAdvice());
+                
+                Pojo pojo = (Pojo) factory.getProxy();
+                
+                <em class="lineannotation"><span class="lineannotation">// this is a method call <span class="bold"><strong>on the proxy!</strong></span></span></em>
+                pojo.foo();
+                }
+            }</pre>
+<p>
+                理解此處的關鍵是<code class="classname">Main</code>類別<code class="methodname">main(..)</code>方法中的客戶程式碼
+                <span class="emphasis"><em>擁有一個代理的參考</em></span>。這意味著對這個物件參考中方法的調用就是對代理的調用，
+                而這個代理能夠代理所有跟特定方法調用相關的攔截器。不過，一旦調用最終抵達了目標物件
+                （此處為<code class="classname">SimplePojo</code>類別的參考），任何對自身的調用例如
+                <code class="methodname">this.bar()</code>或者<code class="methodname">this.foo()</code>
+                將對<span class="emphasis"><em><code class="literal">this</code></em></span>參考進行調用而非代理。這一點意義重大，
+                它意味著自我調用將<span class="emphasis"><em>不</em></span>會導致和方法調用關聯的通知得到執行的機會。
+            </p>
+<p>
+              那好，為此要怎麼辦呢？最好的辦法（這裡使用最好這個術語不甚精確）就是重構你的程式碼使自我調用不會出現。
+              當然，這的確需要你做一些工作，但卻是最好的，最少侵入性的方法。另一個方法則很可怕，
+              也正因為如此我幾乎不願指出這種方法。你可以像如下這樣完全把商業邏輯寫在你的Spring AOP類別中：
+            </p>
+<pre class="programlisting">public class SimplePojo implements Pojo {
+                
+                public void foo() {
+                <em class="lineannotation"><span class="lineannotation">// this works, but... gah!</span></em>
+                ((Pojo) AopContext.currentProxy()).bar();
+                }
+                
+                public void bar() {
+                <em class="lineannotation"><span class="lineannotation">// some logic...</span></em>
+                }
+            }</pre>
+<p>
+                這樣完全將你的程式碼交給了Spring AOP，<span class="emphasis"><em>並且</em></span>讓類別本身知道它正被用於一個AOP的上下文中，
+                而它其中的檔案直接面對AOP。當代理在被創建時也需要一些額外的配置：
+            </p>
+<pre class="programlisting">public class Main {
+                
+                public static void main(String[] args) {
+                
+                ProxyFactory factory = new ProxyFactory(new SimplePojo());
+                factory.adddInterface(Pojo.class);
+                factory.addAdvice(new RetryAdvice());
+                <em class="lineannotation"><span class="lineannotation"><span class="bold"><strong>factory.setExposeProxy(true);</strong></span></span></em>
+                
+                Pojo pojo = (Pojo) factory.getProxy();
+                
+                <em class="lineannotation"><span class="lineannotation">// this is a method call <span class="bold"><strong>on the proxy!</strong></span></span></em>
+                pojo.foo();
+                }
+            }</pre>
+<p>
+                最後，必須注意AspectJ不存在這種自我調用的問題，因為它並不是一個基於代理的AOP框架。
+            </p>
+</div>
+</div></body>
+</html>

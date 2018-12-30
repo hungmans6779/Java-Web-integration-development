@@ -1,0 +1,116 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>9.3.&#160;關鍵抽象</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch09.html" title="第&#160;9&#160;章&#160;事務管理">
+<link rel="prev" href="ch09s02.html" title="9.2.&#160;動機">
+<link rel="next" href="ch09s04.html" title="9.4.&#160;使用資源同步的事務">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="transaction-strategies"></a>9.3.&#160;關鍵抽象</h2></div></div></div>
+<p>Spring事務抽象的關鍵是<span class="emphasis"><em>事務策略</em></span>的概念。這個概念由<code class="interfacename">org.springframework.transaction.PlatformTransactionManager</code>介面定義如下：</p>
+<pre class="programlisting">public interface PlatformTransactionManager {
+
+    TransactionStatus getTransaction(TransactionDefinition definition)
+        throws TransactionException;
+
+    void commit(TransactionStatus status) throws TransactionException;
+
+    void rollback(TransactionStatus status) throws TransactionException;
+}</pre>
+<p>這首先是一個SPI介面，雖然它也可以在 <a href="ch09s06.html#transaction-programmatic-ptm" title="9.6.2.&#160;使用PlatformTransactionManager">程式</a> 中使用。注意按照Spring框架的哲學，<code class="interfacename">PlatformTransactionManager</code> 是一個 <span class="emphasis"><em>介面</em></span>。因而如果需要它可以很容易地被模擬和樁化。它也沒有和一個尋找策略如JNDI捆綁在一起：<code class="interfacename">PlatformTransactionManager</code> 的實作定義和其他Spring IoC容器中的物件一樣。這個好處使得即使使用JTA，也是一個很有價值的抽象：事務程式碼可以比直接使用JTA更加容易測試。</p>
+<p>繼續Spring哲學，可由任何 <code class="interfacename">PlatformTransactionManager</code> 的介面方法拋出的 <code class="exceptionname">TransactionException</code> 是unchecked exception（繼承自<code class="exceptionname">java.lang.RuntimeException</code>）的。底層的事務失敗幾乎總是致命的。很少情況下應用程序程式碼可以從它們中恢復，不過應用開發者依然可以捕獲並處理<code class="exceptionname">TransactionException</code>，他們可以自由決定怎麼幹。</p>
+<p>
+			<code class="methodname">getTransaction(..)</code>方法根據一個型別為 <code class="interfacename">TransactionDefinition</code> 的參數返回一個 <code class="interfacename">TransactionStatus</code> 物件。返回的 <code class="interfacename">TransactionStatus</code> 物件可能代表一個新的或已經存在的事務（如果在當前調用堆棧有一個符合條件的事務。如同J2EE事務環境，一個 <code class="interfacename">TransactionStatus</code> 也是和執行 <span class="bold"><strong>執行緒</strong></span> 綁定的）。</p>
+<p>
+			<code class="interfacename">TransactionDefinition</code>介面指定：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>
+					<span class="bold"><strong>事務隔離</strong></span>：當前事務和其它事務的隔離的程度。例如，這個事務能否看到其他事務未提交的寫資料？</p></li>
+<li><p>
+					<span class="bold"><strong>事務傳播</strong></span>：通常在一個事務中執行的所有程式碼都會在這個事務中運行。但是，如果一個事務上下文已經存在，有幾個選項可以指定一個事務性方法的執行行為：例如，簡單地在現有的事務中繼續運行（大多數情況）；或者掛起現有事務，創建一個新的事務。<span class="emphasis"><em>Spring提供EJB CMT中常見的事務傳播選項</em></span>。</p></li>
+<li><p>
+					<span class="bold"><strong>事務逾時</strong></span>: 事務在逾時前能運行多久（自動被底層的事務基礎設施回滾）。</p></li>
+<li><p>
+					<span class="bold"><strong>只讀狀態</strong></span>: 只讀事務不修改任何資料。只讀事務在某些情況下（例如當使用Hibernate時），是一種非常有用的優化。</p></li>
+</ul></div>
+<p>這些設置反映了標準概念。如果需要，請查閱討論事務隔離層次和其他核心事務概念的資源：理解這些概念在使用Spring框架和其他事務管理解決方案時是非常關鍵的。</p>
+<p>
+			<code class="interfacename">TransactionStatus</code> 介面為處理事務的程式碼提供一個簡單的控制事務執行和查詢事務狀態的方法。這個概念應該是熟悉的，因為它們在所有的事務API中是相同的:</p>
+<pre class="programlisting">public interface TransactionStatus {
+
+    boolean isNewTransaction();
+
+    void setRollbackOnly();
+
+    boolean isRollbackOnly();
+}</pre>
+<p>使用Spring時，無論你選擇程式式還是宣告式的事務管理，定義一個正確的 <code class="interfacename">PlatformTransactionManager</code> 實作都是至關重要的。按照Spring的良好樣式，這種重要定義都是通過IoC實作的。</p>
+<p>一般來說，選擇<code class="interfacename">PlatformTransactionManager</code>實作時需要知道當前的工作環境，如JDBC、JTA、Hibernate等。下面的例子來自Spring範例應用——<span class="bold"><strong>jPetStore</strong></span>——中的<code class="literal">dataAccessContext-local.xml</code>檔案，其中展示了一個局部<code class="interfacename">PlatformTransactionManager</code>實作是怎麼定義的（僅限於純粹JDBC環境）</p>
+<p>我們必須先定義一個JDBC <code class="interfacename">DataSource</code>，然後使用Spring的<code class="classname">DataSourceTransactionManager</code>，並傳入指向<code class="interfacename">DataSource</code>的參考。</p>
+<pre class="programlisting">&lt;bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close"&gt;
+  &lt;property name="driverClassName" value="${jdbc.driverClassName}" /&gt;
+  &lt;property name="url" value="${jdbc.url}" /&gt;
+  &lt;property name="username" value="${jdbc.username}" /&gt;
+  &lt;property name="password" value="${jdbc.password}" /&gt;
+&lt;/bean&gt;</pre>
+<p>
+			<code class="interfacename">PlatformTransactionManager</code> bean的定義如下：</p>
+<pre class="programlisting">&lt;bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager"&gt;
+  &lt;property name="dataSource" ref="dataSource"/&gt;
+&lt;/bean&gt;</pre>
+<p>如果我們在J2EE容器裡使用JTA，就像範例中 <code class="filename">'dataAccessContext-jta.xml'</code> 檔案所示，我們將通過JNDI和Spring的 <code class="classname">JtaTransactionManager</code> 來獲取一個容器管理的 <code class="interfacename">DataSource</code>。<code class="classname">JtaTransactionManager</code> 不需要知道 <code class="interfacename">DataSource</code> 和其他特定的資源，因為它將使用容器提供的全局事務管理。</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:jee="http://www.springframework.org/schema/jee"
+xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+       http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-2.0.xsd"&gt;
+
+  &lt;jee:jndi-lookup id="dataSource" jndi-name="jdbc/jpetstore"/&gt;
+
+  &lt;bean id="txManager" class="org.springframework.transaction.jta.JtaTransactionManager" /&gt;
+
+  <em class="lineannotation"><span class="lineannotation">&lt;!-- other <code class="literal">&lt;bean/&gt;</code> definitions here --&gt;</span></em>
+
+&lt;/beans&gt;</pre>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>上面 <code class="literal">'dataSource'</code> 的bean定義使用了 <code class="literal">'jee'</code> 名稱空間下的 <code class="literal">&lt;jndi-lookup/&gt;</code> 標籤。想瞭解更多的配置資訊, 請看 <a href="apa.html" title="附錄&#160;A.&#160;XML Schema-based configuration">附錄&#160;A, <i>XML Schema-based configuration</i></a>，關於 <code class="literal">&lt;jee/&gt;</code> 標籤的資訊，可參考 <a href="apas02.html#xsd-config-body-schemas-jee" title="A.2.3.&#160;The jee schema">第&#160;A.2.3&#160;節 「The <code class="literal">jee</code> schema」</a> 節。</p>
+</div>
+<p>我們也可以很容易地使用Hibernate局部事務，就像下面的Spring框架的 <span class="bold"><strong>PetClinic</strong></span> 範例應用中的例子一樣）。這種情況下，我們需要定義一個Hibernate的 <code class="classname">LocalSessionFactoryBean</code>，應用程序從中獲取到Hibernate <code class="interfacename">Session</code> 實例。</p>
+<p>
+			<code class="interfacename">DataSource</code> 的bean定義同上例類似（這裡不再展示）。不過，如果是一個JEE容器提供的 <code class="interfacename">DataSource</code>，它將由JEE容器自身，而不是Spring框架來管理事務。</p>
+<p>這種情況中<code class="literal">'txManager'</code> bean的型別為 <code class="classname">HibernateTransactionManager</code>。同樣地，<code class="classname">DataSourceTransactionManager</code> 需要一個指向 <code class="interfacename">DataSource</code> 的參考，而 <code class="classname">HibernateTransactionManager</code> 需要一個指向 <code class="interfacename">SessionFactory</code> 的參考。</p>
+<pre class="programlisting">&lt;bean id="sessionFactory" class="org.springframework.orm.hibernate.LocalSessionFactoryBean"&gt;
+  &lt;property name="dataSource" ref="dataSource" /&gt;
+  &lt;property name="mappingResources"&gt;
+    &lt;list&gt;
+      &lt;value&gt;org/springframework/samples/petclinic/hibernate/petclinic.hbm.xml&lt;/value&gt;
+    &lt;/list&gt;
+  &lt;/property&gt;
+  &lt;property name="hibernateProperties"&gt;
+    &lt;value&gt;
+	  hibernate.dialect=${hibernate.dialect}
+	&lt;/value&gt;
+  &lt;/property&gt;
+&lt;/bean&gt;
+
+&lt;bean id="txManager" class="org.springframework.orm.hibernate.HibernateTransactionManager"&gt;
+  &lt;property name="sessionFactory" ref="sessionFactory" /&gt;
+&lt;/bean&gt;</pre>
+<p>我們可以簡單地使用 <code class="classname">JtaTransactionManager</code> 來處理Hibernate事務和JTA事務，就像我們處理JDBC，或者任何其它的資源策略一樣。</p>
+<pre class="programlisting">&lt;bean id="txManager" class="org.springframework.transaction.jta.JtaTransactionManager"/&gt;</pre>
+<p>注意任何資源的JTA配置都是這樣的，因為它們都是全局事務，可以支持任何事務性資源。</p>
+<p>
+			<em><span class="remark">
+			在所有這些情況下，應用程序程式碼根本不需要做任何改動。我們僅僅通過改變配置就可以改變事務管理方式，即使這些更改是在局部事務和全局事務間切換。
+			</span></em>
+		</p>
+</div></body>
+</html>

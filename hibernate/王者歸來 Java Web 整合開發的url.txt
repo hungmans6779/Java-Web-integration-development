@@ -1,0 +1,573 @@
+
+
+
+************************************************************************************************************************************
+   【第二十章】Hibernate 入門     
+  
+    官網：http://www.hibernate.org/
+
+        Hibernate 是一種 ORM(Object-Relative Database-Mapping) Framework ，與各種資料庫、SQL 敘述打交道，是資料持久化的一種解決方案。
+    在 Java 物件與關聯式資料庫之間建立某種映射，以實現直接存取 Java 物件(一般為POJO)。
+    ORM Framework 是不同於 MVC 的另一種思想 Framework ，使用範圍也與 MVC 截然不同。
+    類似功能的 Framework 還有 SUN 的 JDO、Oracle 公司的 TopLink 、Apache 的 iBatis 與 OpenJPA 等。
+
+    DAO 層：插入資料時，無非就是把 POJO 拆分成各種屬性然後拼裝為SQL敘述，儲存進資料庫；
+            讀取資料時，無非就是用 SQL 把 POJO 的各種屬性從資料庫讀出來，然後拼裝為 POJO 物件傳回。
+
+    而且 POJO 與資料表、POJO 屬性與資料表的列，都存在著某種固定的映射關係。如果能夠用程式自動產生SQL敘述就好了。
+
+    ORM 就是做這種工作的Framework。它透過設定檔或者使用Java 註釋把Java 物件映射到資料庫上，自動產生SQL敘述並執行。
+
+    Hibernate 能直接操作 POJO ，並且是一種輕量級的 Framework，不相依於任何容器，無論是 Tomcat、JBoss、Resin、WebLogic 及 WebSphere 下都可以使用。
+    Java 官方也提供了ORM 思想的 EJB、EJB2 等 Framework ，但由於都是重量級Framework ，設定複雜、對容器相依性較大，商業上不是很成功。
+    Sun 後來推出了JPA(Java Persistence API) 規範，無論使用上還是設計上都接近於 Hibernate。Hibernate 的成功影響了JPA。
+    
+    Hibernate 充當了DAO 層，根據 POJO 與實體類別的映射設定自動產生相應的SQL敘述。從控制台輸出可以看到 Hibernate 產生的 SQL敘述。
+  
+
+    建立資料庫 hibernate ，使用UTF-8 寫程式。
+    create database hibernate character set utf8;
+     
+   
+    Hibernate DateBase 設定：
+    Connection URL： jdbc:mysql://localhost:3306/hibernate?characterEncoding=UTF-8
+    Driver Class： com.mysql.jdbc.Driver
+    
+    ※ 極重要
+    修改 Hibernate 工具類：  HibernateSessionFactory 
+    載入 @ 註釋設定的實體類別要使用 AnnotationConfiguration 載入 Hibernate。
+    載入用 xml 設定的實體類別要使用 Configuration 載入 Hibernate。
+    
+    ※ Hibernate 能夠判斷實體類別的類型，決定操作哪個資料表。
+
+    Hibernate 是一種 ORM Framework，它負責把Java 物件儲存進資料庫，或者把資料庫查詢結果組織成Java 物件。
+    使用 Hibernate 後，開發者不再需要與 Connection、Statement、ResultSet 等 JDBC API 接觸，
+    Hibernate 會自動完成並隱藏 JDBC 的細節。
+    
+   
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/servlet/catServlet
+    http://3w.eztravel.com.tw:8080/hibernate/servlet/catServlet?action=view&id=1
+        
+************************************************************************************************************************************
+
+
+
+
+
+
+************************************************************************************************************************************
+   【第二十一章】從巨觀上把握 Hibernate     
+
+    Hibernate 支援市面上大多數的資料庫，可以說是一種"跨資料庫"的 ORM Framework。
+    使用 Hibernate 後，不需要考慮底層使用什麼資料庫，只需設定 SQL 方言(Dialect) 即可，因此 Hibernate 本身比較複雜。
+
+    Hibernate 可以直接 Java 物件。它的底層使用 JDBC 實現。
+    程式透過可持久化物件(Persistent Object)與 Hibernate 打交道。Hibernate 會將可持久化物件分解成 JDBC 層的 SQL 敘述，
+    透過 JDBC 儲存到資料庫或者資料庫載入。使用 Hibernate 後，開發者可不用關心 JDBC ，而更關心程式的業務邏輯。
+    
+    Hibernate 支援市面上的大部份常用資料庫，例如 MySQL、MS SQL Server、DB、Oracle、Sybase、Derby、HSQL 等，
+    透過設定不同的方式 (Dialect) 產生不同的SQL 敘述。
+    可以說，Hibernate 是跨資料庫平台的。使用 Hibernate 的程式可以執行在絕大多數資料庫中，
+    而不用做任何修改。 
+    
+    
+    Hibernate 中有幾個常用的概念 SessionFactory、Session 與 Trasaction。注意這裡的 Session 不同於 Servlet 中的 HttpSession，
+    二者雖然都可了解為階段，但使用的情況不一樣。
+    
+    ● SessionFactory (org.hibernate.SessionFactory)：一個執行緒安全的 Session 工廠類別，能為不同的執行緒產生不同的Session。
+                                                     SessionFactory 維護著 Session 相關的資源，包括資料庫連接池等、快取記憶體資料等。
+
+    ● Session (org.hibernate.Session)：Session 代表使用者的一次操作。Session 的生命週期很短，
+                                       在操作開始時透過執行 SessionFactory.openSession() 生產，
+                                       在操作結束時透過執行 session.close() 關閉。Session 維護著 Session 相關的資源，
+                                       包含 Transaction ，目前資料庫連接池等。
+    
+    ● Transaction (org.hibernate.Transaction)：Transaction 代表一次交易，交易內包含若干的資料修改，交易傳送後才生效。
+                                              如果交易失敗或者回復，所有的修改都會失效。Hibernate 的交易不同於資料庫的交易。
+                                              Hibernate 可能使用各種機制保證交易性，包括 JTA (Java Transaction API，Java 交易介面)、
+                                              協力廠商交易管理、資料庫事務等。
+                                              
+                                              
+    
+    可持久化物件(Persistent Object) 就是可以儲存進資料庫的物件。根據它在程式中的位置不同，可持久化物件可以有下面幾種狀態：
+    
+    ● 臨時狀態(Transient)：物件在儲存進資料庫之前為臨時狀態。這時候資料庫中沒有該物件的資訊，該物件的Id屬性也為空。
+                           如果沒有被持久化，程式退出時臨時狀態的物件資訊將會遺失。
+    
+    ● 持久化狀態(Persistent)：物件在儲進資料庫後或者從資料庫中載入後、並且沒有脫離 Session 時為持久化狀態。這時候資料庫中有該物件的資訊，
+                              該物件的 id 為資料庫中對應記錄的主鍵值。由於還在 Session 中，持久化狀態的物件可以執行任何有關資料庫的操作，
+                              例如擭得集合屬性的值等。
+    
+    ● 分離狀態(Detached)：分離狀態是物件曾經處於持久化狀態、但是現在已經離開 Session 了。雖然分離狀態的物件有 id 值，
+                          有對應的資料庫記錄，但是已經無法執行有關資料庫的操作。例如，讀取延遲載入的集合屬性，
+                          可能會拋出 LazyInitializeException。                                                             
+    
+
+    ※【極重要】：如果實體類別是 XML 設定的，要使用Configuration 物件；
+                  如果實體類別是 Java 註釋設定的，要使用AnnotaionConiguration 物件。
+                  AnnotaionConfiguration 是 Configuration 的一個子類別。    
+    
+    
+    載入 cfg.xml 設定的程式碼：
+    SessioinFactory sessionFactory = new AnnotationConfiguration().configure("hibernate.cfg.xml").buildSessionFactory();
+
+    程式設計式設定、執行時設定
+    Hibernate 可以在程式中動態載入實體類別設定，例如：
+    
+    Configuration cfg = new Configuration().addResource("com/xxx/xxx/xxx/Cat.hbm.xml")
+                                           .addResource("com/xxx/xxx/xxx/Event.hbm.xml");
+    
+    也可以用 addClass()直接載入實體類別。一般情況下，載入實體類別是更好的方法，例如：
+    
+    Configuration cfg = new Configuration().addClass("com.xxx.xxx.xxx.Cat.class")
+                                           .addClass("com.xxx.xxx.xxx.Event.class");
+                                           
+    setProperty()方法可以設定 Hibernate 參數，例如：
+    Configuration cfg = new Configuration().addClass("com.xxx.xxx.xxx.Cat.class")
+                                           .addClass("com.xxx.xxx.xxx.Event.class")
+                                           .setProperty("hibernate.dialect","org.hibernate.dialect.MySQLDialect")
+                                           .setProperty("hibernate.connection.datasource","java:comp/env/jdbc/test")
+                                           .setProperty("hibernate.order_updates","true");
+                                            
+    可以透過 Configuration 擭得 SessionFactory，例如：
+    SessionFactory sessionFactory = cfg.buildSessionFactory();                                      
+
+    一個 SessionFactory 維護一個資料庫。如果有多個資料庫，可以建立多個 SessionFactory。
+    Hibernate 允計程式使用多個 SessionFactory 同時操作多個資料庫。
+    
+
+    獲得、斷開資料庫連接
+    Hibernate 封裝了JDBC 操作，獲得資料庫連接等於開啟一個 Session 。操作完畢需要關閉 Session。
+    以關閉資料庫連接：
+    Session session = sessionFactory.openSession();
+          .
+          .
+          .
+    session.close();
+
+
+************************************************************************************************************************************
+
+
+
+
+
+
+
+
+************************************************************************************************************************************
+   【第二十二章】Hibernate 實體映射      
+
+        實體類別與資料庫之間存在著某種映射關係，Hibernate 依據這種映射關係完成資料的存取，
+    因此映射關係設定在 Hibernate 中是最關鍵的。Hibernate 支援 XML 設定檔與 @ 註釋設定兩種方式。
+    XML 設定檔是最基礎的設定，而 @ 註釋是 Java 的官方JPA(Java Persistence API)提供的。
+
+       從Java 的角度講，實體類別就是普通的POJO。僅從 POJO 中 Hibernate 並不能得知該實體類別對應哪個資料表，
+    因此還需要以某種方式設定一下。常用的方式有 *.hbm.xml 檔案設定與@ 註釋設定兩種。
+       hbm.xml 檔案就是普通的 XML 檔案，hbm 為 Hibernate Mapping 的縮寫，這樣從檔案名上就能判斷該檔案為 Hibernate 實體類別設定檔。
+    在 JPA 出現之前，Hibernate 都使用 hbm.xml 檔案設定。JPA 出現後，推薦使用 JPA 的 @ 註釋設定，因為對於所有的 ORMFramework，
+    @ 註釋都是通用的。
+    
+      實體類別一般有id、普通屬性、集合屬性等，分別對應資料庫的主鍵、普通列、外鍵。
+    @ 註釋設定中，實體類別用 @Entity 註釋，用 @Table 指定對應的資料表， 用 @Id 設定主鍵，用 @Column 設定普通屬性，
+    用 @OneToMany 、@ManyToOne 、@OneToOne、@ManyToMany 設定實體間的關係等。
+    
+    
+    【極重要】：
+        所有的@ 註釋都是 javax.persistence.* 下的，而不是 org.hibernate.* 下。
+    javax.persistence.* 下 的註釋為 JPA 規範規定的註釋，用於標記實體類別與資料庫的映射關係，
+    org.hibernate.* 下的註釋僅用於補充，當某個功能 JPA 暫時不支援而 Hibernate 支援時使用。
+    
+       多個實體類別可以設定一個 XML 檔案中。Hibernate 推薦用一個同名的 XML 檔案設定一個實體類別，便於閱讀與維護。
+    XML 檔案一般以".hbm.xml" 結尾，便於辦認，也可以直接用 ".xml" 結尾。
+    例如：Cat 類別的設定檔可取名為 Cat.hbm.xml。
+    
+        程式碼中 DocType 指定的dtd 檔案位於 hibernate.jar 中。dtd 檔案為XML 格式驗證檔案，Hibernate 使用該 dtd 來驗證 XML 檔案格式是否正確。
+    如果 hibernate.jar 或者 classpath 中不存在該 dtd 檔案，則Hibernate 會到指定的 URL 下載該檔案。
+    
+        實體類別還需要設定到 hibernate.cfg.xml 中，以便 Hibernate 初始化實體類別與資料庫表的映射關係。如果只設定了映射關係，
+    而沒有設定到 hibernate.cfg.xml 中，Hibernate 仍然不會知道哪些類別是實體類別，因為Hibernate 無法透過檢查所有的類別來決定哪些是實體類別。
+    如果實體類別是使用  @ 註釋設定的，需要用 <mapping class="" />設定，
+    而如果是用 XML 檔案設定的，則需要用 <mapping resource="" /> 設定 XML 設定檔。
+    例如：
+    # 在 Hibernate 中宣告用 @ 註釋設定的實體類別
+    <mapping class="com.hibernate.bean.Cat" />
+
+    # 在 Hibernate 中宣告用 XML 設定的實體類別
+    <mapping resource="com/hibernate/bean/Cat.hbm.xml"  /> 
+    
+   
+   
+   
+   
+   
+   
+    【主鍵映射】
+    
+    @Id 主鍵映射：實體類別最好有主鍵列，並有對應的 getter、setter 方法，這是 Hibernate 推薦的。
+        主鍵儘量使用可以為 null 值的類型，例如 Integer、Long、String 等，而不要使用 int 、long 等。因為如果主鍵為 null，
+    則表示該實體類別還沒有到儲存到資料庫，是一個臨時狀態(Transient) ，而 int、long 等原始類型則不具備該功能。
+    
+   《範例》：  
+    
+    《@ 設定主鍵》：
+    @Id // 指定該列為主鍵。主鍵類型最好不要使用 int 等原始類型
+    @GeneratedValue(strategy=GenerationType.AUTO) // 主鍵類型 auto 為資料庫自增長類型
+    private Integer id;
+
+
+    《XML 設定主鍵》：
+    <id name="id" column="id" >
+      <generator class="native" />
+    </id>
+    
+ 
+    【主鍵產生規則】：
+    @Id設定主鍵的同時，也要用@GeneratedValue 設定主鍵產生規則。主鍵產生規則也稱為主鍵產生策略，負責維護新實體的主鍵值。
+    主鍵產生策略：
+    ■ GenerationType.AUTO：自動方式，根據底層資料庫自動選擇。如果MySQL 等支援自動增長類型的資料庫，則為自增長類型(auto_increment)。
+    
+    ■ GenerationType.TABLE:使用指定的表來決定主鍵的取值，一般結合 @TableGenerator 使用，
+      例如：
+         @Id
+         @TableGenerator(name="tb_cat_gen",allocationSize=1)
+         @GeneratedValue(strategy=GenerationType.TABLE,generator="tb_cat_gen") 
+         private Integer id;
+    
+    ■ GenerationType.SEQUENCE：使用Sequence 來決定主鍵的取值，適合Oracle、DB2 、PostgreSQL、SAP DB 等支援 Sequence 的資料庫，
+                               一般結合 @SequenceGenerator 使用。注意某些資料庫如Oracle 等沒有自增長類型，只能使用Sequence。
+      例如：
+         @Id
+         @SequenceGenerator(name="seq_cat",allocationSize = 25)
+         @GeneratedValue(strategy=GenerationType.SEQUENCE,generator="seq_cat")
+         @Column(name="id") 
+         private Integer id;
+         
+    ■ GenerationType.IDENTITY：支援 DB2、MySQL、MS SQL Server、Sybase 與 HypersonicSQL 資料庫的 identit 類型主鍵。
+     
+     
+     
+   【XML 主鍵產生規則】：
+    XML 設定中支援的主鍵產生規則：
+    ● native：取決於資料庫，相當於 GenerationType.AUTO。
+    ● identity：使用 identity 類型，相當於GenerationType.IDENTITY。
+    ● sequence：使用 sequence ，相當於 GenerationType.SEQUENCE。需要指定 sequence 的名稱，
+      例如：
+         <id name="id" type="long" column="person_id" >
+           <generator class="sequence" >  <!-- 使用sequence 主鍵 -->
+             <param name="sequence" >person_id_sequence</param>
+           </generator>
+         </id> 
+    
+    ● increment：自增長類型，由Hibernate 而不是資料庫維護，因此即使 Oracle 等不支援自增長類型的資料庫也可以使用。
+    ● hilo:hi/low 演算法，使用指定的表給主鍵給予值，相當於GenerationType.TABLE 。需要指定表名、列名等，
+      例如：
+         <id name="id" type="long" column="cat_id" >
+           <generator class="hilo" > 
+             <param name="table" >hi_value</param>
+             <param name="column" >next_value</param>
+             <param name="max_lo" >100</param>
+           </generator>
+         </id>  
+                     
+    ● seqhilo：基於 sequence 的 hilo 演算法：
+      例如：
+         <id name="id" type="long" column="cat_id" >
+           <generator class="heqhilo" >
+             <param name="sequence" >hi_value</param>
+             <param name="max_lo" >100</param>
+           </generator>
+         </id>         
+
+    ● uuid：使用128 位元的 UUID 演算法計算一個唯一的值，會使用 IP 位址及相關的電腦硬體資訊。
+            計算結果為 32位元的16進位數，對應的主鍵類型必須為 String。                
+    ● guid：使用 MySQL 或者 MS SQL Server 等資料庫提供的 GUID 值。       
+    ● assigned：預設值，不使用任何策略，在儲存進資料庫之前必須使用 setter 方法給予值。               
+    ● select：使用資料庫觸發器給予值。      
+    ● foreign：使用外鍵給予值，在一對一實體關係時，可保證關係雙方的Id 保持一致。
+   
+   
+        MySQL 資料庫與 Hibernate 都提供自增長策略，但是原理是不一樣的。如果採用MySQL 的自增長，
+    插入資料時 Hibernate 產生的 SQL敘述中將不包含 id 主鍵列資料。該主鍵的目前值、下一個值由資料庫自己維護。
+    如果使用Hibernate 的自增長，插入資料時 Hibernate 產生的SQL 敘述將包含id 主鍵列，並由 Hibernate 維護該主鍵的目前值以及下一個值。
+    
+    ※注意： 對於普通的應用來說，資料庫自增長與Hibernate 自增長在使用上沒有區別。但是如果某資料庫時被兩個 Hibernate 程式使用，
+             那麼此時使用Hibernate 自增長會出現錯誤。例如：如果目前主鍵值為10 ，那麼 Hibernate 會認為下個主鍵值為11，
+             兩個Hibernate 程式插入資料時都會將主鍵設為11，這時會因為主鍵衝突而導致其中一個寫入資料失敗！
+   
+   
+   
+   
+
+   
+    【普通屬性映射】
+     
+         普通屬性是指除了主鍵外的、Java 基本類型的屬性，例如 Integer(int)、Long(long)、Short(short)、Boolean(boolean)、Double(double)、
+     Float(float)、String、Date 等類型屬性。
+        注意Integer 類型與 int 類型是不用的，Integer 預設為null ，在資料庫中也表現為 null，而 int 預設為 0，在資料庫中也表現為 0。
+   
+     
+   《範例》：
+        
+     《@ 設定普通屬性》   
+     普通屬性使用 @Column 與 @Basic 的設定。二者都可以省略。如果省略，則全部按照預設的規則設定。
+      
+     @Column：可指定 nullable(是否允許為null)、unique(是否唯一)、insertable(是否允許插入)、undatable(是否允許更新)、length(長度)、
+              columnDefinition(列類型)、scale(整數長度)、precision(小數點精度)等。這些屬性用於產生DLL 建表敘述。如果屬性對應的列名與屬性名一致，
+              @Column 可以省略。               
+    
+     @Basic：可為普通屬性設定載入方式，預設為即時載入。如果列資料比較大，例如大文字類型或者 LOB 類型，可設定為延遲載入。optional 設定該列是否可為null。
+             如果 true ，表示該屬性是可選的，可以為null ，否則不可為 null。    
+   
+     例如：
+     @Column(name="salary",nullable=true,columnDefinition="number",insertable=true,length=255,unique=true,updatable=true,precision=2,scale=4)
+     
+     @Basic(fetch=FetchType.LAZY,optional=true)
+     private double salary;
+       
+       
+ 
+    《XML 設定普通屬性》
+         XML 中使用<property /> 標籤設定普通屬性。type 屬性指定列類型，相當於 @Column 中的 columnDefinition 。
+     例如，如果設定 type="text" 可以為String 類型屬性設定為大文字類型列。不同於 @註釋中的 @Column ，如果屬性名與列名一致，
+     column 屬性可省略，XML 設定中的<property> 必須設定，否則視為不參與持久化的列。設定為：
+     
+     <property name="salary" precision="2" scale="10" length="255" column="salary" type="string" update="true"
+               insert="true" lazy="false" unique="false" not-null="false" ></property>
+    
+    ※注意： @設定中，如果屬性沒有設定，則預設該屬性名與資料表列名相同；而XML 設定中，如果某屬性沒有設定，則認為屬性沒有對應的資料庫列，
+             不參與持久化。二者是截然不同的。    
+   
+   
+   
+   
+
+   
+    【日期屬性設定】    
+   
+         日期屬性也屬於普通屬性，普通屬性的設定規則也適用於日期屬性。日期屬性又包括只有日期沒有時間(即 java.sql.Date)、
+     沒有日期只有時間(即 java.sql.Time)、即有日期也有時間(即 java.sql.Timestamp)等3種情況、因此更多一些設定。
+         由於 java.sql.Date、java.sql.Time、java.sql.Timestamp 都是 java.util.Date 的子類別，因此日期屬性直接使用父類別 java.util.Date 就可以了，
+     Hibernate 會根據日期屬性的設定決定該類型是 java.sql.Date 、 java.sql.Time 還是 java.sql.Timestamp。
+     
+     
+   《範例》：
+        
+    《@ 設定日期屬性》        
+         日期屬性也是普通的屬性，需要用@Basic 宣告載入的方式、@Column等指定列名、二者都可以省略。另外，如果日期屬性是 java.util.Date 類型的，
+     必須使用 @Timporal 設定日期類型，取值可以為Date、Time或者Timestemp。否則Hibernate 將無法區分該類型是java.util.Date(只有年月日等日期資訊)類型
+     還是 java.sql.Time(只有時分秒等時間資訊)類型、還是 java.sql.TimeStamp(既有日期資訊、又有時間資訊)類型。
+   
+     例如：
+     @Temporal(TemporalType.TIMESTAMP) // DATE、TIME 或者 TIMESTEMP
+     @Column(name="createDate")
+     private java.util.Date createDate;
+        
+     提示：如果屬性類型是 java.util.Date 類型，需要用 @Temporal 宣告日期類型。但如果是 java.sql.Time、java.sql.Date 或者 java.sql.TimeStamp 類型的，
+           類型本身就已經很明確了，不再需要 @Temporal 宣告了。
+     
+       
+   
+    《XML 設定日期屬性》
+          XML 中用使用 <property />設定屬性，跟普通屬性一樣設定，只是type 屬性中指定日期類型即可，取值可以為 date、time、timestamp 等簡寫方式，
+     也可以為 java.sql.Date 、java.sql.Time 、java.sql.Timestamp 等全寫方式。
+          同樣，如果Java 中屬性類型為 java.util.Date 類型，必須指定是 java.sql.Date(只有年月日等日期資訊)類型
+     還是 java.sql.Time(只有時分秒等時間資訊)類型、還是 java.sql.TimeStamp(即有日期資訊又有時間資訊)類型。
+   
+     例如：
+     <property name="createDate" type="timestamp" ></property>
+    
+   
+   
+   
+   
+
+   
+    【臨時屬性映射】    
+         實體類別可能有一些臨時屬性，在JPA中被稱為 Transient 屬性。這些屬性用於方便計算等其他用途，而不是儲存資料到資料庫中。
+     這些屬性必須被標記為 Transient，以便 Hibernate 把它們區別對待。否則 Hibernate 會試圖往資料庫寫該屬性，可能會因對應的列不存在而拋出例外。
+         在 Java 標記中，臨時屬性必須使用 @Transient 標記，即可以設定在臨時屬性上，也可以設定在對應的 getter 、setter 方法上。
+         
+     例如：
+     @Transient
+     public int getNameLength(){  // 臨時屬性，用於計算 name 屬性的長度
+       return name==null?0:name.length();
+     }
+     
+     提示：如果只有形如 getter、setter 的方法，但是沒有對應的屬性，Hibernate 仍然會認為該屬性存在。因此也需要用@Transient 標記。
+     
+     而在 XML 設定中，所有沒有設定到XML檔案中的屬性都被視為臨時屬性。如果某屬性漏設定了，該屬性值將不被儲存到資料庫中。
+   
+   
+   
+   
+
+   
+    【版本屬性設定】      
+         Hibernate 中有一種特殊的屬性：版本(Version)屬性。版本屬性不參與業務邏輯，只用來保證不會有兩個執行緒同時對該資料進行寫操作。
+     版本屬性是樂觀鎖定的一種實現方式。
+
+
+     樂觀鎖定與悲觀鎖定都是保證資料準確性的機制。
+     
+         為保證資料的準確性，程式必須保證在一個執行緒修改資料的時候，該資料沒有被其他執行緒修改。在傳統的資料庫程式設計中，
+     程式修改資料時先鎖定該資料行，使其他程式無法修改該行資料、修改完畢後釋放資料鎖，以此保證資料準確性。由於該機制需要鎖定資料行，
+     被鎖定的資料只能被一個執行緒使用，因此被稱為悲觀鎖定。
+     
+         樂觀鎖定使用完全不同的方式。樂觀鎖定透過Version 列儲存目前資料的版本，如果程式修改了資料，就將版本列加 1。反過來，
+     如果版本列有了變化，說明該資料被修改過了。程式儲存資料時會檢查資料的 Version 列。如果 Version 列已經發生了變化，程式會重新讀取、
+     修改並儲存資料。由於該機制不需要鎖定資料行，允許多條執行緒同時存取同一條資料，因此被稱為樂觀鎖定。
+     
+     樂觀鎖定的效率要高於悲觀鎖定，因此現代程式設定更傾向於樂觀鎖定。
+
+   《範例》：
+        
+    《@ 設定樂觀鎖定》 
+     Hibernate 支援樂觀鎖定，儲存資料時Hibernate 會自動完成檢查 Version 列、修改資料、更新 Version 列等工作。
+     Hibernate 隱藏了所有 Version 操作細節，開發者只須指定實體類別的 Version 列即可。實體類別中可用 @Version 設定版本屬性。
+     版本列一般為數字類型屬性。
+     
+     例如：
+     @Version
+     private int version;
+
+
+    《XML 設定樂觀鎖定》
+     XML 中使用<version /> 設定樂觀鎖定，name 屬性設定版本列。注意 <version /> 版本列要設定在 <id />主鍵後， <property />普通屬性前面。
+     例如：
+     <version name="version" ></version>
+     
+     XML 設定版本屬性要比 @設定靈活，版本屬性即可以為 int、long 等資料類型、也可以為 Timestamp 時間戳記等類型，設定使用 type 設定類型，
+     例如：
+     <version type="timestamp" column="version" />
+     
+     或者直接用 <timestemp />設定日期版本，與上面的設定是等值的：
+     <timestamp column="version" />
+    
+    
+************************************************************************************************************************************
+
+
+
+
+
+
+
+
+************************************************************************************************************************************
+   【第二十三章】Hibernate 實體關係映射      
+
+     
+    資料庫中的表是有關係的，兩個表之間可以透過外鍵關聯。如果把表抽象為實體類別，這些關係可以抽象為實體類別之間的一對多、多對一、
+    一對一、多對多等關係。Hibernate 能處理這些複雜的關係，前提是要正確地設定這些關係。 
+         
+     
+     
+        
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/  
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/    
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/  
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/    
+        
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/  
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/    
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/  
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/    
+
+
+************************************************************************************************************************************
+
+
+
+
+
+
+
+
+************************************************************************************************************************************
+   【第二十四章】Hibernate 查詢語言HQL     
+
+
+************************************************************************************************************************************
+
+
+
+
+
+
+
+
+************************************************************************************************************************************
+   【第二十五章】Hibernate 高級查詢      
+
+
+************************************************************************************************************************************
+
+
+
+
+
+
+
+

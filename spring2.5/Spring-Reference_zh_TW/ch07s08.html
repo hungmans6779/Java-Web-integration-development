@@ -1,0 +1,74 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>7.8.&#160;操作被通知物件</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch07.html" title="第&#160;7&#160;章&#160;Spring AOP APIs">
+<link rel="prev" href="ch07s07.html" title="7.7.&#160;使用ProxyFactory通過程式創建AOP代理">
+<link rel="next" href="ch07s09.html" title="7.9.&#160;使用「自動代理（autoproxy）」功能">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="aop-api-advised"></a>7.8.&#160;操作被通知物件</h2></div></div></div>
+<p>在創建了AOP代理之後，你能夠使用<code class="literal">org.springframework.aop.framework.Advised</code>介面對它們進行管理。
+    任何AOP代理都能夠被轉型為這個介面，不論它實作了哪些其它介面。這個介面包括下面的方法：</p>
+<pre class="programlisting">Advisor[] getAdvisors();
+        
+        void addAdvice(Advice advice) throws AopConfigException;
+        
+        void addAdvice(int pos, Advice advice) 
+        throws AopConfigException;
+        
+        void addAdvisor(Advisor advisor) throws AopConfigException;
+        
+        void addAdvisor(int pos, Advisor advisor) throws AopConfigException;
+        
+        int indexOf(Advisor advisor);
+        
+        boolean removeAdvisor(Advisor advisor) throws AopConfigException;
+        
+        void removeAdvisor(int index) throws AopConfigException;
+        
+        boolean replaceAdvisor(Advisor a, Advisor b) throws AopConfigException;
+        
+    boolean isFrozen();</pre>
+<p><code class="literal">getAdvisors()</code>方法將為每個已經被加入處理器的通知器，攔截器或者其它通知型別返回一個通知器。如果你曾經添加一個通知器，那麼所返回的通知器將是你加入的物件。
+        如果你曾經加入一個攔截器或者其它通知型別，Spring將把它們包裹在一個通知器裡，後者使用一個永遠返回true的切入點。因此如果你曾經加入一個<code class="literal">MethodInterceptor</code>，
+        返回的通知器將是一個<code class="literal">DefaultPointcutAdvisor</code>，它可以返回你加入的<code class="literal">MethodInterceptor</code>和一個匹配全部類別和方法的切入點。
+    </p>
+<p><code class="literal">addAdvisor()</code>方法可以用來添加任何通知器。通常保存切入點和通知的通知器是<code class="literal">DefaultPointcutAdvisor</code>，它可以用於任何通知或切入點（但不包括引入型別）。</p>
+<p>缺省情況下，你可以加入或移除通知器或者攔截器甚至當代理已經被創建之後。唯一的限制是無法加入或者移除一個引入通知器，因為處理器中獲得的已有代理不能顯示介面的改變（你可以通過從處理器裡獲取一個新的代理來避免這個問題）。</p>
+<p>下面是一個簡單的例子，它把一個AOP代理轉型為<code class="literal">Advised</code>介面，檢查並操作它的通知：</p>
+<p>
+        </p>
+<pre class="programlisting">Advised advised = (Advised) myObject;
+            Advisor[] advisors = advised.getAdvisors();
+            int oldAdvisorCount = advisors.length;
+            System.out.println(oldAdvisorCount + " advisors");
+            
+            // Add an advice like an interceptor without a pointcut
+            // Will match all proxied methods
+            // Can use for interceptors, before, after returning or throws advice
+            advised.addAdvice(new DebugInterceptor());
+            
+            // Add selective advice using a pointcut
+            advised.addAdvisor(new DefaultPointcutAdvisor(mySpecialPointcut, myAdvice));
+            
+            assertEquals("Added two advisors",
+        oldAdvisorCount + 2, advised.getAdvisors().length);</pre>
+<p>
+    </p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>在一個實際運行的系統裡，修改一個業務物件上的通知是否明智是個問題，雖然無疑在某些情況下這樣做是合理的。然而這在開發中是很有用的：
+            例如，在測試的時候。對於希望測試的方法調用，有時我發現把測試程式碼加入到一個攔截器或者其它通知裡是非常有用的。
+        （例如，通知可以與目標方法存在於同一個事務裡，在把事務標記為回滾之前可以用SQL來檢查資料庫是否被正確的更新了。）</p>
+</div>
+<p>依賴於你怎樣創建代理，你通常可以設置一個
+        <code class="literal">frozen</code>標誌，在這種情況下
+        <code class="literal">Advised</code>的<code class="literal">isFrozen()</code>方法將返回true，任何增加或者移除通知的修改都會導致一個<code class="literal">AopConfigException</code>異常。
+    在某些情況下這種凍結被通知物件狀態的能力是很有用的：例如，防止調用程式碼來移除一個進行安全檢查的攔截器。在Spring 1.1中它也被用來允許激進優化，如果已經知道不需要運行時對通知進行修改的話。 </p>
+</div></body>
+</html>

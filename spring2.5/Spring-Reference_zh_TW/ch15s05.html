@@ -1,0 +1,455 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>15.5.&#160;Tapestry</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch15.html" title="第&#160;15&#160;章&#160;整合其它Web框架">
+<link rel="prev" href="ch15s04.html" title="15.4.&#160;Struts">
+<link rel="next" href="ch15s06.html" title="15.6.&#160;WebWork">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="view-tapestry"></a>15.5.&#160;Tapestry</h2></div></div></div>
+<p>
+			摘自 <a href="http://jakarta.apache.org/tapestry/" target="_top">Tapestry 主頁</a>...
+		</p>「<span class="quote">
+			<span class="emphasis"><em>
+				Tapestry 是用來創建動態、健壯、高伸縮性 Web 應用的一個 Java 開源框架。
+				Tapestry 元件建構於標準的Java Servlet API 之上，所以它可以工作在任何
+				Servlet 容器或者應用伺服器之上。
+			</em></span>
+		</span>」<p>
+			儘管 Spring 有自己的 <a href="ch13.html" title="第&#160;13&#160;章&#160;Web MVC framework Web框架">強有力的 Web 層</a>，但是使用 Tapestry 
+			作為 Web 使用者介面，並且結合 Spring 容器管理其他層次，在建構 J2EE 應用上具有一些獨到的優勢。
+			這一節將嘗試介紹整合這兩種框架的最佳實踐。
+		</p>
+<p>
+			一個使用 Tapestry 和 Spring 建構的 <span class="emphasis"><em>典型的</em></span> J2EE 應用通常由 Tapestry
+			建構一系列的使用者介面（UI）層，然後通過一個或多個 Spring容器來連接底層設施。
+			Tapestry 的 <a href="http://jakarta.apache.org/tapestry/UsersGuide/hivemind.html" target="_top">參考手冊</a> 
+			包含了這些最佳實踐的片斷。（下面參考中的 <code class="literal">[]</code> 部分是本章的作者所加。）
+		</p>「<span class="quote">
+			<span class="emphasis"><em>
+				Tapestry 中一個非常成功的設計模式是保持簡單的頁面和元件，盡可能多的將任務
+				<span class="bold"><strong>委派（delegate）</strong></span> 給 HiveMind [或者 Spring，以及其他容器] 服務。
+				Listener 方法應該僅僅關心如何組合成正確的資訊並且將它傳遞給一個服務。
+			</em></span>
+		</span>」<p>
+            那麼關鍵問題就是...如何將協作的服務提供給 Tapestry 頁面？答案是，在理想情況下，應該將這些服務直接
+					注入到 Tapestry 頁面中。在 Tapestry 中，你可以使用<a href="http://jakarta.apache.org/tapestry/UsersGuide/injection.html" target="_top">幾種不同的方法</a> 
+        	來實作依賴注入。這一節只討論Spring 提供的依賴注入的方法。Spring-Tapestry 整合真正具有魅力的地方是 Tapestry 
+					優雅又不失靈活的設計，它使得注入 Spring 托管的 bean 簡直就像把馬鞍搭在馬背上一樣簡單。（另一個好訊息是
+					Spring-Tapestry 整合程式碼的編寫和維護都是由 Tapestry 的創建者 <a href="http://howardlewisship.com/blog/" target="_top">Howard M. Lewis Ship</a> 一手操辦，
+        	所以我們應該為了這個如絲般順暢的整合方案向他致敬。）
+        </p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="view-tapestry-di"></a>15.5.1.&#160;注入 Spring 托管的 beans</h3></div></div></div>
+<p>
+				假設我們有下面這樣一個 Spring 容器定義（使用 XML 格式）：
+			</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN" 
+        "http://www.springframework.org/dtd/spring-beans-2.0.dtd"&gt;
+ 
+&lt;beans&gt;
+    &lt;!-- the DataSource --&gt;
+    &lt;bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean"&gt;
+        &lt;property name="jndiName" value="java:DefaultDS"/&gt;
+    &lt;/bean&gt;
+
+    &lt;bean id="hibSessionFactory" 
+          class="org.springframework.orm.hibernate3.LocalSessionFactoryBean"&gt;
+        &lt;property name="dataSource" ref="dataSource"/&gt;
+    &lt;/bean&gt;
+
+    &lt;bean id="transactionManager" 
+          class="org.springframework.transaction.jta.JtaTransactionManager"/&gt;
+
+    &lt;bean id="mapper" 
+          class="com.whatever.dataaccess.mapper.hibernate.MapperImpl"&gt;
+        &lt;property name="sessionFactory" ref="hibSessionFactory"/&gt;
+    &lt;/bean&gt;
+
+    &lt;!-- (transactional) AuthenticationService --&gt;
+    &lt;bean id="authenticationService" 
+          class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean"&gt;
+        &lt;property name="transactionManager" ref="transactionManager"/&gt;
+        &lt;property name="target"&gt;
+            &lt;bean class="com.whatever.services.service.user.AuthenticationServiceImpl"&gt;
+                &lt;property name="mapper" ref="mapper"/&gt;
+            &lt;/bean&gt;
+        &lt;/property&gt;
+        &lt;property name="proxyInterfacesOnly" value="true"/&gt;
+        &lt;property name="transactionAttributes"&gt;
+            &lt;value&gt;
+                *=PROPAGATION_REQUIRED
+            &lt;/value&gt;
+        &lt;/property&gt;
+    &lt;/bean&gt;  
+ 
+    &lt;!-- (transactional) UserService --&gt;
+    &lt;bean id="userService" 
+          class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean"&gt;
+        &lt;property name="transactionManager" ref="transactionManager"/&gt;
+        &lt;property name="target"&gt;
+             &lt;bean class="com.whatever.services.service.user.UserServiceImpl"&gt;
+                 &lt;property name="mapper" ref="mapper"/&gt;
+             &lt;/bean&gt;
+        &lt;/property&gt;
+        &lt;property name="proxyInterfacesOnly" value="true"/&gt;
+        &lt;property name="transactionAttributes"&gt;
+            &lt;value&gt;
+                *=PROPAGATION_REQUIRED
+            &lt;/value&gt;
+        &lt;/property&gt;
+    &lt;/bean&gt;  
+ 
+ &lt;/beans&gt;</pre>
+<p>
+	       在 Tapestry 應用中，上面的 bean 定義需要 <a href="ch15s02.html" title="15.2.&#160;通用配置">載入到 Spring 容器中</a>，
+				並且任何相關的 Tapestry 頁面都需要提供（被注入） <code class="literal">authenticationService</code> 和 <code class="literal">userService</code> 這兩個 bean，
+				它們分別實作了 <code class="interfacename">AuthenticationService</code> 和 <code class="interfacename">UserService</code> 介面。
+			</p>
+<p>
+				現在，Web 應用可以通過調用 Spring 靜態工具函數 <code class="literal">WebApplicationContextUtils.getApplicationContext(servletContext)</code> 
+				來得到application context。這個函數的參數servletContext 是J2EE Servlet 規範所定義的 <span class="interface">ServletContext</span>。
+				這樣一來，頁面可以很容易地得到 <code class="interfacename">UserService</code> 的實例，
+				就像下面的這個例子：
+			</p>
+<pre class="programlisting">WebApplicationContext appContext = WebApplicationContextUtils.getApplicationContext(
+    getRequestCycle().getRequestContext().getServlet().getServletContext());
+UserService userService = (UserService) appContext.getBean("userService");
+<em class="lineannotation"><span class="lineannotation">... some code which uses UserService</span></em></pre>
+<p>
+				這種機制可以工作...如果想進一步改進的話，我們可以將大部分的邏輯封裝在頁面或元件基類別的一個方法中。
+				然而，這個機制在某些方面違背了 Spring 所倡導的IoC原則。在理想情況下，頁面
+				不必在context中尋找某個名字的 bean。事實上，頁面最好是對context一無所知。
+			</p>
+<p>
+				幸運的是，有一種機制可以做到這一點。這是因為 Tapestry 已經提供了一種給頁面宣告屬性的方法，
+				事實上，以宣告的方式管理一個頁面上的所有屬性是首選的方法，這樣 Tapestry 能夠將屬性的生命週期
+				作為頁面和元件生命週期的一部分加以管理。
+			</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>
+			        下一節應用於 Tapestry 版本 &lt; 4.0 的情況下。如果你正在使用 Tapestry 4.0+，請參考標有 
+					<a href="ch15s05.html#view-tapestry-40-style-di" title="15.5.1.4.&#160;將 Spring Beans 注入到 Tapestry 頁面中 - Tapestry 4.0+ 樣式">第&#160;15.5.1.4&#160;節 「將 Spring Beans 注入到 Tapestry 頁面中 - Tapestry 4.0+ 樣式」</a> 的小節。
+				</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="view-tapestry-pre40-style-di"></a>15.5.1.1.&#160;將 Spring Beans 注入到 Tapestry 頁面中</h4></div></div></div>
+<p>
+					首先我們需要 Tapestry 頁面元件在沒有 <span class="interface">ServletContext</span> 的情況下存取 
+					<span class="interface">ApplicationContext</span>；這是因為在頁面/元件生命週期裡面，當我們需要存取 
+					<span class="interface">ApplicationContext</span> 時，<span class="interface">ServletContext</span> 
+					並不能被頁面很方便的存取到，所以我們不能直接使用 <code class="literal">WebApplicationContextUtils.getApplicationContext(servletContext)</code>。
+					一種解決方法就是實作一個自定義的 Tapestry <code class="interfacename">IEngine</code> 來提供
+					<span class="interface">ApplicationContext</span>：
+				</p>
+<pre class="programlisting">package com.whatever.web.xportal;
+
+import ...
+
+public class MyEngine extends org.apache.tapestry.engine.BaseEngine {
+ 
+    public static final String APPLICATION_CONTEXT_KEY = "appContext";
+ 
+    /**
+     * @see org.apache.tapestry.engine.AbstractEngine#setupForRequest(org.apache.tapestry.request.RequestContext)
+     */
+    protected void setupForRequest(RequestContext context) {
+        super.setupForRequest(context);
+     
+        // insert ApplicationContext in global, if not there
+        Map global = (Map) getGlobal();
+        ApplicationContext ac = (ApplicationContext) global.get(APPLICATION_CONTEXT_KEY);
+        if (ac == null) {
+            ac = WebApplicationContextUtils.getWebApplicationContext(
+                context.getServlet().getServletContext()
+            );
+            global.put(APPLICATION_CONTEXT_KEY, ac);
+        }
+    }
+}</pre>
+<p>
+					這個引擎類別將 Spring application context作為一個名為 「appContext」 的屬性存放在 Tapestry 應用的
+					「Global」 物件中。在 Tapestry 應用定義檔案中必須保證這個特殊的 IEngine 實例在這個 Tapestry 應用中被使用。
+					舉個例子：
+				</p>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation">file: xportal.application:</span></em> 
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!DOCTYPE application PUBLIC 
+    "-//Apache Software Foundation//Tapestry Specification 3.0//EN" 
+    "http://jakarta.apache.org/tapestry/dtd/Tapestry_3_0.dtd"&gt;
+&lt;application
+    name="Whatever xPortal"
+    engine-class="com.whatever.web.xportal.MyEngine"&gt;
+&lt;/application&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="view-tapestry-componentdefs"></a>15.5.1.2.&#160;元件定義檔案</h4></div></div></div>
+<p>
+					現在，我們在頁面或元件定義檔案（*.page 或者 *.jwc）中添加 property-specification 元素就可以
+					從 <code class="interfacename">ApplicationContext</code> 中獲取 bean，並為這些 bean 創建頁面或
+					元件屬性。例如：
+				</p>
+<pre class="programlisting">    &lt;property-specification name="userService"
+                            type="com.whatever.services.service.user.UserService"&gt;
+        global.appContext.getBean("userService")
+    &lt;/property-specification&gt;
+    &lt;property-specification name="authenticationService"
+                            type="com.whatever.services.service.user.AuthenticationService"&gt;
+        global.appContext.getBean("authenticationService")
+    &lt;/property-specification&gt;</pre>
+<p>
+					在 property-specification 中定義的 OGNL 表達式使用context中的 bean 來指定屬性的初始值。
+					整個頁面定義檔案如下：
+				</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!DOCTYPE page-specification PUBLIC 
+    "-//Apache Software Foundation//Tapestry Specification 3.0//EN" 
+    "http://jakarta.apache.org/tapestry/dtd/Tapestry_3_0.dtd"&gt;
+     
+&lt;page-specification class="com.whatever.web.xportal.pages.Login"&gt;
+ 
+    &lt;property-specification name="username" type="java.lang.String"/&gt;
+    &lt;property-specification name="password" type="java.lang.String"/&gt;
+    &lt;property-specification name="error" type="java.lang.String"/&gt;
+    &lt;property-specification name="callback" type="org.apache.tapestry.callback.ICallback" persistent="yes"/&gt;
+    &lt;property-specification name="userService"
+                            type="com.whatever.services.service.user.UserService"&gt;
+        global.appContext.getBean("userService")
+    &lt;/property-specification&gt;
+    &lt;property-specification name="authenticationService"
+                            type="com.whatever.services.service.user.AuthenticationService"&gt;
+        global.appContext.getBean("authenticationService")
+    &lt;/property-specification&gt;
+   
+    &lt;bean name="delegate" class="com.whatever.web.xportal.PortalValidationDelegate"/&gt;
+ 
+    &lt;bean name="validator" class="org.apache.tapestry.valid.StringValidator" lifecycle="page"&gt;
+        &lt;set-property name="required" expression="true"/&gt;
+        &lt;set-property name="clientScriptingEnabled" expression="true"/&gt;
+    &lt;/bean&gt;
+ 
+    &lt;component id="inputUsername" type="ValidField"&gt;
+        &lt;static-binding name="displayName" value="Username"/&gt;
+        &lt;binding name="value" expression="username"/&gt;
+        &lt;binding name="validator" expression="beans.validator"/&gt;
+    &lt;/component&gt;
+   
+    &lt;component id="inputPassword" type="ValidField"&gt;
+        &lt;binding name="value" expression="password"/&gt;
+       &lt;binding name="validator" expression="beans.validator"/&gt;
+       &lt;static-binding name="displayName" value="Password"/&gt;
+       &lt;binding name="hidden" expression="true"/&gt;
+    &lt;/component&gt;
+ 
+&lt;/page-specification&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="view-tapestry-getters"></a>15.5.1.3.&#160;添加抽象存取方法</h4></div></div></div>
+<p>
+					現在在頁面或元件本身的 Java 類別定義中，我們需要為剛剛定義的屬性添加抽象的 getter 方法。
+					（這樣才可以存取那些屬性）。
+				</p>
+<pre class="programlisting">// our UserService implementation; will come from page definition
+public abstract UserService getUserService();
+// our AuthenticationService implementation; will come from page definition
+public abstract AuthenticationService getAuthenticationService();</pre>
+<p>
+					下面這個例子總結了前面講述的方法。這是個完整的 Java 類別：
+				</p>
+<pre class="programlisting">package com.whatever.web.xportal.pages;
+ 
+/**
+ *  Allows the user to login, by providing username and password.
+ *  After successfully logging in, a cookie is placed on the client browser
+ *  that provides the default username for future logins (the cookie
+ *  persists for a week).
+ */
+public abstract class Login extends BasePage implements ErrorProperty, PageRenderListener {
+ 
+    /** the key under which the authenticated user object is stored in the visit as */
+    public static final String USER_KEY = "user";
+   
+    /** The name of the cookie that identifies a user **/
+    private static final String COOKIE_NAME = Login.class.getName() + ".username";  
+    private final static int ONE_WEEK = 7 * 24 * 60 * 60;
+ 
+    public abstract String getUsername();
+    public abstract void setUsername(String username);
+ 
+    public abstract String getPassword();
+    public abstract void setPassword(String password);
+ 
+    public abstract ICallback getCallback();
+    public abstract void setCallback(ICallback value);
+    
+    public abstract UserService getUserService();
+    public abstract AuthenticationService getAuthenticationService();
+ 
+    protected IValidationDelegate getValidationDelegate() {
+        return (IValidationDelegate) getBeans().getBean("delegate");
+    }
+ 
+    protected void setErrorField(String componentId, String message) {
+        IFormComponent field = (IFormComponent) getComponent(componentId);
+        IValidationDelegate delegate = getValidationDelegate();
+        delegate.setFormComponent(field);
+        delegate.record(new ValidatorException(message));
+    }
+ 
+    /**
+     *  Attempts to login. 
+     * &lt;p&gt;
+     *  If the user name is not known, or the password is invalid, then an error
+     *  message is displayed.
+     **/
+    public void attemptLogin(IRequestCycle cycle) {
+     
+        String password = getPassword();
+ 
+        // Do a little extra work to clear out the password.
+        setPassword(null);
+        IValidationDelegate delegate = getValidationDelegate();
+ 
+        delegate.setFormComponent((IFormComponent) getComponent("inputPassword"));
+        delegate.recordFieldInputValue(null);
+ 
+        // An error, from a validation field, may already have occurred.
+        if (delegate.getHasErrors()) {
+            return;
+        }
+
+        try {
+            User user = getAuthenticationService().login(getUsername(), getPassword());
+           loginUser(user, cycle);
+        }
+        catch (FailedLoginException ex) {
+            this.setError("Login failed: " + ex.getMessage());
+            return;
+        }
+    }
+ 
+    /**
+     *  Sets up the {@link User} as the logged in user, creates
+     *  a cookie for their username (for subsequent logins),
+     *  and redirects to the appropriate page, or
+     *  a specified page).
+     **/
+    public void loginUser(User user, IRequestCycle cycle) {
+     
+        String username = user.getUsername();
+ 
+        // Get the visit object; this will likely force the
+        // creation of the visit object and an HttpSession
+        Map visit = (Map) getVisit();
+        visit.put(USER_KEY, user);
+ 
+        // After logging in, go to the MyLibrary page, unless otherwise specified
+        ICallback callback = getCallback();
+ 
+        if (callback == null) {
+            cycle.activate("Home");
+        }
+        else {
+            callback.performCallback(cycle);
+        }
+
+        IEngine engine = getEngine();
+        Cookie cookie = new Cookie(COOKIE_NAME, username);
+        cookie.setPath(engine.getServletPath());
+        cookie.setMaxAge(ONE_WEEK);
+ 
+        // Record the user's username in a cookie
+        cycle.getRequestContext().addCookie(cookie);
+        engine.forgetPage(getPageName());
+    }
+   
+    public void pageBeginRender(PageEvent event) {
+        if (getUsername() == null) {
+            setUsername(getRequestCycle().getRequestContext().getCookieValue(COOKIE_NAME));
+        }
+    }
+}</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="view-tapestry-40-style-di"></a>15.5.1.4.&#160;將 Spring Beans 注入到 Tapestry 頁面中 - Tapestry 4.0+ 樣式</h4></div></div></div>
+<p>
+					在 Tapestry 4.0+ 版本中，將 Spring 托管 beans 注入到 Tapestry 頁面是 <span class="emphasis"><em>非常</em></span> 簡單的。
+					只需要一個 <a href="http://howardlewisship.com/tapestry-javaforge/tapestry-spring/" target="_top">附加函數資源庫</a>，
+					和一些（少量）的配置。
+					可以將這個資源庫和Web 應用其他的資源庫一起部署。（一般情況下是放在 <code class="literal">WEB-INF/lib</code> 目錄下。）
+				</p>
+<p>
+					你需要使用 <a href="ch15s02.html" title="15.2.&#160;通用配置">前面介紹的方法</a> 來創建Spring 容器。
+					然後就可以將 Spring 托管的 beans 非常簡單的注入給 Tapestry；如果我們使用 Java 5，				
+					我們只需要簡單地給 getter 方法添加註釋（annotation），就可以將 Spring 管理的
+					<code class="literal">userService</code> 和 <code class="literal">authenticationService</code> 物件注入給頁面。
+					比如下面 <code class="classname">Login</code> 的例子：（為了保持簡潔，許多的類別定義在這裡省略了）
+				</p>
+<pre class="programlisting">package com.whatever.web.xportal.pages;
+
+public abstract class Login extends BasePage implements ErrorProperty, PageRenderListener {
+    
+    @InjectObject("spring:userService")
+    public abstract UserService getUserService();
+    
+    @InjectObject("spring:authenticationService")
+    public abstract AuthenticationService getAuthenticationService();
+
+}</pre>
+<p>
+				我們的任務基本上完成了...剩下的工作就是配置HiveMind，將存儲在  <code class="interfacename">ServletContext</code> 中
+				的 Spring 容器配置為一個 HiveMind 服務：
+			</p>
+<pre class="programlisting">&lt;?xml version="1.0"?&gt;
+&lt;module id="com.javaforge.tapestry.spring" version="0.1.1"&gt;
+
+    &lt;service-point id="SpringApplicationInitializer"
+        interface="org.apache.tapestry.services.ApplicationInitializer"
+        visibility="private"&gt;
+        &lt;invoke-factory&gt;
+            &lt;construct class="com.javaforge.tapestry.spring.SpringApplicationInitializer"&gt;
+                &lt;set-object property="beanFactoryHolder"
+                    value="service:hivemind.lib.DefaultSpringBeanFactoryHolder" /&gt;
+            &lt;/construct&gt;
+        &lt;/invoke-factory&gt;
+    &lt;/service-point&gt;
+
+    &lt;!-- Hook the Spring setup into the overall application initialization. --&gt;
+    &lt;contribution
+        configuration-id="tapestry.init.ApplicationInitializers"&gt;
+        &lt;command id="spring-context"
+            object="service:SpringApplicationInitializer" /&gt;
+    &lt;/contribution&gt;
+
+&lt;/module&gt;</pre>
+<p>
+					如果你使用 Java 5（這樣就可以使用annotation），那麼就是這麼簡單。
+				</p>
+<p>
+		       如果你不用 Java 5，你沒法通過annotation來註釋你的 Tapestry 頁面；
+					你可以使用傳統樣式的 XML 來宣告依賴注入；例如，在 <code class="classname">Login</code> 
+					頁面（或元件）的 <code class="literal">.page</code> 或 <code class="literal">.jwc</code> 檔案中：
+				</p>
+<pre class="programlisting">&lt;inject property="userService" object="spring:userService"/&gt;
+&lt;inject property="authenticationService" object="spring:authenticationService"/&gt;</pre>
+</div>
+</div>
+<p>
+			在這個例子中，我們嘗試使用宣告的方式將定義在 Spring 容器裡的 bean 提供給 Tapestry 頁面。
+			頁面類別並不知道服務實作來自哪裡，事實上，你也可以很容易地轉換到另一個實作。這在測試中是很有用的。
+			這樣的反向控制是 Spring 框架的主要目標和優點，我們將它拓展到了Tapestry 應用的整個 J2EE 堆棧上。
+		</p>
+</div></body>
+</html>

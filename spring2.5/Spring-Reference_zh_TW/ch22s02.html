@@ -1,0 +1,139 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>22.2.&#160;使用Spring郵件抽象</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch22.html" title="第&#160;22&#160;章&#160;Spring郵件抽象層">
+<link rel="prev" href="ch22.html" title="第&#160;22&#160;章&#160;Spring郵件抽象層">
+<link rel="next" href="ch22s03.html" title="22.3.&#160;使用MimeMessageHelper">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="mail-usage"></a>22.2.&#160;使用Spring郵件抽象</h2></div></div></div>
+<p>假設某個業務介面名為<code class="interfacename">OrderManager</code>:</p>
+<pre class="programlisting">public interface OrderManager {
+
+    void placeOrder(Order order);
+}</pre>
+<p>我們同時假設有一個用例：需要產生帶有訂單號的email信件, 並向客戶發送該訂單。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mail-usage-simple"></a>22.2.1.&#160;<code class="interfacename">MailSender</code> 和 <code class="classname">SimpleMailMessage</code> 的基本用法</h3></div></div></div>
+<pre class="programlisting">import org.springframework.mail.MailException;
+import org.springframework.mail.MailSender;
+import org.springframework.mail.SimpleMailMessage;
+
+public class SimpleOrderManager implements OrderManager {
+
+    private MailSender mailSender;
+    private SimpleMailMessage templateMessage;
+
+    public void setMailSender(MailSender mailSender) {
+        this.mailSender = mailSender;
+    }
+
+    public void setTemplateMessage(SimpleMailMessage templateMessage) {
+        this.templateMessage = templateMessage;
+    }
+
+    public void placeOrder(Order order) {
+
+        <em class="lineannotation"><span class="lineannotation">// Do the business calculations...</span></em>
+
+        <em class="lineannotation"><span class="lineannotation">// Call the collaborators to persist the order...</span></em>
+
+        <em class="lineannotation"><span class="lineannotation">// Create a thread safe "copy" of the template message and customize it</span></em>
+        SimpleMailMessage msg = new SimpleMailMessage(this.templateMessage);
+        msg.setTo(order.getCustomer().getEmailAddress());
+        msg.setText(
+            "Dear " + order.getCustomer().getFirstName()
+                + order.getCustomer().getLastName()
+                + ", thank you for placing order. Your order number is "
+                + order.getOrderNumber());
+        try{
+            this.mailSender.send(msg);
+        }
+        catch(MailException ex) {
+            <em class="lineannotation"><span class="lineannotation">// simply log it and go on...</span></em>
+            System.err.println(ex.getMessage());            
+        }
+    }
+}</pre>
+<p>上面的程式碼的bean定義應該是這樣的:</p>
+<pre class="programlisting">&lt;bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl"&gt;
+  &lt;property name="host" value="mail.mycompany.com"/&gt;
+&lt;/bean&gt;
+
+<em class="lineannotation"><span class="lineannotation">&lt;!-- this is a template message that we can pre-load with default state --&gt;</span></em>
+&lt;bean id="templateMessage" class="org.springframework.mail.SimpleMailMessage"&gt;
+  &lt;property name="from" value="customerservice@mycompany.com"/&gt;
+  &lt;property name="subject" value="Your order"/&gt;
+&lt;/bean&gt;
+
+&lt;bean id="orderManager" class="com.mycompany.businessapp.support.SimpleOrderManager"&gt;
+  &lt;property name="mailSender" ref="mailSender"/&gt;
+  &lt;property name="templateMessage" ref="templateMessage"/&gt;
+&lt;/bean&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mail-usage-mime"></a>22.2.2.&#160;使用 <code class="interfacename">JavaMailSender</code> 和 <code class="classname">MimeMessagePreparator</code></h3></div></div></div>
+<p>下面是<code class="interfacename">OrderManager</code>的另一種實作, 使用了<code class="interfacename">MimeMessagePreparator</code>回調介面。
+			 請注意在這個用例中，<code class="literal">mailSender</code>屬性是<code class="interfacename">JavaMailSender</code>型別， 所以我們可以使用JavaMail的<code class="classname">MimeMessage</code>類別：</p>
+<pre class="programlisting">import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+
+import javax.mail.internet.MimeMessage;
+import org.springframework.mail.MailException;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessagePreparator;
+
+public class SimpleOrderManager implements OrderManager {
+
+    private JavaMailSender mailSender;
+    
+    public void setMailSender(JavaMailSender mailSender) {
+        this.mailSender = mailSender;
+    }
+
+    public void placeOrder(final Order order) {
+
+        <em class="lineannotation"><span class="lineannotation">// Do the business calculations...</span></em>
+
+        <em class="lineannotation"><span class="lineannotation">// Call the collaborators to persist the order...</span></em>
+        
+        MimeMessagePreparator preparator = new MimeMessagePreparator() {
+        
+            public void prepare(MimeMessage mimeMessage) throws Exception {
+        
+                mimeMessage.setRecipient(Message.RecipientType.TO, 
+                        new InternetAddress(order.getCustomer().getEmailAddress()));
+                mimeMessage.setFrom(new InternetAddress("mail@mycompany.com"));
+                mimeMessage.setText(
+                    "Dear " + order.getCustomer().getFirstName() + " "
+                        + order.getCustomer().getLastName()
+                        + ", thank you for placing order. Your order number is "
+                        + order.getOrderNumber());
+            }
+        };
+        try {
+            this.mailSender.send(preparator);
+        }
+        catch (MailException ex) {
+            <em class="lineannotation"><span class="lineannotation">// simply log it and go on...</span></em>
+            System.err.println(ex.getMessage());            
+        }
+    }
+}</pre>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>以上的郵件程式碼是一個橫切關注點，能被完美地重構為<a href="ch06.html" title="第&#160;6&#160;章&#160;使用Spring進行切面導向程式（AOP）">自定義Spring AOP切面</a>的候選者，這樣它就可以在目標物件<code class="interfacename">OrderManager</code>的一些合適的連接點（joinpoint）中被執行了。</p>
+</div>
+<p>Spring Framework的郵件支持直接提供兩種<code class="interfacename">MailSender</code>的實作。標準的JavaMail實作和基於Jason Hunter編寫的<code class="classname">MailMessage</code>類別之上的實作，後者位於<a href="http://servlets.com/cos" target="_top"><code class="literal">com.oreilly.servlet</code>包</a>中。請查閱相關Javadocs以獲得進一步的資料。</p>
+</div>
+</div></body>
+</html>

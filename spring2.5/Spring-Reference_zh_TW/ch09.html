@@ -1,0 +1,80 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>第&#160;9&#160;章&#160;事務管理</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="pt02.html" title="部分&#160;II.&#160;中間層資料存取">
+<link rel="prev" href="pt02.html" title="部分&#160;II.&#160;中間層資料存取">
+<link rel="next" href="ch09s02.html" title="9.2.&#160;動機">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="chapter" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title">
+<a name="transaction"></a>第&#160;9&#160;章&#160;事務管理</h2></div></div></div>
+<div class="toc">
+<p><b>目錄</b></p>
+<dl>
+<dt><span class="section"><a href="ch09.html#transaction-intro">9.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch09s02.html">9.2. 動機</a></span></dt>
+<dt><span class="section"><a href="ch09s03.html">9.3. 關鍵抽象</a></span></dt>
+<dt><span class="section"><a href="ch09s04.html">9.4. 使用資源同步的事務</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch09s04.html#tx-resource-synchronization-high">9.4.1. 高層次方案</a></span></dt>
+<dt><span class="section"><a href="ch09s04.html#tx-resource-synchronization-low">9.4.2. 低層次方案</a></span></dt>
+<dt><span class="section"><a href="ch09s04.html#tx-resource-synchronization-tadsp">9.4.3. 
+				<code class="classname">TransactionAwareDataSourceProxy</code>
+			</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch09s05.html">9.5. 宣告式事務管理</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch09s05.html#tx-decl-explained">9.5.1. 理解Spring的宣告式事務管理實作</a></span></dt>
+<dt><span class="section"><a href="ch09s05.html#transaction-declarative-first-example">9.5.2. 第一個例子</a></span></dt>
+<dt><span class="section"><a href="ch09s05.html#transaction-declarative-rolling-back">9.5.3. 回滾</a></span></dt>
+<dt><span class="section"><a href="ch09s05.html#transaction-declarative-diff-tx">9.5.4. 為不同的bean配置不同的事務語義</a></span></dt>
+<dt><span class="section"><a href="ch09s05.html#transaction-declarative-txadvice-settings">9.5.5. <code class="literal">&lt;tx:advice/&gt;</code> 有關的設置</a></span></dt>
+<dt><span class="section"><a href="ch09s05.html#transaction-declarative-annotations">9.5.6. 使用 <code class="interfacename">@Transactional</code></a></span></dt>
+<dt><span class="section"><a href="ch09s05.html#tx-propagation">9.5.7. 事務傳播</a></span></dt>
+<dt><span class="section"><a href="ch09s05.html#transaction-declarative-applying-more-than-just-tx-advice">9.5.8. 通知事務操作</a></span></dt>
+<dt><span class="section"><a href="ch09s05.html#transaction-declarative-aspectj">9.5.9. 結合AspectJ使用 <code class="interfacename">@Transactional</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch09s06.html">9.6. 程式式事務管理</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch09s06.html#tx-prog-template">9.6.1. 使用<code class="classname">TransactionTemplate</code></a></span></dt>
+<dt><span class="section"><a href="ch09s06.html#transaction-programmatic-ptm">9.6.2. 使用<code class="interfacename">PlatformTransactionManager</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch09s07.html">9.7. 選擇程式式事務管理還是宣告式事務管理</a></span></dt>
+<dt><span class="section"><a href="ch09s08.html">9.8. 與特定應用伺服器整合</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch09s08.html#transaction-application-server-integration-websphere">9.8.1. IBM WebSphere</a></span></dt>
+<dt><span class="section"><a href="ch09s08.html#transaction-application-server-integration-weblogic">9.8.2. BEA WebLogic</a></span></dt>
+<dt><span class="section"><a href="ch09s08.html#transaction-application-server-integration-oc4j">9.8.3. Oracle OC4J</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch09s09.html">9.9. 常見問題的解決方法</a></span></dt>
+<dd><dl><dt><span class="section"><a href="ch09s09.html#transaction-solutions-to-common-problems-wrong-ptm">9.9.1. 對一個特定的 <code class="interfacename">DataSource</code> 使用了錯誤的事務管理器</a></span></dt></dl></dd>
+<dt><span class="section"><a href="ch09s10.html">9.10. 更多的資源</a></span></dt>
+</dl>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="transaction-intro"></a>9.1.&#160;簡介</h2></div></div></div>
+<p>Spring框架引人注目的重要因素之一是它全面的事務支持。Spring框架提供了一致的事務管理抽象，這帶來了以下好處：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>為複雜的事務API提供了一致的程式模型，如JTA、JDBC、Hibernate、JPA和JDO</p></li>
+<li><p>支持 <a href="ch09s05.html" title="9.5.&#160;宣告式事務管理">宣告式事務管理</a></p></li>
+<li><p>提供比大多數複雜的事務API（諸如JTA）更簡單的，更易於使用的 <a href="ch09s06.html" title="9.6.&#160;程式式事務管理">程式式</a> 事務管理API</p></li>
+<li><p>非常好地整合Spring的各種資料存取抽象</p></li>
+</ul></div>
+<p>
+		這章被分成幾個小節，每一節將描述一種Spring框架事務支持的附加值或技術。本章末尾討論了一些關於事務管理的最佳實踐（比如，如何在程式式和宣告式事務管理之間做選擇）。
+        </p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>第一節，<a href="ch09s02.html" title="9.2.&#160;動機">動機</a>，描述 <span class="emphasis"><em>為何</em></span> 願意使用Spring框架的事務抽象，而不是EJB CMT或者一個私有的API，比如Hibernate的事務處理。</p></li>
+<li><p>第二節，<a href="ch09s03.html" title="9.3.&#160;關鍵抽象">關鍵抽象</a>，列舉了Spring框架事務支持的核心類別，以及如何從多種不同的資料源去配置並獲得一個 <code class="interfacename">DataSource</code> 實例。
+                </p></li>
+<li><p>第三節，<a href="ch09s05.html" title="9.5.&#160;宣告式事務管理">宣告式事務管理</a>，講述了Spring框架如何支持宣告式事務管理。</p></li>
+<li><p>第四節，<a href="ch09s06.html" title="9.6.&#160;程式式事務管理">程式式事務管理</a>，介紹了Spring框架如何支持程式式（即硬編碼）事務管理。</p></li>
+</ul></div>
+</div>
+</div></body>
+</html>

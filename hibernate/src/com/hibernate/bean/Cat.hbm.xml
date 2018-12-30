@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+        
+        
+<!-- 實體類別所在的包 -->         
+<hibernate-mapping package="com.hibernate.bean" >
+
+  <!-- 實體類別 -->
+  <class name="Cat1" table="tb_cat" >
+    
+    <!-- id 主鍵 -->
+    <id name="id" column="id" >
+      <generator class="native" />  <!-- 資料庫自增長 -->
+    </id>
+   
+    <!-- 普通屬性  -->
+    <property name ="name" type="string" column="name" ></property>
+    
+    <!-- 大文字屬性  -->
+    <property name="description" type="text" ></property>
+   
+    <!-- 時間戳記屬性  -->
+    <property name="createDate" type="timestamp" ></property>
+   
+  </class>
+
+</hibernate-mapping>        

@@ -1,0 +1,707 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>14.4.&#160;Velocity和FreeMarker</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch14.html" title="第&#160;14&#160;章&#160;整合視圖技術">
+<link rel="prev" href="ch14s03.html" title="14.3.&#160;Tiles">
+<link rel="next" href="ch14s05.html" title="14.5.&#160;XSLT">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="view-velocity"></a>14.4.&#160;Velocity和FreeMarker</h2></div></div></div>
+<p>
+			<a href="http://velocity.apache.org" target="_top">Velocity</a>
+			和<a href="http://www.freemarker.org" target="_top">FreeMarker</a>
+			是兩種模板語言，都可以做為view層技術在Spring MVC 應用中使用。
+			它們的語言樣式和適用物件都很相似，這裡把它們放在一起討論。至於它們語義和語法上的不同，可以參考
+			<a href="http://www.freemarker.org" target="_top">FreeMarker</a>站點。
+		</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="view-velocity-dependencies"></a>14.4.1.&#160;需要的資源</h3></div></div></div>
+<p>
+				使用Velocity或FreeMarker需要包含
+				<code class="filename">
+					velocity-1.x.x.jar
+				</code>
+				或
+				<code class="filename">
+					freemarker-2.x.jar
+				</code>
+				。另外Velocity還需要
+				<code class="filename">
+					commons-collections.jar
+				</code>
+				。一般把這些jar包放在
+				<code class="literal">WEB-INF/lib</code>
+				下，這樣可以保證J2EE Server找到它們並加到web應用的classpath下。這裡同樣假設你的
+				<code class="filename">'WEB-INF/lib'</code>
+				目錄下已有
+				<code class="filename">spring.jar</code>
+				！Spring的發佈包中已經提供了最新的穩定版本的Velocity、FreeMarker和commons
+				collections，可以從相應的
+				<code class="filename">/lib/</code>
+				子目錄下得到。如果你想在Velocity中使用Spring的dateToolAttribute或numberToolAttribute，那你還需要
+				<code class="filename">
+					velocity-tools-generic-1.x.jar
+				</code>
+			</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="view-velocity-contextconfig"></a>14.4.2.&#160;Context 配置</h3></div></div></div>
+<p>
+				通過在
+				<code class="filename">'*-servlet.xml'</code>
+				中增加相關的配置bean，可以初始化相應的配置，如下：
+			</p>
+<pre class="programlisting">
+				<em class="lineannotation"><span class="lineannotation">
+					&lt;!--
+					該bean使用一個存放模板檔案的根路徑來配置Velocity環境。你也可以通過指定一個屬性檔案來更精細地控制Velocity，但對基於檔案的模板載入來說，預設的方式已相當健全
+					--&gt;
+				</span></em>
+				
+&lt;bean id="velocityConfig" class="org.springframework.web.servlet.view.velocity.VelocityConfigurer"&gt;
+  &lt;property name="resourceLoaderPath" value="/WEB-INF/velocity/"/&gt;
+&lt;/bean&gt;
+
+<em class="lineannotation"><span class="lineannotation">
+					&lt;!--
+					也可以把ResourceBundle或XML檔案配置到視圖解析器中。如果你需要根據Locale來解析不同的視圖，就需要使用resource bundle解析器。
+					--&gt;
+</span></em>
+				
+&lt;bean id="viewResolver" class="org.springframework.web.servlet.view.velocity.VelocityViewResolver"&gt;
+  &lt;property name="cache" value="true"/&gt;
+  &lt;property name="prefix" value=""/&gt;
+  &lt;property name="suffix" value=".vm"/&gt;
+&lt;/bean&gt;</pre>
+<pre class="programlisting">
+				<em class="lineannotation"><span class="lineannotation">
+					&lt;!-- freemarker config --&gt;
+				</span></em>
+				
+&lt;bean id="freemarkerConfig" class="org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer"&gt;
+  &lt;property name="templateLoaderPath" value="/WEB-INF/freemarker/"/&gt;
+&lt;/bean&gt;
+
+<em class="lineannotation"><span class="lineannotation">
+					&lt;!--
+					也可以把ResourceBundle或XML檔案配置到視圖解析器中。如果你需要根據Locale來解析不同的視圖，就需要使用resource bundle解析器。
+					--&gt;
+</span></em>
+				
+&lt;bean id="viewResolver" class="org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver"&gt;
+  &lt;property name="cache" value="true"/&gt;
+  &lt;property name="prefix" value=""/&gt;
+  &lt;property name="suffix" value=".ftl"/&gt;
+&lt;/bean&gt;</pre>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>
+					對於非web應用，你需要在application context的配置檔案中宣告
+					<code class="classname">
+						VelocityConfigurationFactoryBean
+					</code>或者
+					<code class="classname">
+						FreeMarkerConfigurationFactoryBean
+					</code>
+
+				</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="view-velocity-createtemplates"></a>14.4.3.&#160;創建模板</h3></div></div></div>
+<p>
+				模板檔案需要存放在配置<code class="literal">*Configurer</code>
+				bean時所指定的目錄下，就像上面的例子所示。
+				這裡不準備詳細敘述使用這兩種語言創建模板的細節，你可以參考相應的站點獲取那些資訊。
+				如果你用了我們推薦的視圖解析器，你會發現從邏輯視圖名到相應模板檔案的映射方式與使用
+				<code class="classname">InternalResourceViewResolver</code>
+				處理JSP時的映射方式類似。比如若你的控制器返回了ModelAndView物件，其中包含一個叫做「welcome」的視圖名，則視圖解析器將試圖尋找
+				<code class="literal">/WEB-INF/freemarker/welcome.ftl</code>
+				或<code class="literal">/WEB-INF/velocity/welcome.vm</code>作為合適的模板。
+			</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="view-velocity-advancedconfig"></a>14.4.4.&#160;高層級配置</h3></div></div></div>
+<p>
+				以上著重介紹的基本配置適合大部分應用需求，然而仍然有一些不常見的或高層級需求的情況，Spring提供了另外的配置選項來滿足這種需求。
+			</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="view-velocity-example-velocityproperties"></a>14.4.4.1.&#160;velocity.properties</h4></div></div></div>
+<p>
+					這個檔案是可選的，不過一旦指定，其所包含的值即影響Velocity運行時狀態。只有當你要做一些高層級配置時才需要這個檔案，這時你可以在上面定義的
+					<code class="literal">VelocityConfigurer</code>中指定它的位置。
+				</p>
+<pre class="programlisting">
+					&lt;bean id="velocityConfig"
+					class="org.springframework.web.servlet.view.velocity.VelocityConfigurer"&gt;
+					&lt;property name="configLocation
+					value="/WEB-INF/velocity.properties"/&gt;
+					&lt;/bean&gt;
+				</pre>
+<p>
+					另一種方法，你可以直接在Velocity config bean的定義中指定velocity屬性，來取代「configLocation」屬性。
+				</p>
+<pre class="programlisting">&lt;bean id="velocityConfig" class="org.springframework.web.servlet.view.velocity.VelocityConfigurer"&gt;
+  &lt;property name="velocityProperties"&gt;
+    &lt;props&gt;
+      &lt;prop key="resource.loader"&gt;file&lt;/prop&gt;
+      &lt;prop key="file.resource.loader.class"&gt;
+        org.apache.velocity.runtime.resource.loader.FileResourceLoader
+      &lt;/prop&gt;
+      &lt;prop key="file.resource.loader.path"&gt;${webapp.root}/WEB-INF/velocity&lt;/prop&gt;
+      &lt;prop key="file.resource.loader.cache"&gt;false&lt;/prop&gt;
+    &lt;/props&gt;
+  &lt;/property&gt;
+&lt;/bean&gt;</pre>
+<p>
+					關於Spring中Velocity的配置請參考
+					<a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/ui/velocity/VelocityEngineFactory.html" target="_top">
+						API文檔</a>或者參考Velocity自身文檔中的例子和定義來瞭解如何配置
+					<code class="filename">'velocity.properties'</code>檔案。
+				</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="views-freemarker"></a>14.4.4.2.&#160;FreeMarker</h4></div></div></div>
+<p>
+					FreeMarker的'Settings'和'SharedVariables'配置可以通過直接設置
+					<code class="literal">FreeMarkerConfigurer</code>
+					的相應屬性來傳遞給Spring管理的FreeMarker
+					<code class="literal">Configuration</code>物件，其中
+					<code class="literal">freemarkerSettings</code>
+					屬性需要一個<code class="literal">java.util.Properties</code>型別物件，
+					<code class="literal">freemarkerVariables</code>需要一個
+					<code class="literal">java.util.Map</code>型別物件。
+				</p>
+<pre class="programlisting">&lt;bean id="freemarkerConfig" class="org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer"&gt;
+  &lt;property name="templateLoaderPath" value="/WEB-INF/freemarker/"/&gt;
+  &lt;property name="freemarkerVariables"&gt;
+    &lt;map&gt;
+      &lt;entry key="xml_escape" value-ref="fmXmlEscape"/&gt;
+    &lt;/map&gt;
+  &lt;/property&gt;
+&lt;/bean&gt;
+
+&lt;bean id="fmXmlEscape" class="freemarker.template.utility.XmlEscape"/&gt;</pre>
+<p>
+					關於settings和variables如何影響
+					<code class="classname">Configuration</code>
+					物件的細節資訊，請參考FreeMarker的文檔。
+				</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="view-velocity-forms"></a>14.4.5.&#160;綁定支持和表單處理</h3></div></div></div>
+<p>
+				Spring提供了一個在JSP中使用的標籤資源庫，其中包含一個
+				<code class="literal">&lt;spring:bind/&gt;</code>
+				標籤，它主要用來在表單中顯示支持物件（譯者註：即表單資料傳輸物件）的資料，並在一個
+				<code class="literal">Validator</code>
+				（工作在Web層或商業邏輯層）校驗失敗時顯示失敗資訊。
+				從1.1版本開始，Spring為Velocity和FreeMarker也提供了同樣的功能，而且還另外提供了便於使用的Micro，用來產生表單輸入元素。
+			</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="view-bind-macros"></a>14.4.5.1.&#160;用於綁定的Micro</h4></div></div></div>
+<p>					
+					<code class="literal">spring.jar</code>檔案為這兩種語言維護了一套標準Micro，對於正確配置的應用，它們總是可用的。
+				</p>
+<p>
+					在Spring資源庫中定義的一些Micro被認為是內部的（私有的），但當Micro定義中不存在這樣的範圍界定時，
+					會使得所有的Micro均是可見的，能夠任意調用程式碼和使用者模板。下面的一節將集中討論模板中可以直接調用的Micro。
+					如果希望直接查看Micro的程式碼，它們分別是<code class="literal">
+						org.springframework.web.servlet.view.velocity
+					</code>包中的spring.vm檔案和
+					<code class="literal">
+						org.springframework.web.servlet.view.freemarker
+					</code>包中的spring.ftl檔案。
+				</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="view-simple-binding"></a>14.4.5.2.&#160;簡單綁定</h4></div></div></div>
+<p>
+					在扮演Spring表單控制器對應視圖的html表單（或vm/ftl模板）裡，
+					你可以模仿下面的程式碼來綁定表單資料並顯示錯誤資訊（和JSP的形式非常相似）。
+					注意預設情況下命令物件的名字是「command」，你可以在配置自己的表單控制器時通過設置'commandName'屬性來覆寫預設值。
+					例子程式碼如下（其中的<code class="literal">personFormV</code>
+					和<code class="literal">personFormF</code>是前面定義的視圖）：
+				</p>
+<pre class="programlisting">
+					&lt;!-- velocityMicro自動可用 --&gt; &lt;html&gt; ...
+					&lt;form action="" method="POST"&gt; Name:
+					#springBind( "command.name" ) &lt;input type="text"
+					name="${status.expression}" value="$!status.value"
+					/&gt;&lt;br&gt; #foreach($error in
+					$status.errorMessages) &lt;b&gt;$error&lt;/b&gt;
+					&lt;br&gt; #end &lt;br&gt; ... &lt;input
+					type="submit" value="submit"/&gt; &lt;/form&gt; ...
+					&lt;/html&gt;
+				</pre>
+<pre class="programlisting">
+					&lt;!-- FreeMarkerMicro必須導入到一個名稱空間，這裡推薦你定義為'spring'空間
+					--&gt; &lt;#import "spring.ftl" as spring /&gt;
+					&lt;html&gt; ... &lt;form action=""
+					method="POST"&gt; Name: &lt;@spring.bind
+					"command.name" /&gt; &lt;input type="text"
+					name="${spring.status.expression}"
+					value="${spring.status.value?default("")}"
+					/&gt;&lt;br&gt; &lt;#list
+					spring.status.errorMessages as error&gt;
+					&lt;b&gt;${error}&lt;/b&gt; &lt;br&gt;
+					&lt;/#list&gt; &lt;br&gt; ... &lt;input
+					type="submit" value="submit"/&gt; &lt;/form&gt; ...
+					&lt;/html&gt;
+				</pre>
+<p>
+					<code class="literal">#springBind</code>
+					/
+					<code class="literal">&lt;@spring.bind&gt;</code>
+					需要一個'path'屬性，格式為命令物件的名字（預設值為'command'，
+					除非你在配置FormController的屬性時改變它）後跟圓點再加上你希望綁定到的命令物件的屬性名。
+					你也可以使用類似「command.address.street」的格式來處理巢狀物件。使用
+					<code class="literal">bind</code>Micro時，HTML轉碼行為由web.xml中名為
+					<code class="literal">defaultHtmlEscape</code>的ServletContext參數指定。
+				</p>
+<p>
+					上述Micro的另一種可選形式是
+					<code class="literal">#springBindEscaped</code>
+					/
+					<code class="literal">&lt;@spring.bindEscaped&gt;</code>
+					，它另外接受一個布林型參數，顯式指定了輸出值或錯誤資訊這些狀態資訊時是否使用HTML轉碼。
+					附加的表單處理Micro簡化了HTML轉碼的使用，只要有可能，你就應該使用它們。關於它們的細節將在下節講述。
+				</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="views-form-macros"></a>14.4.5.3.&#160;表單輸入產生Micro</h4></div></div></div>
+<p>
+					為這兩種語言附加的一些很方便的Micro同時簡化了表單綁定和表單產生（包括顯示校驗錯誤資訊）。
+					不需要使用這些Micro來產生表單輸入域，它們可以被混雜並匹配到簡單HTML，或者直接調用前面講過的spring綁定Micro。
+				</p>
+<p>下表展示了可用的Micro的VTL定義和FTL定義，以及它們需要的參數。</p>
+<div class="table">
+<a name="views-macros-defs-tbl"></a><p class="title"><b>表&#160;14.1.&#160;Micro定義表</b></p>
+<div class="table-contents"><table summary="Micro定義表" border="1">
+<colgroup>
+<col align="left">
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th align="center">macro</th>
+<th align="center">
+									VTL definition
+								</th>
+<th align="center">
+									FTL definition
+								</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">
+									<span class="bold"><strong>
+										message
+									</strong></span>
+									（輸出一個根據code參數選擇的資源綁定字元串）
+								</td>
+<td>
+									<code class="literal">
+										#springMessage($code)
+									</code>
+								</td>
+<td>
+									<code class="literal">
+										&lt;@spring.message code/&gt;
+									</code>
+								</td>
+</tr>
+<tr>
+<td align="left">
+									<span class="bold"><strong>
+										messageText
+									</strong></span>
+									（輸出一個根據code參數選擇的資源綁定字元串，找不到的話輸出default參數的值）
+								</td>
+<td>
+									<code class="literal">
+										#springMessageText($code $text)
+									</code>
+								</td>
+<td>
+									<code class="literal">
+										&lt;@spring.messageText code,
+										text/&gt;
+									</code>
+								</td>
+</tr>
+<tr>
+<td align="left">
+									<span class="bold"><strong>url</strong></span>
+									（在URL相對路徑前面添加應用上下文根路徑application context root）
+								</td>
+<td>
+									<code class="literal">
+										#springUrl($relativeUrl)
+									</code>
+								</td>
+<td>
+									<code class="literal">
+										&lt;@spring.url relativeUrl/&gt;
+									</code>
+								</td>
+</tr>
+<tr>
+<td align="left">
+									<span class="bold"><strong>
+										formInput
+									</strong></span>
+									（標準表單輸入域）
+								</td>
+<td>
+									<code class="literal">
+										#springFormInput($path
+										$attributes)
+									</code>
+								</td>
+<td>
+									<code class="literal">
+										&lt;@spring.formInput path,
+										attributes, fieldType/&gt;
+									</code>
+								</td>
+</tr>
+<tr>
+<td align="left">
+									<span class="bold"><strong>
+										formHiddenInput *
+									</strong></span>
+									（表單隱藏輸入域）
+								</td>
+<td>
+									<code class="literal">
+										#springFormHiddenInput($path
+										$attributes)
+									</code>
+								</td>
+<td>
+									<code class="literal">
+										&lt;@spring.formHiddenInput
+										path, attributes/&gt;
+									</code>
+								</td>
+</tr>
+<tr>
+<td align="left">
+									<span class="bold"><strong>
+										formPasswordInput
+									</strong></span>
+									*（標準表單密碼輸入域；注意不會為這種型別的輸入域裝配資料）
+								</td>
+<td>
+									<code class="literal">
+										#springFormPasswordInput($path
+										$attributes)
+									</code>
+								</td>
+<td>
+									<code class="literal">
+										&lt;@spring.formPasswordInput
+										path, attributes/&gt;
+									</code>
+								</td>
+</tr>
+<tr>
+<td align="left">
+									<span class="bold"><strong>
+										formTextarea
+									</strong></span>
+									（大型文本（自由格式）輸入域）
+								</td>
+<td>
+									<code class="literal">
+										#springFormTextarea($path
+										$attributes)
+									</code>
+								</td>
+<td>
+									<code class="literal">
+										&lt;@spring.formTextarea path,
+										attributes/&gt;
+									</code>
+								</td>
+</tr>
+<tr>
+<td align="left">
+									<span class="bold"><strong>
+										formSingleSelect
+									</strong></span>
+									（單選列表框）
+								</td>
+<td>
+									<code class="literal">
+										#springFormSingleSelect( $path
+										$options $attributes)
+									</code>
+								</td>
+<td>
+									<code class="literal">
+										&lt;@spring.formSingleSelect
+										path, options, attributes/&gt;
+									</code>
+								</td>
+</tr>
+<tr>
+<td align="left">
+									<span class="bold"><strong>
+										formMultiSelect
+									</strong></span>
+									（多選列表框）
+								</td>
+<td>
+									<code class="literal">
+										#springFormMultiSelect($path
+										$options $attributes)
+									</code>
+								</td>
+<td>
+									<code class="literal">
+										&lt;@spring.formMultiSelect
+										path, options, attributes/&gt;
+									</code>
+								</td>
+</tr>
+<tr>
+<td align="left">
+									<span class="bold"><strong>
+										formRadioButtons
+									</strong></span>
+									（單選框）
+								</td>
+<td>
+									<code class="literal">
+										#springFormRadioButtons($path
+										$options $separator $attributes)
+									</code>
+								</td>
+<td>
+									<code class="literal">
+										&lt;@spring.formRadioButtons
+										path, options separator,
+										attributes/&gt;
+									</code>
+								</td>
+</tr>
+<tr>
+<td align="left">
+									<span class="bold"><strong>
+										formCheckboxes
+									</strong></span>
+									（複選框）
+								</td>
+<td>
+									<code class="literal">
+										#springFormCheckboxes($path
+										$options $separator $attributes)
+									</code>
+								</td>
+<td>
+									<code class="literal">
+										&lt;@spring.formCheckboxes path,
+										options, separator,
+										attributes/&gt;
+									</code>
+								</td>
+</tr>
+<tr>
+<td align="left">
+									<span class="bold"><strong>
+										showErrors
+									</strong></span>
+									（簡化針對所綁定輸入域的校驗錯誤資訊輸出）
+								</td>
+<td>
+									<code class="literal">
+										#springShowErrors($separator
+										$classOrStyle)
+									</code>
+								</td>
+<td>
+									<code class="literal">
+										&lt;@spring.showErrors
+										separator, classOrStyle/&gt;
+									</code>
+								</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><p>
+					* 在FTL（FreeMarker）中，這二種Micro實際上並不是必需的，因為你可以使用普通的
+					<code class="literal">formInput</code>
+					Micro，指定<code class="literal">fieldType</code>
+					參數的值為 '<code class="literal">hidden</code>
+					' 或 '<code class="literal">password</code>'即可 。
+				</p>
+<p>上面列出的所有Micro的參數都具有一致的含義，如下述：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>path:待綁定屬性的名字（如：command.name）</p></li>
+<li><p>
+							選項：一個Map，其中保存了所有可從輸入域中選擇的值。map中的鍵值（keys）代表將從表單綁定到命令物件然後提交到後台的實值（values）。存儲在Map中的與相應鍵值對應的物件就是那些在表單上顯示給使用者的標籤，它們可能與提交到後台的值不同。通常這樣的map由控制器以參考資料的方式提供。你可以根據需求的行為選擇一種Map實作。比如對順序要求嚴格時，可使用一個
+							<code class="literal">SortedMap</code>
+							，如一個<code class="literal">TreeMap</code>
+							加上適當的Comparator；對要求按插入順序返回的情況，可以使用commons-collections提供的
+							<code class="literal">LinkedHashMap</code>
+							或<code class="literal">LinkedMap</code>。
+						</p></li>
+<li><p>
+							分隔符：當使用多選的時候（radio buttons 或者 checkboxes），用於在列表中分隔彼此的字元序列（如 "&lt;br&gt;"）。
+						</p></li>
+<li><p>
+							屬性：一個附加的以任意標籤或文本構成的字元串，出現在HTML標籤內。該字元串被Micro照原樣輸出。例如：在一個textarea標籤內你可能會提供'rows="5"
+							cols="60"'這樣的屬性，或者你會傳遞'style="border:1px solid silver"'這樣的樣式資訊。
+						</p></li>
+<li><p>
+							classOrStyle：供showErrorsMicro用來以這種樣式顯示錯誤資訊，其中錯誤資訊巢狀於使用該CSS類別名的span標籤內。如果不提供或內容為空，則錯誤資訊巢狀於&lt;b&gt;&lt;/b&gt;標籤內。
+						</p></li>
+</ul></div>
+<p>
+					Micro的例子在下面描述，其中一些是FTL的，一些是VTL的。兩種語言之間的用法差別在旁注中解釋。
+				</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="id577314"></a>14.4.5.3.1.&#160;輸入域</h5></div></div></div>
+<p>
+						</p>
+<pre class="programlisting">
+							&lt;!-- 上面提到的Name域的例子，使用VTL中定義的表單Micro --&gt;
+							... Name: #springFormInput("command.name"
+							"")&lt;br&gt; #springShowErrors("&lt;br&gt;"
+							"")&lt;br&gt;
+						</pre>
+<p>
+					</p>
+<p>
+						formInputMicro接受一個path參數（command.name）和一個附加的屬性參數（在上例中為空）。該Micro與所有其他表單產生Micro一樣，對path參數代表的屬性實施一種隱式綁定，這種綁定保持有效狀態直到一次新的綁定開始，所以showErrorsMicro不再需要傳遞path參數——它簡單地操作最近一次綁定的屬性（field）。
+					</p>
+<p>
+						showErrorsMicro接受兩個參數：分隔符（用於分隔多條錯誤資訊的字元串）和CSS類別名或樣式屬性。注意在FreeMarker中可以為屬性參數指定預設值（這點兒Velocity做不到）。上面的兩個Micro調用在FTL中可以這麼表達：
+					</p>
+<pre class="programlisting">
+						&lt;@spring.formInput "command.name"/&gt;
+						&lt;@spring.showErrors "&lt;br&gt;"/&gt;
+					</pre>
+<p>
+						上面展示的用於產生name表單輸入域的程式碼片斷產生的輸出如下，同時還顯示了輸入值為空的情況下提交表單後產生的校驗錯誤資訊（校驗過程由Spring的驗證框架提供）。
+					</p>
+<p>產生的HTML如下：</p>
+<pre class="programlisting">
+						Name: &lt;input type="text" name="name" value=""
+						&gt; &lt;br&gt; &lt;b&gt;required&lt;/b&gt;
+						&lt;br&gt; &lt;br&gt;
+					</pre>
+<p>參數（屬性）用來向textarea傳遞樣式資訊或行列數屬性。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="id577405"></a>14.4.5.3.2.&#160;選擇輸入域</h5></div></div></div>
+<p>有四種用於在HTML表單中產生通用選擇輸入框的Micro。</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>formSingleSelect</p></li>
+<li><p>formMultiSelect</p></li>
+<li><p>formRadioButtons</p></li>
+<li><p>formCheckboxes</p></li>
+</ul></div>
+<p>
+						每個Micro都將接受一個由選項值和選項標籤的集合構成的Map，其中選項值和其標籤可以相同。
+					</p>
+<p>
+						下面展示了一個在FTL中使用radio按鈕的例子。表單支撐物件（form backing
+						object）提供了一個預設值'London'，所以該域不需要校驗。當渲染表單時，整個待展現的城市列表由模型物件的'cityMap'屬性以參考資料的方式提供。
+					</p>
+<pre class="programlisting">
+						... Town: &lt;@spring.formRadioButtons
+						"command.address.town", cityMap, ""
+						/&gt;&lt;br&gt;&lt;br&gt;
+					</pre>
+<p>
+						這將產生一行radio按鈕——
+						<code class="literal">cityMap</code>
+						中一個值對應一個按鈕，並以""分隔。沒有額外的屬性，因為Micro的最後一個參數不存在。cityMap中所有的key-value都使用String型別值。map中的key用作輸入域的值（將被作為請求參數值提交到後台），value用作顯示給使用者的標籤。上述範例中，表單支撐物件提供了一個預設值以及三個著名城市作為可選值，它產生的HTML程式碼如下：
+					</p>
+<pre class="programlisting">
+						Town: &lt;input type="radio" name="address.town"
+						value="London"&gt; London &lt;input type="radio"
+						name="address.town" value="Paris"
+						checked="checked"&gt; Paris &lt;input
+						type="radio" name="address.town" value="New
+						York"&gt; New York
+					</pre>
+<p>如果你希望在應用中按照內部程式碼來處理城市，你得以適當的鍵值創建map，如下：</p>
+<pre class="programlisting">
+						protected Map referenceData(HttpServletRequest
+						request) throws Exception { Map cityMap = new
+						LinkedHashMap(); cityMap.put("LDN", "London");
+						cityMap.put("PRS", "Paris"); cityMap.put("NYC",
+						"New York");
+
+						Map m = new HashMap(); m.put("cityMap",
+						cityMap); return m; }
+					</pre>
+<p>
+						現在上述程式碼將產生出以相關程式碼為值的radio按鈕，同時你的使用者仍能看到對他們顯示友好的城市名。
+					</p>
+<pre class="programlisting">
+						Town: &lt;input type="radio" name="address.town"
+						value="LDN"&gt; London &lt;input type="radio"
+						name="address.town" value="PRS"
+						checked="checked"&gt; Paris &lt;input
+						type="radio" name="address.town" value="NYC"&gt;
+						New York
+					</pre>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="id577558"></a>14.4.5.4.&#160;重載HTML轉碼行為並使你的標籤符合XHTML</h4></div></div></div>
+<p>
+					缺省情況下使用上面這些Micro將產生符合HTML
+					4.01標準的標籤，並且Spring的綁定支持使用web.xml中定義的HTML轉碼行為。為了產生符合XHTML標準的標籤以及覆寫預設的HTML轉碼行為，你可以在你的模板（或者模板可見的模型物件）中指定兩個變數。在模板中指定的好處是稍後的模板處理中可以為表單中不同的域指定不同的行為。
+				</p>
+<p>
+					要切換到符合XHTML的輸出，你可以設置model/context變數xhtmlCompliant的值為true：
+				</p>
+<pre class="programlisting">
+					## for Velocity.. #set($springXhtmlCompliant = true)
+
+					&lt;#-- for FreeMarker --&gt; &lt;#assign
+					xhtmlCompliant = true in spring&gt;
+				</pre>
+<p>在進行完這些處理之後，由SpringMicro產生的所有標籤都符合XHTML標準了。</p>
+<p>類似地，可以為每個輸入域指定HTML轉碼行為：</p>
+<pre class="programlisting">
+					&lt;#-- 該句覆寫預設HTML轉碼行為 --&gt;
+
+					&lt;#assign htmlEscape = true in spring&gt; &lt;#--
+					next field will use HTML escaping --&gt;
+					&lt;@spring.formInput "command.name" /&gt;
+
+					&lt;#assign htmlEscape = false in spring&gt; &lt;#--
+					all future fields will be bound with HTML escaping
+					off --&gt;
+				</pre>
+</div>
+</div>
+</div></body>
+</html>

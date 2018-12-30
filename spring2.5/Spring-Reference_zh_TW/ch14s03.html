@@ -1,0 +1,178 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>14.3.&#160;Tiles</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch14.html" title="第&#160;14&#160;章&#160;整合視圖技術">
+<link rel="prev" href="ch14s02.html" title="14.2.&#160;JSP和JSTL">
+<link rel="next" href="ch14s04.html" title="14.4.&#160;Velocity和FreeMarker">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="view-tiles"></a>14.3.&#160;Tiles</h2></div></div></div>
+<p>
+			在使用了Spring的web項目中，很可能會用到Tiles－－就像任何其它的web層技術。下面簡要講述了如何使用。
+		</p>
+<p>
+			<span class="emphasis"><em>注意：</em></span>
+			這部分重點在於Spring中的
+			<code class="literal">
+				org.springframework.web.servlet.view.tiles2
+			</code>
+			包對Tiles 2（Tiles獨立版本，要求Java 5+）的支持。在最初的
+			<code class="literal">
+				org.springframework.web.servlet.view.tiles
+			</code>
+			包中Spring同樣繼續支持Tiles 1.x（也可以叫「Struts Tiles」，作為Struts 1.1+的成員；相容 Java 1.4）。
+		</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="view-tiles-dependencies"></a>14.3.1.&#160;需要的資源</h3></div></div></div>
+<p>使用Tiles項目中必須得包含一些額外的資源，以下是你需要的資源列表：</p>
+<p>
+				</p>
+<div class="itemizedlist"><ul type="disc" compact>
+<li><p>
+							<code class="literal">Tiles version 2.0.4以及更高版本</code>
+						</p></li>
+<li><p>
+							<code class="literal">Commons BeanUtils</code>
+						</p></li>
+<li><p>
+							<code class="literal">Commons Digester</code>
+						</p></li>
+<li><p>
+							<code class="literal">Commons Logging</code>
+						</p></li>
+</ul></div>
+<p>
+			</p>
+<p>這些資源全部包含於Spring的發行包中</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="view-tiles-integrate"></a>14.3.2.&#160;如何整合Tiles</h3></div></div></div>
+<p>
+				使用Tiles，你必須為它配置一些包含了定義資訊的檔案（關於Tiles定義和其他概念的資訊，可以參考
+				<a href="http://tiles.apache.org" target="_top">http://tiles.apache.org</a>）。在Spring中，可以使用
+				<code class="classname">TilesConfigurer</code>來完成這項工作。看看下面這個應用上下文配置的例子：
+			</p>
+<pre class="programlisting">&lt;bean id="tilesConfigurer" class="org.springframework.web.servlet.view.tiles2.TilesConfigurer"&gt;
+  &lt;property name="definitions"&gt;
+    &lt;list&gt;
+      &lt;value&gt;/WEB-INF/defs/general.xml&lt;/value&gt;
+      &lt;value&gt;/WEB-INF/defs/widgets.xml&lt;/value&gt;
+      &lt;value&gt;/WEB-INF/defs/administrator.xml&lt;/value&gt;
+      &lt;value&gt;/WEB-INF/defs/customer.xml&lt;/value&gt;
+      &lt;value&gt;/WEB-INF/defs/templates.xml&lt;/value&gt;
+    &lt;/list&gt;
+  &lt;/property&gt;
+&lt;/bean&gt;</pre>
+<p>
+				正如你所看到的，有五個包含定義的檔案，都放在
+				<code class="filename">'WEB-INF/defs'</code>
+				目錄下。在<code class="interfacename">WebApplicationContext</code>
+				初始化的階段，這些檔案被載入，同時由
+				<code class="literal">factoryClass</code>
+				屬性定義的處理器類別被初始化。然後，定義檔案中的tiles可以做為views在Spring的web
+				項目中使用。為使views正常工作，你必須有一個
+				<code class="interfacename">ViewResolver</code>，就像使用spring提供的任何其它view層技術一樣。它有二種選擇：
+				<code class="classname">UrlBasedViewResolver</code>和<code class="classname">ResourceBundleViewResolver</code>。
+			</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="view-tiles-url"></a>14.3.2.1.&#160;
+					<code class="classname">UrlBasedViewResolver</code>類別
+				</h4></div></div></div>
+<p>
+					<code class="classname">UrlBasedViewResolver</code>
+					為它解析的每個view實例化一個<code class="literal">viewClass</code>類別的實例。
+				</p>
+<pre class="programlisting">&lt;bean id="viewResolver" class="org.springframework.web.servlet.view.UrlBasedViewResolver"&gt;
+  &lt;property name="viewClass" value="org.springframework.web.servlet.view.tiles2.TilesView"/&gt;
+&lt;/bean&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="view-tiles-resource"></a>14.3.2.2.&#160;
+					<code class="classname">ResourceBundleViewResolver</code>類別
+				</h4></div></div></div>
+<p>
+					<code class="classname">ResourceBundleViewResolver</code>類別
+					需要一個屬性檔案，其中包含了它需要使用的視圖名和視圖類別：
+				</p>
+<pre class="programlisting">&lt;bean id="viewResolver" class="org.springframework.web.servlet.view.ResourceBundleViewResolver"&gt;
+  &lt;property name="basename" value="views"/&gt;
+&lt;/bean&gt;</pre>
+<pre class="programlisting">...
+welcomeView.class=org.springframework.web.servlet.view.tiles2.TilesView
+welcomeView.url=welcome <em class="lineannotation"><span class="lineannotation">
+						(this is the name of a Tiles definition)
+</span></em>
+					
+
+vetsView.class=org.springframework.web.servlet.view.tiles2.TilesView
+vetsView.url=vetsView <em class="lineannotation"><span class="lineannotation">
+						(again, this is the name of a Tiles definition)
+</span></em>
+					
+
+findOwnersForm.class=org.springframework.web.servlet.view.JstlView
+findOwnersForm.url=/WEB-INF/jsp/findOwners.jsp
+...</pre>
+<p>
+					正如你所看到的，使用<code class="classname">ResourceBundleViewResolver</code>類別時，你可以混用不同的view層技術。
+				</p>
+</div>
+<p>
+				注意，Tiles 2的<code class="classname">TilesView</code>
+				類別支持 JSTL（JSP標準標籤資源庫）的開箱即用，同時，為支持Tiles 1.x，提供一個單獨的<code class="classname">TilesJstlView</code>子類別。
+			</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="view-tiles-preparer"></a>14.3.2.3.&#160;
+					<code class="classname">SimpleSpringPreparerFactory</code>
+					和
+					<code class="classname">SpringBeanPreparerFactory</code>
+				</h4></div></div></div>
+<p>
+					作為一個高層級的特性，Spring支持兩個特定的Tiles 2<code class="interfacename">PreparerFactory</code>實作。如何Tiles定義檔案中使用
+					<code class="interfacename">ViewPreparer</code>參考，詳細資料查看Tiles文檔。
+				</p>
+<p>
+					基於指定的preparer類別，指定<code class="classname">SimpleSpringPreparerFactory</code>
+					自動裝配 ViewPreparer 實體，不但應用 Spring的容器回調而且應用配置Spring BeanPostProcessors。假如Spring的上下文範圍
+					annotation-config 已經被啟動，ViewPreparer 類別中的註釋將被自動檢測到及應用。注意，在 Tiles 定義檔案中預計的preparer
+					<span class="emphasis"><em>classes</em></span>，就像預設<code class="classname">PreparerFactory</code>所作的一樣。
+				</p>
+<p>
+					指定<code class="classname">SpringBeanPreparerFactory</code>來操作指定preparer<span class="emphasis"><em>名稱</em></span>，而不是類別，從DispatcherServlet的應用上下文
+					獲取相應的Spring bean。在這種情況下，完整的 bean 創建過程將在Spring應用上下文控制中，允許明確使用依賴注入，範圍bean等等。
+					注意，需要定義為每一個preparer名稱定義一個Spring bean（用於Tiles定義中）。
+				</p>
+<pre class="programlisting">&lt;bean id="tilesConfigurer" class="org.springframework.web.servlet.view.tiles2.TilesConfigurer"&gt;
+  &lt;property name="definitions"&gt;
+    &lt;list&gt;
+      &lt;value&gt;/WEB-INF/defs/general.xml&lt;/value&gt;
+      &lt;value&gt;/WEB-INF/defs/widgets.xml&lt;/value&gt;
+      &lt;value&gt;/WEB-INF/defs/administrator.xml&lt;/value&gt;
+      &lt;value&gt;/WEB-INF/defs/customer.xml&lt;/value&gt;
+      &lt;value&gt;/WEB-INF/defs/templates.xml&lt;/value&gt;
+    &lt;/list&gt;
+  &lt;/property&gt;
+
+  <em class="lineannotation"><span class="lineannotation">
+						&lt;!-- resolving preparer names as Spring bean
+						definition names --&gt;
+</span></em>
+					
+  &lt;property name="preparerFactoryClass"
+       value="org.springframework.web.servlet.view.tiles2.SpringBeanPreparerFactory"/&gt;
+
+&lt;/bean&gt;</pre>
+</div>
+</div>
+</div></body>
+</html>

@@ -1,0 +1,840 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>A.2.&#160;XML Schema-based configuration</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="apa.html" title="附錄&#160;A.&#160;XML Schema-based configuration">
+<link rel="prev" href="apa.html" title="附錄&#160;A.&#160;XML Schema-based configuration">
+<link rel="next" href="apas03.html" title="A.3.&#160;Setting up your IDE">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="xsd-config-body"></a>A.2.&#160;XML Schema-based configuration</h2></div></div></div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="xsd-config-body-referencing"></a>A.2.1.&#160;Referencing the schemas</h3></div></div></div>
+<p>To switch over from the DTD-style to the new XML Schema-style, you need
+            to make the following change.</p>
+<pre class="programlisting">
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN"
+    "http://www.springframework.org/dtd/spring-beans-2.0.dtd"&gt;
+
+&lt;beans&gt;
+
+<em class="lineannotation"><span class="lineannotation">&lt;!-- <code class="literal">&lt;bean/&gt;</code> definitions here --&gt;</span></em>
+
+&lt;/beans&gt;</pre>
+<p>The equivalent file in the XML Schema-style would be...</p>
+<pre class="programlisting">
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"&gt;
+
+<em class="lineannotation"><span class="lineannotation">&lt;!-- <code class="literal">&lt;bean/&gt;</code> definitions here --&gt;</span></em>
+
+&lt;/beans&gt;</pre>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>The <code class="literal">'xsi:schemaLocation'</code> fragment is not actually required,
+                but can be included to reference a local copy of a schema (which can be useful
+                during development).</p>
+</div>
+<p>The above Spring XML configuration fragment is boilerplate that you can copy and paste
+            (!) and then plug <code class="literal">&lt;bean/&gt;</code> definitions into like you have always
+            done. However, the entire point of switching over is to
+            take advantage of the new Spring 2.0 XML tags since they make configuration easier. The
+            section entitled <a href="apas02.html#xsd-config-body-schemas-util" title="A.2.2.&#160;The util schema">第&#160;A.2.2&#160;節 「The <code class="literal">util</code> schema」</a> demonstrates how you can
+            start immediately by using some of the more common utility tags.</p>
+</div>
+<p>The rest of this chapter is devoted to showing examples of the new Spring XML Schema
+        based configuration, with at least one example for every new tag. The format follows
+        a before and after style, with a <span class="emphasis"><em>before</em></span> snippet of XML showing
+        the old (but still 100% legal and supported) style, followed immediately
+        by an <span class="emphasis"><em>after</em></span> example showing the equivalent in the new XML Schema-based
+        style.</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="xsd-config-body-schemas-util"></a>A.2.2.&#160;The <code class="literal">util</code> schema</h3></div></div></div>
+<p>First up is coverage of the <code class="literal">util</code> tags. As the name
+            implies, the <code class="literal">util</code> tags deal with common, <span class="emphasis"><em>utility</em></span>
+            configuration issues, such as configuring collections, referencing constants,
+            and suchlike.</p>
+<p>To use the tags in the <code class="literal">util</code> schema, you need to have
+            the following preamble at the top of your Spring XML configuration file;
+            the emboldened text in the snippet below references the correct schema so that
+            the tags in the <code class="literal">util</code> namespace are available to you.</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       <span class="bold"><strong>xmlns:util="http://www.springframework.org/schema/util"</strong></span>
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+<span class="bold"><strong>http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd"</strong></span>&gt;
+
+<em class="lineannotation"><span class="lineannotation">&lt;!-- <code class="literal">&lt;bean/&gt;</code> definitions here --&gt;</span></em>
+
+&lt;/beans&gt;</pre>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="xsd-config-body-schemas-util-constant"></a>A.2.2.1.&#160;<code class="literal">&lt;util:constant/&gt;</code></h4></div></div></div>
+<p>Before...</p>
+<pre class="programlisting">&lt;bean id="..." class="..."&gt;
+  &lt;property name="isolation"&gt;
+    &lt;bean id="java.sql.Connection.TRANSACTION_SERIALIZABLE"
+    class="org.springframework.beans.factory.config.FieldRetrievingFactoryBean" /&gt;
+  &lt;/property&gt;
+&lt;/bean&gt;</pre>
+<p>The above configuration uses a Spring <code class="interfacename">FactoryBean</code>
+                implementation, the <code class="classname">FieldRetrievingFactoryBean</code>, to
+                set the value of the <code class="literal">'isolation'</code> property on a bean
+                to the value of the <code class="literal">'java.sql.Connection.TRANSACTION_SERIALIZABLE'</code>
+                constant. This is all well and good, but it is a tad verbose and (unneccessarily)
+                exposes Spring's internal plumbing to the end user.
+                </p>
+<p>The following XML Schema-based version is more concise
+                and clearly expresses the developer's intent (<span class="emphasis"><em>'inject this constant
+                value'</em></span>), and it just reads better.
+                </p>
+<pre class="programlisting">&lt;bean id="..." class="..."&gt;
+  &lt;property name="isolation"&gt;
+    &lt;util:constant static-field="java.sql.Connection.TRANSACTION_SERIALIZABLE"/&gt;
+  &lt;/property&gt;
+&lt;/bean&gt;</pre>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="xsd-config-body-schemas-util-frfb"></a>A.2.2.1.1.&#160;Setting a bean property or constructor arg from a field value</h5></div></div></div>
+<p>
+			            <a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/beans/factory/config/FieldRetrievingFactoryBean.html" target="_top"><code class="classname">FieldRetrievingFactoryBean</code></a>
+			            is a <code class="interfacename">FactoryBean</code> which retrieves a
+			            <code class="literal">static</code> or non-static field value. It is typically
+			            used for retrieving <code class="literal">public</code> <code class="literal">static</code>
+			            <code class="literal">final</code> constants, which may then be used to set a
+			            property value or constructor arg for another bean.
+		            </p>
+<p>
+			            Find below an example which shows how a <code class="literal">static</code> field is exposed, by
+			            using the <a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/beans/factory/config/FieldRetrievingFactoryBean.html#setStaticField(java.lang.String)" target="_top"><code class="literal">staticField</code></a>
+			            property:
+		            </p>
+<pre class="programlisting">&lt;bean id="myField"
+        class="org.springframework.beans.factory.config.FieldRetrievingFactoryBean"&gt;
+  &lt;property name="staticField" value="java.sql.Connection.TRANSACTION_SERIALIZABLE"/&gt;
+&lt;/bean&gt;</pre>
+<p>There is also a convenience usage form where the <code class="literal">static</code>
+                    field is specified as the bean name:</p>
+<pre class="programlisting">&lt;bean id="java.sql.Connection.TRANSACTION_SERIALIZABLE"
+    class="org.springframework.beans.factory.config.FieldRetrievingFactoryBean"/&gt;</pre>
+<p>
+			            This does mean that there is no longer any choice in what the bean id is (so
+			            any other bean that refers to it will also have to use this longer name),
+			            but this form is very concise to define, and very convenient to use as an
+			            inner bean since the id doesn't have to be specified for the bean
+			            reference:
+		            </p>
+<pre class="programlisting">&lt;bean id="..." class="..."&gt;
+  &lt;property name="isolation"&gt;
+    &lt;bean id="java.sql.Connection.TRANSACTION_SERIALIZABLE"
+          class="org.springframework.beans.factory.config.FieldRetrievingFactoryBean" /&gt;
+  &lt;/property&gt;
+&lt;/bean&gt;</pre>
+<p>
+			            It is also possible to access a non-static (instance) field of another bean,
+			            as described in the API documentation for the 
+			            <a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/beans/factory/config/FieldRetrievingFactoryBean.html" target="_top"><code class="classname">FieldRetrievingFactoryBean</code></a>
+			            class.
+		            </p>
+<p>
+			            Injecting enum values into beans as either property or constructor arguments is very
+			            easy to do in Spring, in that you don't actually have to <span class="emphasis"><em>do</em></span>
+			            anything or know anything about the Spring internals (or even about classes such
+			            as the <code class="classname">FieldRetrievingFactoryBean</code>). Let's look at an example
+			            to see how easy injecting an enum value is; consider this JDK 5 enum:
+		            </p>
+<pre class="programlisting">package javax.persistence;
+     
+public enum PersistenceContextType {
+
+    TRANSACTION,
+    EXTENDED
+
+}</pre>
+<p>Now consider a setter of type <code class="classname">PersistenceContextType</code>:</p>
+<pre class="programlisting">package example;
+
+public class Client {
+
+    private PersistenceContextType persistenceContextType;
+
+    public void setPersistenceContextType(PersistenceContextType type) { 
+        this.persistenceContextType = type;
+    }
+}</pre>
+<p>.. and the corresponding bean definition:</p>
+<pre class="programlisting">&lt;bean class="example.Client"&gt;
+    &lt;property name="persistenceContextType" value="TRANSACTION" /&gt;
+&lt;/bean&gt;</pre>
+<p>
+			            This works for classic type-safe emulated enums (on JDK 1.4 and JDK 1.3) as well;
+			            Spring will automatically attempt to match the string property value to a constant
+			            on the enum class.
+		            </p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="xsd-config-body-schemas-util-property-path"></a>A.2.2.2.&#160;<code class="literal">&lt;util:property-path/&gt;</code></h4></div></div></div>
+<p>Before...</p>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation">&lt;!-- target bean to be referenced by name --&gt;</span></em>
+&lt;bean id="testBean" class="org.springframework.beans.TestBean" scope="prototype"&gt;
+  &lt;property name="age" value="10"/&gt;
+  &lt;property name="spouse"&gt;
+    &lt;bean class="org.springframework.beans.TestBean"&gt;
+      &lt;property name="age" value="11"/&gt;
+    &lt;/bean&gt;
+  &lt;/property&gt;
+&lt;/bean&gt;
+
+<em class="lineannotation"><span class="lineannotation">&lt;!-- will result in 10, which is the value of property 'age' of bean 'testBean' --&gt;</span></em>
+&lt;bean id="testBean.age" class="org.springframework.beans.factory.config.PropertyPathFactoryBean"/&gt;</pre>
+<p>The above configuration uses a Spring <code class="interfacename">FactoryBean</code>
+                implementation, the <code class="classname">PropertyPathFactoryBean</code>, to
+                create a bean (of type <code class="classname">int</code>) called
+                <code class="literal">'testBean.age'</code> that has a value equal to the <code class="literal">'age'</code>
+                property of the <code class="literal">'testBean'</code> bean.
+                </p>
+<p>After...</p>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation">&lt;!-- target bean to be referenced by name --&gt;</span></em>
+&lt;bean id="testBean" class="org.springframework.beans.TestBean" scope="prototype"&gt;
+  &lt;property name="age" value="10"/&gt;
+  &lt;property name="spouse"&gt;
+    &lt;bean class="org.springframework.beans.TestBean"&gt;
+      &lt;property name="age" value="11"/&gt;
+    &lt;/bean&gt;
+  &lt;/property&gt;
+&lt;/bean&gt;
+
+<em class="lineannotation"><span class="lineannotation">&lt;!-- will result in 10, which is the value of property 'age' of bean 'testBean' --&gt;</span></em>
+&lt;util:property-path id="name" path="testBean.age"/&gt;</pre>
+<p>The value of the <code class="literal">'path'</code> attribute of the
+                <code class="literal">&lt;property-path/&gt;</code> tag follows the form <code class="literal">'beanName.beanProperty'</code>.</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="xsd-config-body-schemas-util-property-path-dependency"></a>A.2.2.2.1.&#160;Using <code class="literal">&lt;util:property-path/&gt;</code> to set a bean property or constructor-argument</h5></div></div></div>
+<p><code class="classname">PropertyPathFactoryBean</code> is a
+			        <code class="interfacename">FactoryBean</code> that evaluates a property path on a given
+			        target object. The target object can be specified directly or via a bean
+			        name. This value may then be used in another bean definition as a property
+			        value or constructor argument.</p>
+<p>Here's an example where a path is used against another bean, by name:</p>
+<pre class="programlisting">// target bean to be referenced by name
+&lt;bean id="person" class="org.springframework.beans.TestBean" scope="prototype"&gt;
+  &lt;property name="age" value="10"/&gt;
+  &lt;property name="spouse"&gt;
+    &lt;bean class="org.springframework.beans.TestBean"&gt;
+      &lt;property name="age" value="11"/&gt;
+    &lt;/bean&gt;
+  &lt;/property&gt;
+&lt;/bean&gt;
+
+<em class="lineannotation"><span class="lineannotation">// will result in 11, which is the value of property 'spouse.age' of bean 'person'</span></em>
+&lt;bean id="theAge"
+    class="org.springframework.beans.factory.config.PropertyPathFactoryBean"&gt;
+  &lt;property name="targetBeanName" value="person"/&gt;
+  &lt;property name="propertyPath" value="spouse.age"/&gt;
+&lt;/bean&gt;</pre>
+<p>In this example, a path is evaluated against an inner bean:</p>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation">&lt;!-- will result in 12, which is the value of property 'age' of the inner bean --&gt;</span></em>
+&lt;bean id="theAge"
+    class="org.springframework.beans.factory.config.PropertyPathFactoryBean"&gt;
+  &lt;property name="targetObject"&gt;
+    &lt;bean class="org.springframework.beans.TestBean"&gt;
+      &lt;property name="age" value="12"/&gt;
+    &lt;/bean&gt;
+  &lt;/property&gt;
+  &lt;property name="propertyPath" value="age"/&gt;
+&lt;/bean&gt;</pre>
+<p>There is also a shortcut form, where the bean name is the property path.</p>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation">&lt;!-- will result in 10, which is the value of property 'age' of bean 'person' --&gt;</span></em>
+&lt;bean id="person.age"
+    class="org.springframework.beans.factory.config.PropertyPathFactoryBean"/&gt;</pre>
+<p>This form does mean that there is no choice in the name of the bean.
+		            Any reference to it will also have to use the same id, which is the path.
+		            Of course, if used as an inner bean, there is no need to refer to it at
+		            all:</p>
+<pre class="programlisting">&lt;bean id="..." class="..."&gt;
+  &lt;property name="age"&gt;
+    &lt;bean id="person.age"
+        class="org.springframework.beans.factory.config.PropertyPathFactoryBean"/&gt;
+  &lt;/property&gt;
+&lt;/bean&gt;</pre>
+<p>The result type may be specifically set in the actual definition.
+			        This is not necessary for most use cases, but can be of use for some.
+			        Please see the Javadocs for more info on this feature.</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="xsd-config-body-schemas-util-properties"></a>A.2.2.3.&#160;<code class="literal">&lt;util:properties/&gt;</code></h4></div></div></div>
+<p>Before...</p>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation">&lt;!-- creates a <code class="classname">java.util.Properties</code> instance with values loaded from the supplied location --&gt;</span></em>
+&lt;bean id="jdbcConfiguration" class="org.springframework.beans.factory.config.PropertiesFactoryBean"&gt;
+  &lt;property name="location" value="classpath:com/foo/jdbc-production.properties"/&gt;
+&lt;/bean&gt;</pre>
+<p>The above configuration uses a Spring <code class="interfacename">FactoryBean</code>
+                implementation, the <code class="classname">PropertiesFactoryBean</code>, to
+                instantiate a <code class="classname">java.util.Properties</code> instance with values loaded from
+                the supplied <a href="ch04.html" title="第&#160;4&#160;章&#160;資源"><code class="interfacename">Resource</code></a> location).
+                </p>
+<p>After...</p>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation">&lt;!-- creates a <code class="classname">java.util.Properties</code> instance with values loaded from the supplied location --&gt;</span></em>
+&lt;util:properties id="jdbcConfiguration" location="classpath:com/foo/jdbc-production.properties"/&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="xsd-config-body-schemas-util-list"></a>A.2.2.4.&#160;<code class="literal">&lt;util:list/&gt;</code></h4></div></div></div>
+<p>Before...</p>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation">&lt;!-- creates a <code class="classname">java.util.List</code> instance with values loaded from the supplied <code class="literal">'sourceList'</code> --&gt;</span></em>
+&lt;bean id="emails" class="org.springframework.beans.factory.config.ListFactoryBean"&gt;
+  &lt;property name="sourceList"&gt;
+      &lt;list&gt;
+        &lt;value&gt;pechorin@hero.org&lt;/value&gt;
+        &lt;value&gt;raskolnikov@slums.org&lt;/value&gt;
+        &lt;value&gt;stavrogin@gov.org&lt;/value&gt;
+        &lt;value&gt;porfiry@gov.org&lt;/value&gt;
+      &lt;/list&gt;
+  &lt;/property&gt;
+&lt;/bean&gt;</pre>
+<p>The above configuration uses a Spring <code class="interfacename">FactoryBean</code>
+                implementation, the <code class="classname">ListFactoryBean</code>, to
+                create a <code class="classname">java.util.List</code> instance initialized
+                with values taken from the supplied <code class="literal">'sourceList'</code>.
+                </p>
+<p>After...</p>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation">&lt;!-- creates a <code class="classname">java.util.List</code> instance with values loaded from the supplied <code class="literal">'sourceList'</code> --&gt;</span></em>
+&lt;util:list id="emails"&gt;
+    &lt;value&gt;pechorin@hero.org&lt;/value&gt;
+    &lt;value&gt;raskolnikov@slums.org&lt;/value&gt;
+    &lt;value&gt;stavrogin@gov.org&lt;/value&gt;
+    &lt;value&gt;porfiry@gov.org&lt;/value&gt;
+&lt;/util:list&gt;</pre>
+<p>You can also explicitly control the exact type of <code class="interfacename">List</code>
+                that will be instantiated and populated via the use of the <code class="literal">'list-class'</code>
+                attribute on the <code class="literal">&lt;util:list/&gt;</code> element. For example, if we
+                really need a <code class="classname">java.util.LinkedList</code> to be instantiated, we could
+                use the following configuration:</p>
+<pre class="programlisting">&lt;util:list id="emails" list-class="java.util.LinkedList"&gt;
+    &lt;value&gt;jackshaftoe@vagabond.org&lt;/value&gt;
+    &lt;value&gt;eliza@thinkingmanscrumpet.org&lt;/value&gt;
+    &lt;value&gt;vanhoek@pirate.org&lt;/value&gt;
+    &lt;value&gt;d'Arcachon@nemesis.org&lt;/value&gt;
+&lt;/util:list&gt;</pre>
+<p>If no <code class="literal">'list-class'</code> attribute is supplied, a
+                <code class="interfacename">List</code> implementation will be chosen by the container.</p>
+<p>Finally, you can also control the merging behavior using the
+                <code class="literal">'merge'</code> attribute of the <code class="literal">&lt;util:list/&gt;</code>
+                element; collection merging is described in more detail in the section entitled
+                <a href="ch03s03.html#beans-collection-elements-merging" title="3.3.2.4.1.&#160;集合的合併">第&#160;3.3.2.4.1&#160;節 「集合的合併」</a>.</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="xsd-config-body-schemas-util-map"></a>A.2.2.5.&#160;<code class="literal">&lt;util:map/&gt;</code></h4></div></div></div>
+<p>Before...</p>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation">&lt;!-- creates a <code class="classname">java.util.Map</code> instance with values loaded from the supplied <code class="literal">'sourceMap'</code> --&gt;</span></em>
+&lt;bean id="emails" class="org.springframework.beans.factory.config.MapFactoryBean"&gt;
+  &lt;property name="sourceMap"&gt;
+      &lt;map&gt;
+        &lt;entry key="pechorin" value="pechorin@hero.org"/&gt;
+        &lt;entry key="raskolnikov" value="raskolnikov@slums.org"/&gt;
+        &lt;entry key="stavrogin" value="stavrogin@gov.org"/&gt;
+        &lt;entry key="porfiry" value="porfiry@gov.org"/&gt;
+      &lt;/map&gt;
+  &lt;/property&gt;
+&lt;/bean&gt;</pre>
+<p>The above configuration uses a Spring <code class="interfacename">FactoryBean</code>
+                implementation, the <code class="classname">MapFactoryBean</code>, to
+                create a <code class="classname">java.util.Map</code> instance initialized
+                with key-value pairs taken from the supplied <code class="literal">'sourceMap'</code>.
+                </p>
+<p>After...</p>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation">&lt;!-- creates a <code class="classname">java.util.Map</code> instance with values loaded from the supplied <code class="literal">'sourceMap'</code> --&gt;</span></em>
+&lt;util:map id="emails"&gt;
+    &lt;entry key="pechorin" value="pechorin@hero.org"/&gt;
+    &lt;entry key="raskolnikov" value="raskolnikov@slums.org"/&gt;
+    &lt;entry key="stavrogin" value="stavrogin@gov.org"/&gt;
+    &lt;entry key="porfiry" value="porfiry@gov.org"/&gt;
+&lt;/util:map&gt;</pre>
+<p>You can also explicitly control the exact type of <code class="interfacename">Map</code>
+                that will be instantiated and populated via the use of the <code class="literal">'map-class'</code>
+                attribute on the <code class="literal">&lt;util:map/&gt;</code> element. For example, if we
+                really need a <code class="classname">java.util.TreeMap</code> to be instantiated, we could
+                use the following configuration:</p>
+<pre class="programlisting">&lt;util:map id="emails" map-class="java.util.TreeMap"&gt;
+    &lt;entry key="pechorin" value="pechorin@hero.org"/&gt;
+    &lt;entry key="raskolnikov" value="raskolnikov@slums.org"/&gt;
+    &lt;entry key="stavrogin" value="stavrogin@gov.org"/&gt;
+    &lt;entry key="porfiry" value="porfiry@gov.org"/&gt;
+&lt;/util:map&gt;</pre>
+<p>If no <code class="literal">'map-class'</code> attribute is supplied, a
+                <code class="interfacename">Map</code> implementation will be chosen by the container.</p>
+<p>Finally, you can also control the merging behavior using the
+                <code class="literal">'merge'</code> attribute of the <code class="literal">&lt;util:map/&gt;</code>
+                element; collection merging is described in more detail in the section entitled
+                <a href="ch03s03.html#beans-collection-elements-merging" title="3.3.2.4.1.&#160;集合的合併">第&#160;3.3.2.4.1&#160;節 「集合的合併」</a>.</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="xsd-config-body-schemas-util-set"></a>A.2.2.6.&#160;<code class="literal">&lt;util:set/&gt;</code></h4></div></div></div>
+<p>Before...</p>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation">&lt;!-- creates a <code class="classname">java.util.Set</code> instance with values loaded from the supplied <code class="literal">'sourceSet'</code> --&gt;</span></em>
+&lt;bean id="emails" class="org.springframework.beans.factory.config.SetFactoryBean"&gt;
+  &lt;property name="sourceSet"&gt;
+      &lt;set&gt;
+        &lt;value&gt;pechorin@hero.org&lt;/value&gt;
+        &lt;value&gt;raskolnikov@slums.org&lt;/value&gt;
+        &lt;value&gt;stavrogin@gov.org&lt;/value&gt;
+        &lt;value&gt;porfiry@gov.org&lt;/value&gt;
+      &lt;/set&gt;
+  &lt;/property&gt;
+&lt;/bean&gt;</pre>
+<p>The above configuration uses a Spring <code class="interfacename">FactoryBean</code>
+                implementation, the <code class="classname">SetFactoryBean</code>, to
+                create a <code class="classname">java.util.Set</code> instance initialized
+                with values taken from the supplied <code class="literal">'sourceSet'</code>.
+                </p>
+<p>After...</p>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation">&lt;!-- creates a <code class="classname">java.util.Set</code> instance with values loaded from the supplied <code class="literal">'sourceSet'</code> --&gt;</span></em>
+&lt;util:set id="emails"&gt;
+    &lt;value&gt;pechorin@hero.org&lt;/value&gt;
+    &lt;value&gt;raskolnikov@slums.org&lt;/value&gt;
+    &lt;value&gt;stavrogin@gov.org&lt;/value&gt;
+    &lt;value&gt;porfiry@gov.org&lt;/value&gt;
+&lt;/util:set&gt;</pre>
+<p>You can also explicitly control the exact type of <code class="interfacename">Set</code>
+                that will be instantiated and populated via the use of the <code class="literal">'set-class'</code>
+                attribute on the <code class="literal">&lt;util:set/&gt;</code> element. For example, if we
+                really need a <code class="classname">java.util.TreeSet</code> to be instantiated, we could
+                use the following configuration:</p>
+<pre class="programlisting">&lt;util:set id="emails" set-class="java.util.TreeSet"&gt;
+    &lt;value&gt;pechorin@hero.org&lt;/value&gt;
+    &lt;value&gt;raskolnikov@slums.org&lt;/value&gt;
+    &lt;value&gt;stavrogin@gov.org&lt;/value&gt;
+    &lt;value&gt;porfiry@gov.org&lt;/value&gt;
+&lt;/util:set&gt;</pre>
+<p>If no <code class="literal">'set-class'</code> attribute is supplied, a
+                <code class="interfacename">Set</code> implementation will be chosen by the container.</p>
+<p>Finally, you can also control the merging behavior using the
+                <code class="literal">'merge'</code> attribute of the <code class="literal">&lt;util:set/&gt;</code>
+                element; collection merging is described in more detail in the section entitled
+                <a href="ch03s03.html#beans-collection-elements-merging" title="3.3.2.4.1.&#160;集合的合併">第&#160;3.3.2.4.1&#160;節 「集合的合併」</a>.</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="xsd-config-body-schemas-jee"></a>A.2.3.&#160;The <code class="literal">jee</code> schema</h3></div></div></div>
+<p>The <code class="literal">jee</code> tags deal with JEE (Java Enterprise Edition)-related
+            configuration issues, such as looking up a JNDI object and defining EJB references.</p>
+<p>To use the tags in the <code class="literal">jee</code> schema, you need to have
+            the following preamble at the top of your Spring XML configuration file;
+            the emboldened text in the following snippet references the correct schema so that
+            the tags in the <code class="literal">jee</code> namespace are available to you.</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       <span class="bold"><strong>xmlns:jee="http://www.springframework.org/schema/jee"</strong></span>
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+<span class="bold"><strong>http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-2.5.xsd"</strong></span>&gt;
+
+<em class="lineannotation"><span class="lineannotation">&lt;!-- <code class="literal">&lt;bean/&gt;</code> definitions here --&gt;</span></em>
+
+&lt;/beans&gt;</pre>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="xsd-config-body-schemas-jee-jndi-lookup"></a>A.2.3.1.&#160;<code class="literal">&lt;jee:jndi-lookup/&gt;</code> (simple)</h4></div></div></div>
+<p>Before...</p>
+<pre class="programlisting">&lt;bean id="<span class="bold"><strong>dataSource</strong></span>" class="org.springframework.jndi.JndiObjectFactoryBean"&gt;
+    &lt;property name="jndiName" value="jdbc/MyDataSource"/&gt;
+&lt;/bean&gt;
+
+&lt;bean id="userDao" class="com.foo.JdbcUserDao"&gt;
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- Spring will do the cast automatically (as usual) --&gt;</span></em>
+    &lt;property name="dataSource" ref="<span class="bold"><strong>dataSource</strong></span>"/&gt;
+&lt;/bean&gt;</pre>
+<p>After...</p>
+<pre class="programlisting">&lt;jee:jndi-lookup id="<span class="bold"><strong>dataSource</strong></span>" jndi-name="jdbc/MyDataSource"/&gt;
+
+&lt;bean id="userDao" class="com.foo.JdbcUserDao"&gt;
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- Spring will do the cast automatically (as usual) --&gt;</span></em>
+    &lt;property name="dataSource" ref="<span class="bold"><strong>dataSource</strong></span>"/&gt;
+&lt;/bean&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="xsd-config-body-schemas-jee-jndi-lookup-environment-single"></a>A.2.3.2.&#160;<code class="literal">&lt;jee:jndi-lookup/&gt;</code> (with single JNDI environment setting)</h4></div></div></div>
+<p>Before...</p>
+<pre class="programlisting">&lt;bean id="simple" class="org.springframework.jndi.JndiObjectFactoryBean"&gt;
+    &lt;property name="jndiName" value="jdbc/MyDataSource"/&gt;
+    &lt;property name="jndiEnvironment"&gt;
+        &lt;props&gt;
+            &lt;prop key="foo"&gt;bar&lt;/prop&gt;
+        &lt;/props&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;</pre>
+<p>After...</p>
+<pre class="programlisting">&lt;jee:jndi-lookup id="simple" jndi-name="jdbc/MyDataSource"&gt;
+    &lt;jee:environment&gt;foo=bar&lt;/jee:environment&gt;
+&lt;/jee:jndi-lookup&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="xsd-config-body-schemas-jee-jndi-lookup-evironment-multiple"></a>A.2.3.3.&#160;<code class="literal">&lt;jee:jndi-lookup/&gt;</code> (with multiple JNDI environment settings)</h4></div></div></div>
+<p>Before...</p>
+<pre class="programlisting">&lt;bean id="simple" class="org.springframework.jndi.JndiObjectFactoryBean"&gt;
+    &lt;property name="jndiName" value="jdbc/MyDataSource"/&gt;
+    &lt;property name="jndiEnvironment"&gt;
+        &lt;props&gt;
+            &lt;prop key="foo"&gt;bar&lt;/prop&gt;
+            &lt;prop key="ping"&gt;pong&lt;/prop&gt;
+        &lt;/props&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;</pre>
+<p>After...</p>
+<pre class="programlisting">&lt;jee:jndi-lookup id="simple" jndi-name="jdbc/MyDataSource"&gt;
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- newline-separated, key-value pairs for the environment (standard <code class="classname">Properties</code> format) --&gt;</span></em>
+    &lt;jee:environment&gt;
+        foo=bar
+        ping=pong
+    &lt;/jee:environment&gt;
+&lt;/jee:jndi-lookup&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="xsd-config-body-schemas-jee-jndi-lookup-complex"></a>A.2.3.4.&#160;<code class="literal">&lt;jee:jndi-lookup/&gt;</code> (complex)</h4></div></div></div>
+<p>Before...</p>
+<pre class="programlisting">&lt;bean id="simple" class="org.springframework.jndi.JndiObjectFactoryBean"&gt;
+    &lt;property name="jndiName" value="jdbc/MyDataSource"/&gt;
+    &lt;property name="cache" value="true"/&gt;
+    &lt;property name="resourceRef" value="true"/&gt;
+    &lt;property name="lookupOnStartup" value="false"/&gt;
+    &lt;property name="expectedType" value="com.myapp.DefaultFoo"/&gt;
+    &lt;property name="proxyInterface" value="com.myapp.Foo"/&gt;
+&lt;/bean&gt;</pre>
+<p>After...</p>
+<pre class="programlisting">&lt;jee:jndi-lookup id="simple"
+             jndi-name="jdbc/MyDataSource"
+             cache="true"
+             resource-ref="true"
+             lookup-on-startup="false"
+             expected-type="com.myapp.DefaultFoo"
+             proxy-interface="com.myapp.Foo"/&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="xsd-config-body-schemas-jee-local-slsb"></a>A.2.3.5.&#160;<code class="literal">&lt;jee:local-slsb/&gt;</code> (simple)</h4></div></div></div>
+<p>The <code class="literal">&lt;jee:local-slsb/&gt;</code> tag configures a
+                reference to an EJB Stateless SessionBean.</p>
+<p>Before...</p>
+<pre class="programlisting">&lt;bean id="simple"
+      class="org.springframework.ejb.access.LocalStatelessSessionProxyFactoryBean"&gt;
+  &lt;property name="jndiName" value="ejb/RentalServiceBean"/&gt;
+  &lt;property name="businessInterface" value="com.foo.service.RentalService"/&gt;
+&lt;/bean&gt;</pre>
+<p>After...</p>
+<pre class="programlisting">&lt;jee:local-slsb id="simpleSlsb" jndi-name="ejb/RentalServiceBean"
+    business-interface="com.foo.service.RentalService"/&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="xsd-config-body-schemas-jee-local-slsb-complex"></a>A.2.3.6.&#160;<code class="literal">&lt;jee:local-slsb/&gt;</code> (complex)</h4></div></div></div>
+<pre class="programlisting">&lt;bean id="complexLocalEjb"
+      class="org.springframework.ejb.access.LocalStatelessSessionProxyFactoryBean"&gt;
+  &lt;property name="jndiName" value="ejb/RentalServiceBean"/&gt;
+  &lt;property name="businessInterface" value="com.foo.service.RentalService"/&gt;
+  &lt;property name="cacheHome" value="true"/&gt;
+  &lt;property name="lookupHomeOnStartup" value="true"/&gt;
+  &lt;property name="resourceRef" value="true"/&gt;
+&lt;/bean&gt;</pre>
+<p>After...</p>
+<pre class="programlisting">&lt;jee:local-slsb id="complexLocalEjb"
+    jndi-name="ejb/RentalServiceBean"
+    business-interface="com.foo.service.RentalService"
+    cache-home="true"
+    lookup-home-on-startup="true"
+    resource-ref="true"&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="xsd-config-body-schemas-jee-remote-slsb"></a>A.2.3.7.&#160;<code class="literal">&lt;jee:remote-slsb/&gt;</code></h4></div></div></div>
+<p>The <code class="literal">&lt;jee:remote-slsb/&gt;</code> tag configures a
+                reference to a <code class="literal">remote</code> EJB Stateless SessionBean.</p>
+<p>Before...</p>
+<pre class="programlisting">&lt;bean id="complexRemoteEjb"
+      class="org.springframework.ejb.access.SimpleRemoteStatelessSessionProxyFactoryBean"&gt;
+  &lt;property name="jndiName" value="ejb/MyRemoteBean"/&gt;
+  &lt;property name="businessInterface" value="com.foo.service.RentalService"/&gt;
+  &lt;property name="cacheHome" value="true"/&gt;
+  &lt;property name="lookupHomeOnStartup" value="true"/&gt;
+  &lt;property name="resourceRef" value="true"/&gt;
+  &lt;property name="homeInterface" value="com.foo.service.RentalService"/&gt;
+  &lt;property name="refreshHomeOnConnectFailure" value="true"/&gt;
+&lt;/bean&gt;</pre>
+<p>After...</p>
+<pre class="programlisting">&lt;jee:remote-slsb id="complexRemoteEjb"
+    jndi-name="ejb/MyRemoteBean"
+    business-interface="com.foo.service.RentalService"
+    cache-home="true"
+    lookup-home-on-startup="true"
+    resource-ref="true"
+    home-interface="com.foo.service.RentalService"
+    refresh-home-on-connect-failure="true"&gt;</pre>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="xsd-config-body-schemas-lang"></a>A.2.4.&#160;The <code class="literal">lang</code> schema</h3></div></div></div>
+<p>The <code class="literal">lang</code> tags deal with exposing objects that have been
+            written in a dynamic language such as JRuby or Groovy as beans in the Spring
+            container.</p>
+<p>These tags (and the dynamic language support) are comprehensively covered
+            in the chapter entitled <a href="ch24.html" title="第&#160;24&#160;章&#160;動態語言支持">第&#160;24&#160;章 <i>動態語言支持</i></a>. Please do consult that
+            chapter for full details on this support and the <code class="literal">lang</code> tags
+            themselves.</p>
+<p>In the interest of completeness, to use the tags in the <code class="literal">lang</code>
+            schema, you need to have the following preamble at the top of your Spring XML
+            configuration file; the emboldened text in the following snippet references the
+            correct schema so that the tags in the <code class="literal">lang</code> namespace are
+            available to you.</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       <span class="bold"><strong>xmlns:lang="http://www.springframework.org/schema/lang"</strong></span>
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+<span class="bold"><strong>http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.5.xsd"</strong></span>&gt;
+
+<em class="lineannotation"><span class="lineannotation">&lt;!-- <code class="literal">&lt;bean/&gt;</code> definitions here --&gt;</span></em>
+
+&lt;/beans&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="xsd-config-body-schemas-jms"></a>A.2.5.&#160;The <code class="literal">jms</code> schema</h3></div></div></div>
+<p>The <code class="literal">jms</code> tags deal with configuring JMS-related
+			beans such as Spring's <a href="ch19s02.html#jms-mdp" title="19.2.4.&#160;訊息偵聽容器">MessageListenerContainers</a>.
+            These tags are detailed in the section of the <a href="ch19.html" title="第&#160;19&#160;章&#160;JMS (Java Message Service)">JMS chapter</a>
+			entitled <a href="ch19s06.html" title="19.6.&#160;JMS命名空間支持">第&#160;19.6&#160;節 「JMS命名空間支持」</a>. Please do consult that
+            chapter for full details on this support and the <code class="literal">jms</code> tags
+            themselves.</p>
+<p>In the interest of completeness, to use the tags in the <code class="literal">jms</code>
+            schema, you need to have the following preamble at the top of your Spring XML
+            configuration file; the emboldened text in the following snippet references the
+            correct schema so that the tags in the <code class="literal">jms</code> namespace are
+            available to you.</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       <span class="bold"><strong>xmlns:jms="http://www.springframework.org/schema/jms"</strong></span>
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+<span class="bold"><strong>http://www.springframework.org/schema/jms http://www.springframework.org/schema/jms/spring-jms-2.5.xsd"</strong></span>&gt;
+
+<em class="lineannotation"><span class="lineannotation">&lt;!-- <code class="literal">&lt;bean/&gt;</code> definitions here --&gt;</span></em>
+
+&lt;/beans&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="xsd-config-body-schemas-tx"></a>A.2.6.&#160;The <code class="literal">tx</code> (transaction) schema</h3></div></div></div>
+<p>The <code class="literal">tx</code> tags deal with configuring all of those
+            beans in Spring's comprehensive support for transactions. These tags are
+            covered in the chapter entitled <a href="ch09.html" title="第&#160;9&#160;章&#160;事務管理">第&#160;9&#160;章 <i>事務管理</i></a>.</p>
+<div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">提示</h3>
+<p>You are strongly encouraged to look at the
+                <code class="filename">'spring-tx-2.5.xsd'</code> file that ships with the Spring
+                distribution. This file is (of course), the XML Schema for Spring's
+                transaction configuration, and covers all of the various tags in the
+                <code class="literal">tx</code> namespace, including attribute defaults and
+                suchlike. This file is documented inline, and thus the information is
+                not repeated here in the interests of adhering to the DRY (Don't Repeat
+                Yourself) principle.</p>
+</div>
+<p>In the interest of completeness, to use the tags in the <code class="literal">tx</code>
+            schema, you need to have the following preamble at the top of your Spring XML
+            configuration file; the emboldened text in the following snippet references the
+            correct schema so that the tags in the <code class="literal">tx</code> namespace are
+            available to you.</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:aop="http://www.springframework.org/schema/aop"
+	   <span class="bold"><strong>xmlns:tx="http://www.springframework.org/schema/tx"</strong></span>
+	   xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+<span class="bold"><strong>http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd</strong></span>
+http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd"&gt;
+
+<em class="lineannotation"><span class="lineannotation">&lt;!-- <code class="literal">&lt;bean/&gt;</code> definitions here --&gt;</span></em>
+
+&lt;/beans&gt;</pre>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>Often when using the tags in the <code class="literal">tx</code> namespace you will also be using
+                the tags from the <code class="literal">aop</code> namespace (since the declarative transaction support in Spring is implemented using
+                AOP). The above XML snippet contains the relevant lines needed to reference the <code class="literal">aop</code> schema
+                so that the tags in the <code class="literal">aop</code> namespace are available to you.</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="xsd-config-body-schemas-aop"></a>A.2.7.&#160;The <code class="literal">aop</code> schema</h3></div></div></div>
+<p>The <code class="literal">aop</code> tags deal with configuring all things
+            AOP in Spring: this includes Spring's own proxy-based AOP framework and Spring's
+            integration with the AspectJ AOP framework. These tags are
+            comprehensively covered in the chapter entitled <a href="ch06.html" title="第&#160;6&#160;章&#160;使用Spring進行切面導向程式（AOP）">第&#160;6&#160;章 <i>使用Spring進行切面導向程式（AOP）</i></a>.</p>
+<p>In the interest of completeness, to use the tags in the <code class="literal">aop</code>
+            schema, you need to have the following preamble at the top of your Spring XML
+            configuration file; the emboldened text in the following snippet references the
+            correct schema so that the tags in the <code class="literal">aop</code> namespace are
+            available to you.</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   <span class="bold"><strong>xmlns:aop="http://www.springframework.org/schema/aop"</strong></span>
+	   xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+<span class="bold"><strong>http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd"</strong></span>&gt;
+
+<em class="lineannotation"><span class="lineannotation">&lt;!-- <code class="literal">&lt;bean/&gt;</code> definitions here --&gt;</span></em>
+
+&lt;/beans&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="xsd-config-body-schemas-context"></a>A.2.8.&#160;The <code class="literal">context</code> schema</h3></div></div></div>
+<p>The <code class="literal">context</code> tags deal with <code class="interfacename">ApplicationContext</code>
+			configuration that relates to plumbing - that is, not usually beans that are important to an end-user
+			but rather beans that do a lot of grunt work in Spring, such as <code class="interfacename">BeanfactoryPostProcessors</code>.
+            The following snippet references the correct schema so that the tags in the <code class="literal">context</code>
+			namespace are available to you.</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   <span class="bold"><strong>xmlns:context="http://www.springframework.org/schema/context"</strong></span>
+	   xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+<span class="bold"><strong>http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd"</strong></span>&gt;
+
+<em class="lineannotation"><span class="lineannotation">&lt;!-- <code class="literal">&lt;bean/&gt;</code> definitions here --&gt;</span></em>
+
+&lt;/beans&gt;</pre>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>The <code class="literal">context</code> schema was only introduced in Spring 2.5.</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="xsd-config-body-schemas-context-pphc"></a>A.2.8.1.&#160;<code class="literal">&lt;property-placeholder/&gt;</code></h4></div></div></div>
+<p>This element activates the replacement of <code class="literal">${...}</code> placeholders, resolved
+				against the specified properties file (as a <a href="ch04.html" title="第&#160;4&#160;章&#160;資源">Spring resource location</a>).
+				This element is a convenience mechanism that sets up a
+				<a href="ch03s07.html#beans-factory-placeholderconfigurer" title="3.7.2.1.&#160;PropertyPlaceholderConfigurer範例"><code class="classname">PropertyPlaceholderConfigurer</code></a>
+				for you; if you need more control over the <code class="classname">PropertyPlaceholderConfigurer</code>, just
+				define one yourself explicitly.</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="xsd-config-body-schemas-context-ac"></a>A.2.8.2.&#160;<code class="literal">&lt;annotation-config/&gt;</code></h4></div></div></div>
+<p>Activates the Spring infrastructure for various annotations to be detected in bean classes:
+				Spring's <a href="ch25s03.html#metadata-annotations-required" title="25.3.1.&#160;@Required"><code class="interfacename">@Required</code></a>
+				and <a href="ch03s11.html" title="3.11.&#160;基於註釋（Annotation-based）的配置"><code class="interfacename">@Autowired</code></a>, as well as
+				JSR 250's <code class="interfacename">@PostConstruct</code>, <code class="interfacename">@PreDestroy</code> and
+				<code class="interfacename">@Resource</code> (if available), and JPA's
+				<code class="interfacename">@PersistenceContext</code> and <code class="interfacename">@PersistenceUnit</code>
+				(if available). Alternatively, you can choose to activate the individual
+				<code class="interfacename">BeanPostProcessors</code> for those annotations explictly.</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>This element does <span class="emphasis"><em>not</em></span> activate processing of Spring's
+					<a href="ch09s05.html#transaction-declarative-annotations" title="9.5.6.&#160;使用 @Transactional"><code class="interfacename">@Transactional</code></a>
+					annotation. Use the
+					<a href="ch09s05.html#tx-decl-explained" title="9.5.1.&#160;理解Spring的宣告式事務管理實作"><code class="literal">&lt;tx:annotation-driven/&gt;</code></a> element
+					for that purpose.</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="xsd-config-body-schemas-context-component-scan"></a>A.2.8.3.&#160;<code class="literal">&lt;component-scan/&gt;</code></h4></div></div></div>
+<p>This element is detailed in the section entitled <a href="ch03s11.html" title="3.11.&#160;基於註釋（Annotation-based）的配置">第&#160;3.11&#160;節 「基於註釋（Annotation-based）的配置」</a>.</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="xsd-config-body-schemas-context-ltw"></a>A.2.8.4.&#160;<code class="literal">&lt;load-time-weaver/&gt;</code></h4></div></div></div>
+<p>This element is detailed in the section entitled <a href="ch06s08.html#aop-aj-ltw" title="6.8.4.&#160;在Spring應用中使用AspectJ載入時織入（LTW）">第&#160;6.8.4&#160;節 「在Spring應用中使用AspectJ載入時織入（LTW）」</a>.</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="xsd-config-body-schemas-context-sc"></a>A.2.8.5.&#160;<code class="literal">&lt;spring-configured/&gt;</code></h4></div></div></div>
+<p>This element is detailed in the section entitled <a href="ch06s08.html#aop-atconfigurable" title="6.8.1.&#160;在Spring中使用AspectJ進行domain object的依賴注入">第&#160;6.8.1&#160;節 「在Spring中使用AspectJ進行domain object的依賴注入」</a>.</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="xsd-config-body-schemas-context-mbe"></a>A.2.8.6.&#160;<code class="literal">&lt;mbean-export/&gt;</code></h4></div></div></div>
+<p>This element is detailed in the section entitled <a href="ch20s04.html#jmx-context-mbeanexport" title="20.4.3.&#160;&lt;context:mbean-export/&gt;元素">第&#160;20.4.3&#160;節 「<code class="literal">&lt;context:mbean-export/&gt;</code>元素」</a>.</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="xsd-config-body-schemas-tool"></a>A.2.9.&#160;The <code class="literal">tool</code> schema</h3></div></div></div>
+<p>The <code class="literal">tool</code> tags are for use when you want to add
+            tooling-specific metadata to your custom configuration elements. This metadata
+            can then be consumed by tools that are aware of this metadata, and the tools can
+            then do pretty much whatever they want with it (validation, etc.).</p>
+<p>The <code class="literal">tool</code> tags are not documented in this release of
+            Spring as they are currently undergoing review. If you are a third party tool
+            vendor and you would like to contribute to this review process, then do mail
+            the Spring mailing list. The currently supported <code class="literal">tool</code>
+            tags can be found in the file <code class="literal">'spring-tool-2.5.xsd'</code> in the
+            <code class="literal">'src/org/springframework/beans/factory/xml'</code> directory of the
+            Spring source distribution.</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="xsd-config-body-schemas-beans"></a>A.2.10.&#160;The <code class="literal">beans</code> schema</h3></div></div></div>
+<p>Last but not least we have the tags in the <code class="literal">beans</code> schema.
+            These are the same tags that have been in Spring since the very dawn of the framework.
+            Examples of the various tags in the <code class="literal">beans</code> schema are not shown here
+            because they are quite comprehensively covered in the section entitled <a href="ch03s03.html#beans-factory-properties-detailed" title="3.3.2.&#160;依賴配置詳解">第&#160;3.3.2&#160;節 「依賴配置詳解」</a>
+            (and indeed in that entire <a href="ch03.html" title="第&#160;3&#160;章&#160;IoC(控制反轉)容器">chapter</a>).</p>
+<p>One thing that is new to the beans tags themselves in Spring 2.0 is the idea
+            of arbitrary bean metadata. In Spring 2.0 it is now possible to add zero or more
+            key / value pairs to <code class="literal">&lt;bean/&gt;</code> XML definitions. What, if
+            anything, is done with this extra metadata is totally up to your own custom logic (and
+            so is typically only of use if you are writing your own custom tags as described in
+            the appendix entitled <a href="apb.html" title="附錄&#160;B.&#160;Extensible XML authoring">附錄&#160;B, <i>Extensible XML authoring</i></a>).</p>
+<p>Find below an example of the <code class="literal">&lt;meta/&gt;</code> tag in the context
+            of a surrounding <code class="literal">&lt;bean/&gt;</code> (please note that without any logic
+            to interpret it the metadata is effectively useless as-is).</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"&gt;
+
+    &lt;bean id="foo" class="x.y.Foo"&gt;
+        <span class="bold"><strong>&lt;meta key="cacheName" value="foo"/&gt;</strong></span>
+        &lt;property name="name" value="Rick"/&gt;
+    &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<p>In the case of the above example, you would assume that there is some
+            logic that will consume the bean definition and set up some caching infrastructure
+            using the supplied metadata.</p>
+</div>
+</div></body>
+</html>

@@ -1,0 +1,140 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>9.6.&#160;程式式事務管理</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch09.html" title="第&#160;9&#160;章&#160;事務管理">
+<link rel="prev" href="ch09s05.html" title="9.5.&#160;宣告式事務管理">
+<link rel="next" href="ch09s07.html" title="9.7.&#160;選擇程式式事務管理還是宣告式事務管理">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="transaction-programmatic"></a>9.6.&#160;程式式事務管理</h2></div></div></div>
+<p>Spring提供兩種方式的程式式事務管理：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>使用 <code class="classname">TransactionTemplate</code></p></li>
+<li><p>直接使用一個 <code class="interfacename">PlatformTransactionManager</code> 實作</p></li>
+</ul></div>
+<p>如果你選擇程式式事務管理，Spring小組推薦使用 <code class="classname">TransactionTemplate</code>。
+	第二種方法則類似使用JTA的 <code class="interfacename">UserTransaction</code> API （除了異常處理的部分稍微簡單點）。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="tx-prog-template"></a>9.6.1.&#160;使用<code class="classname">TransactionTemplate</code></h3></div></div></div>
+<p><code class="classname">TransactionTemplate</code> 採用與Spring中別的 <span class="emphasis"><em>模板</em></span> 同樣的方法，
+	  如 <code class="classname">JdbcTemplate</code> 。它使用回調機制，將應用程式碼從樣板式的資源獲取和釋放程式碼中解放出來，
+	  這樣寫出的程式碼是目的驅動的，把精力集中在開發者想要做的事情上。</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>就像你馬上要在後面的例子中看到的那樣，
+				使用 <code class="classname">TransactionTemplate</code> 絕對會增加你的程式碼與Spring的事務框架和API間的耦合。
+				到底程式式事務管理是不是適合你的項目需要由你自己來決定。 </p>
+</div>
+<p>應用的程式碼必須在一個事務性的上下文中執行，這樣就會像這樣一樣顯式的使用<code class="classname">TransactionTemplate</code>。你作為一個應用開發人員，
+			會寫一個 <code class="interfacename">TransactionCallback</code> 的實作，
+			(通常會用匿名類別來實作 )這樣的實作會包含所以你需要在該事務上下文中執行的程式碼。
+			然後你會把一個你自己實作<code class="interfacename">TransactionCallback</code>的實例傳遞給<code class="classname">TransactionTemplate</code>暴露的<code class="methodname">execute(..)</code> 方法。</p>
+<pre class="programlisting">public class SimpleService implements Service {
+
+  <em class="lineannotation"><span class="lineannotation">// single <code class="classname">TransactionTemplate</code> shared amongst all methods in this instance</span></em>
+  private final TransactionTemplate transactionTemplate;
+
+  <em class="lineannotation"><span class="lineannotation">// use constructor-injection to supply the <code class="interfacename">PlatformTransactionManager</code></span></em>
+  public SimpleService(PlatformTransactionManager transactionManager) {
+    Assert.notNull(transactionManager, "The 'transactionManager' argument must not be null.");
+    this.transactionTemplate = new TransactionTemplate(transactionManager);
+  }
+
+  public Object someServiceMethod() {
+    return transactionTemplate.execute(new TransactionCallback() {
+
+      <em class="lineannotation"><span class="lineannotation">// the code in this method executes in a transactional context</span></em>
+      public Object doInTransaction(TransactionStatus status) {
+        updateOperation1();
+        return resultOfUpdateOperation2();
+      }
+    });
+  }
+}</pre>
+<p>如果不需要返回值，更方便的方式是創建一個 <code class="classname">TransactionCallbackWithoutResult</code> 的匿名類別，如下：</p>
+<pre class="programlisting">transactionTemplate.execute(new <span class="bold"><strong>TransactionCallbackWithoutResult</strong></span>() {
+
+  protected void doInTransactionWithoutResult(TransactionStatus status) {
+    updateOperation1();
+    updateOperation2();
+  }
+});</pre>
+<p>回調方法內的程式碼可以通過調用 <code class="interfacename">TransactionStatus</code> 物件的 <code class="literal">setRollbackOnly()</code> 方法來回滾事務。</p>
+<pre class="programlisting">transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+
+  protected void doInTransactionWithoutResult(TransactionStatus status) {
+    try {
+      updateOperation1();
+      updateOperation2();
+    } catch (SomeBusinessExeption ex) {
+      <span class="bold"><strong>status.setRollbackOnly();</strong></span>
+    }
+  }
+});</pre>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="tx-prog-template-settings"></a>9.6.1.1.&#160;指定事務設置</h4></div></div></div>
+<p>諸如傳播模式、隔離等級、逾時等等的事務設置都可以在<code class="classname">TransactionTemplate</code>中或者通過配置或者程式式地實作。
+				<code class="classname">TransactionTemplate</code>實例預設繼承了<a href="ch09s05.html#transaction-declarative-txadvice-settings" title="9.5.5.&#160;&lt;tx:advice/&gt; 有關的設置">預設事務設置</a>。
+				下面有個程式式的為一個特定的<code class="classname">TransactionTemplate</code>定制事務設置的例子。
+				</p>
+<pre class="programlisting">public class SimpleService implements Service {
+
+  private final TransactionTemplate transactionTemplate;
+
+  public SimpleService(PlatformTransactionManager transactionManager) {
+    Assert.notNull(transactionManager, "The 'transactionManager' argument must not be null.");
+    this.transactionTemplate = new TransactionTemplate(transactionManager);
+
+    <em class="lineannotation"><span class="lineannotation">// the transaction settings can be set here explicitly if so desired</span></em>
+    this.transactionTemplate.setIsolationLevel(TransactionDefinition.ISOLATION_READ_UNCOMMITTED);
+    this.transactionTemplate.setTimeout(30); <em class="lineannotation"><span class="lineannotation">// 30 seconds</span></em>
+    <em class="lineannotation"><span class="lineannotation">// and so forth...</span></em>
+  }
+}</pre>
+<p>在下面的例子中，我們將會演示如何使用Spring XML配置來定制<code class="classname">TransactionTemplate</code>的事務屬性。
+				'<code class="literal">sharedTransactionTemplate</code>'可以被注入到所有需要的服務中去。 </p>
+<pre class="programlisting">&lt;bean id="sharedTransactionTemplate"
+    class="org.springframework.transaction.support.TransactionTemplate"&gt;
+  &lt;property name="isolationLevelName" value="ISOLATION_READ_UNCOMMITTED"/&gt;
+  &lt;property name="timeout" value="30"/&gt;
+&lt;/bean&gt;"</pre>
+</div>
+<p>
+			最後，<code class="classname">TransactionTemplate</code> 類別的實例是執行緒安全的，任何狀態都不會被保存。
+			<code class="classname">TransactionTemplate</code> 實例 <span class="emphasis"><em>的確會</em></span>
+			維護配置狀態，所以當一些類別選擇共享一個單獨的 <code class="classname">TransactionTemplate</code>實例時，
+			如果一個類別需要使用不同配置的<code class="classname">TransactionTemplate</code>(比如，不同的隔離等級)，
+			那就需要創建和使用兩個不同的<code class="classname">TransactionTemplate</code>。
+			</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="transaction-programmatic-ptm"></a>9.6.2.&#160;使用<code class="interfacename">PlatformTransactionManager</code></h3></div></div></div>
+<p>你也可以使用 <code class="interfacename">org.springframework.transaction.PlatformTransactionManager</code>
+			來直接管理你的事務。只需通過bean的參考，簡單的把你在使用的<code class="interfacename">PlatformTransactionManager</code> 傳遞給你的bean。
+	  		然後，使用<code class="interfacename">TransactionDefinition</code>和<code class="interfacename">TransactionStatus</code>物件，
+	  		你可以啟動，回滾和提交事務。</p>
+<pre class="programlisting">DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+<em class="lineannotation"><span class="lineannotation">// explicitly setting the transaction name is something that can only be done programmatically</span></em>
+def.setName("SomeTxName");
+def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+
+TransactionStatus status = txManager.getTransaction(def);
+try {
+  <em class="lineannotation"><span class="lineannotation">// execute your business logic here</span></em>
+}
+catch (MyException ex) {
+  txManager.rollback(status);
+  throw ex;
+}
+txManager.commit(status);</pre>
+</div>
+</div></body>
+</html>

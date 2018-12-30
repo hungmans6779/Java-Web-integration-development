@@ -1,0 +1,147 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>7.10.&#160;使用TargetSource</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch07.html" title="第&#160;7&#160;章&#160;Spring AOP APIs">
+<link rel="prev" href="ch07s09.html" title="7.9.&#160;使用「自動代理（autoproxy）」功能">
+<link rel="next" href="ch07s11.html" title="7.11.&#160;定義新的Advice型別">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="aop-targetsource"></a>7.10.&#160;使用TargetSource</h2></div></div></div>
+<p>Spring提供了<span class="emphasis"><em>TargetSource</em></span>的概念，由<code class="literal">org.springframework.aop.TargetSource</code>介面進行描述。
+        這個介面負責返回一個實作連接點的「目標物件（target object）」。每當AOP代理處理一個方法調用時都會向<code class="literal">TargetSource</code>的實作請求一個目標實例。
+    </p>
+<p>使用Spring AOP的開發者通常不需要直接和TargetSource打交道，但這提供了一種強大的方式來支持池化（pooling），熱交換（hot swappable）和其它高層級目標。
+        例如，一個使用池來管理實例的TargetSource可以為每個調用返回一個不同的目標實例。
+    </p>
+<p>如果你不指定一個TargetSource，一個缺省實作將被使用，它包裹一個本地物件。對於每次調用它將返回相同的目標（像你期望的那樣）。</p>
+<p>讓我們看看Spring提供的標準目標源（target source）以及如何使用它們。</p>
+<div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">提示</h3>
+<p>當使用一個自定義的目標源，你的目標通常需要是一個原型而不是一個單例的bean定義。這允許Spring在必要時創建新的目標實例。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="aop-ts-swap"></a>7.10.1.&#160;熱交換目標源</h3></div></div></div>
+<p><code class="literal">org.springframework.aop.target.HotSwappableTargetSource</code>允許當調用者保持參考的時候，切換一個AOP代理的目標。
+        </p>
+<p>修改目標源的目標將立即生效。
+        <code class="literal">HotSwappableTargetSource</code>是執行緒安全的。</p>
+<p>你可以通過HotSwappableTargetSource的 <code class="literal">swap()</code>方法來改變目標，就像下面那樣：
+        </p>
+<p>
+            </p>
+<pre class="programlisting">HotSwappableTargetSource swapper = 
+                (HotSwappableTargetSource) beanFactory.getBean("swapper");
+            Object oldTarget = swapper.swap(newTarget);</pre>
+<p>
+        </p>
+<p>所需的XML定義看起來像下面這樣：</p>
+<p>
+            </p>
+<pre class="programlisting">&lt;bean id="initialTarget" class="mycompany.OldTarget"/&gt;
+                
+                &lt;bean id="swapper" class="org.springframework.aop.target.HotSwappableTargetSource"&gt;
+                &lt;constructor-arg ref="initialTarget"/&gt;
+                &lt;/bean&gt;
+                
+                &lt;bean id="swappable" class="org.springframework.aop.framework.ProxyFactoryBean"&gt;
+                &lt;property name="targetSource" ref="swapper"/&gt;
+            &lt;/bean&gt;</pre>
+<p>
+        </p>
+<p>上面的<code class="literal">swap()</code>調用修改了swappable bean的目標。保持對這個bean的參考的客戶將不知道發生了這個修改，但是將可以立即點擊新的目標。</p>
+<p>這個例子沒有添加任何通知--也不必為使用一個<code class="literal">TargetSource</code>添加任何通知--當然任何<code class="literal">TargetSource</code>都可以與任意通知聯合使用。
+        </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="aop-ts-pool"></a>7.10.2.&#160;池化目標源</h3></div></div></div>
+<p>使用一個池化目標源提供了和無狀態session EJB類似的程式模型，它維護一個套件括相同實例的池，方法調用結束後將把物件釋放回池中。</p>
+<p>Spring池化和SLSB池化之間的一個決定性區別是Spring池化功能可以用於任何POJO。就像Spring通常情況下那樣，這個服務是非侵入式的。</p>
+<p>Spring對Jakarta Commons Pool 1.3提供了開箱即用的支持，後者提供了一個相當有效的池化實作。要使用這個特性，你需要在應用程序路徑中存在commons-pool的Jar檔案。
+            也可以通過繼承<code class="literal">org.springframework.aop.target.AbstractPoolingTargetSource</code>來支持其它的池化API。
+        </p>
+<p>下面是範例配置：</p>
+<p>
+            </p>
+<pre class="programlisting">&lt;bean id="businessObjectTarget" class="com.mycompany.MyBusinessObject" 
+                scope="prototype"&gt;
+                ... properties omitted
+                &lt;/bean&gt;
+                
+                &lt;bean id="poolTargetSource" class="org.springframework.aop.target.CommonsPoolTargetSource"&gt;
+                &lt;property name="targetBeanName" value="businessObjectTarget"/&gt;
+                &lt;property name="maxSize" value="25"/&gt;
+                &lt;/bean&gt;
+                
+                &lt;bean id="businessObject" class="org.springframework.aop.framework.ProxyFactoryBean"&gt;
+                &lt;property name="targetSource" ref="poolTargetSource"/&gt;
+                &lt;property name="interceptorNames" value="myInterceptor"/&gt;
+            &lt;/bean&gt;</pre>
+<p>
+        </p>
+<p>注意目標物件--例子裡的「businessObjectTarget」--<span class="emphasis"><em>必須</em></span>是個原型。
+            這允許<code class="literal">PoolingTargetSource</code>的實作在必要時為目標創建新的實例來增大池的容量。
+            查看<code class="literal">AbstractPoolingTargetSource</code>和你想要使用的具體子類別的Javadoc獲取更多關於它屬性的資訊：maxSize是最基礎的，而且永遠都要求被提供。
+        </p>
+<p>在這個例子裡，「myInterceptor」是一個攔截器的名字，這個攔截器需要在同一個IoC上下文中被定義。然而，定義對攔截器進行池化是不必要的。
+            如果你想要的只是池化而沒有其它通知，就不要設置interceptorNames屬性。
+        </p>
+<p>可以配置Spring來把任何被池化物件轉型到<code class="literal">org.springframework.aop.target.PoolingConfig</code>介面，
+            這通過一個introduction暴露配置以及當前池的大小。你需要像這樣定義一個通知器：
+        </p>
+<p>
+            </p>
+<pre class="programlisting">&lt;bean id="poolConfigAdvisor" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean"&gt;
+                &lt;property name="targetObject" ref="poolTargetSource"/&gt;
+                &lt;property name="targetMethod" value="getPoolingConfigMixin"/&gt;
+            &lt;/bean&gt;</pre>
+<p>
+        </p>
+<p>這個通知器可以通過調用<code class="literal">AbstractPoolingTargetSource</code>類別上的一個方便的方法來獲得，因此這裡使用MethodInvokingFactoryBean。
+            這個通知器名（這裡是「poolConfigAdvisor」）必須在提供被池化物件的ProxyFactoryBean裡的攔截器名列表裡中。
+        </p>
+<p>轉型看起來像這樣：</p>
+<pre class="programlisting">PoolingConfig conf = (PoolingConfig) beanFactory.getBean("businessObject");
+        System.out.println("Max pool size is " + conf.getMaxSize());</pre>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>池化無狀態服務物件通常是不必要的。我們不認為這（池化）應當是缺省的選擇，因為多數無狀態物件是先天執行緒安全的，如果資源被快取記憶體，那麼對實例進行池化會引起很多問題。</p>
+</div>
+<p>使用自動代理時池化更加簡單。可以為任何自動代理創建器設置所使用的TargetSource</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="aop-ts-prototype"></a>7.10.3.&#160;原型目標源</h3></div></div></div>
+<p>建立一個「原型」目標源和池化TargetSource很相似。在這個例子裡，當每次方法調用時，將創建一個目標的新實例。
+        雖然在新版本的JVM中創建一個新物件的代價並不高，但是把新物件織入（滿足它的IoC依賴）可能是很昂貴的。因此如果沒有很好的理由，你不應該使用這個方法。</p>
+<p>為了做到這點，你可以把上面的<code class="literal">poolTargetSource</code>定義修改成下面的形式。（為了清楚說明，修改了bean的名字。） </p>
+<pre class="programlisting">&lt;bean id="prototypeTargetSource" class="org.springframework.aop.target.PrototypeTargetSource"&gt;
+  &lt;property name="targetBeanName" ref="businessObjectTarget"/&gt;
+        &lt;/bean&gt;</pre>
+<p>這裡只有一個屬性：目標bean的名字。TargetSource的實作使用繼承來確保命名的一致性。就像池化目標源那樣，目標bean必須是一個原型的bean定義。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="aop-ts-threadlocal"></a>7.10.4.&#160;<code class="classname">ThreadLocal</code>目標源</h3></div></div></div>
+<p>如果你需要為每個進來的請求（即每個執行緒）創建一個物件，<code class="classname">ThreadLocal</code>目標源是很有用的。
+            <code class="classname">ThreadLocal</code>的概念提供了一個JDK範圍的功能，這可以為一個執行緒透明的保存資源。建立一個
+        <code class="classname">ThreadLocalTargetSource</code>的過程和其它目標源幾乎完全一樣：</p>
+<pre class="programlisting">&lt;bean id="threadlocalTargetSource" class="org.springframework.aop.target.ThreadLocalTargetSource"&gt;
+  &lt;property name="targetBeanName" value="businessObjectTarget"/&gt;
+        &lt;/bean&gt;</pre>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>如果不正確的在一個多執行緒和多類別載入器的環境裡使用ThreadLocal，將帶來嚴重的問題（可能潛在地導致記憶體洩漏）。
+                永遠記住應該把一個threadlocal包裹在其它的類別裡，並永遠不要直接使用<code class="classname">ThreadLocal</code>本身（當然是除了threadlocal包裹類別之外）。
+                同時，永遠記住正確的設置（set）和取消（unset）（後者僅僅需要調用<code class="literal">ThreadLocal.set(null)</code>）綁定到執行緒的本地資源。
+            取消在任何情況下都應該進行，否則也許會導致錯誤的行為。Spring的ThreadLocal支持將為你處理這個問題，所以如果沒有其它正確的處理程式碼，永遠應該考慮使用這個功能。</p>
+</div>
+</div>
+</div></body>
+</html>

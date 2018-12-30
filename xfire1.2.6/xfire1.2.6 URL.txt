@@ -1,0 +1,157 @@
+
+
+************************************************************************************************************************************   
+   【第三十六章】Web Service Framework XFire
+    
+    XFire 官網：http://xfire.codehaus.org/
+    
+    XFire1.2.6 支援的主要特性包括：
+    ● 支援多個重要的Web Service 標準，包括 SOAP、WSDL、WS-I Basic Profile、WSAddressing、WS-Security 等。
+    ● 高性能的SOAP堆疊實現。  
+    ● 可選的綁定(binding)方式，如 XMLBean、JAXB 1.1、JAXB 2.0 和 Castor 等。
+    ● 支援 JSR181、可以透過 JDK5 中的註釋設定 Web 服務。
+    ● 支援基於 HTTP、JMS、XMPP 等多種協定存取 Web 服務。
+    ● 支援如 Spring、Pico、Plexus、Loom 等多種容器。               
+    ● 支援用戶端和伺服器程式碼產生。 
+  
+    CXF 官網：http://cxf.apache.org/
+   《提示》：CXF 在 XFire 在1.2.6版本以後與另外一個項目Celtix 合併，整合成為apache 在 CXF項目，
+             CXF 由於此專案正在開發之中，尚不完善.....   
+            
+    Web 服務用戶端
+    當Web服務發佈後，在用戶端有多種方式呼叫，這裡講述三種呼叫Web 服務方式：
+    (1) MyEclipse 用戶端;
+    (2) SDK方式的用戶端;
+    (3) 根據 WSDL自動產生的用戶端;  
+   
+   
+    參考文件： http://www.scribd.com/doc/12841131/XFire
+    
+    顯示所有 《WebService》 服務名稱    
+    http://3w.eztravel.com.tw:8080/xfire1.2.6/services
+    
+    
+   《一般呼叫》
+    http://3w.eztravel.com.tw:8080/xfire1.2.6/services/HelloWebService?wsdl  
+      
+
+
+   《Web 服務安全》SOAP Header 中進行身份驗證
+    http://3w.eztravel.com.tw:8080/xfire1.2.6/services/HelloWebServiceAuth?wsdl
+  
+
+
+   《WS-Security》進行身份證驗證
+    http://3w.eztravel.com.tw:8080/xfire1.2.6/services/HelloWebServiceDTHP?wsdl
+    
+    Apache WSS4J 是 WS-Security 的開放原始碼實現
+    WSS4J 透過 SOAP中 WS-Seurity 相關的資訊對 SOAP 封包進行驗證和簽名
+    Apache WSS4J 介紹： http://ws.apache.org/wss4j/
+
+    ○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○
+    org.codehaus.xfire.security.wss4j.WSS4JOutHandler：負責組裝 WS-Security 規範的資訊
+    org.codehaus.xfire.util.dom.DOMOutHandler：負責將 DOM 轉化成 StAX
+    
+    org.codehaus.xfire.security.wss4j.WSS4JInHandler：負責解析 WS-Security 規範的資訊
+    org.codehaus.xfire.util.dom.DOMInHandler：負責將 StAX 轉化成 DOM
+    ○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○
+    
+   
+
+
+
+
+   《數位簽章(Signature)》進行身份證驗證
+    參閱資料：http://www.haogongju.net/art/722004
+   
+    http://3w.eztravel.com.tw:8080/xfire1.2.6/services/HelloWebServiceSignature?wsdl
+    
+      
+    使用使用者名稱/密碼 雖然可以驗證 SOAP 請求封包發送者的身份實現授權存取，但是也有其局限性：
+    ● 服務端無法保證封包在傳輸過程中沒有被篡改，駭客可以截取使用了 UsernameToken 的 SOAP 封包並在篡改後再發送給服務端，
+       這樣就會使 SOAP 封包的完整性遭受破壞。
+    ● 僅使用 UsernameToken 的 SOAP ，用戶端使用者可以抵賴自己的操作行為，因為駭客確實可以透過一些方法（如鍵盤監聽、暴力破解等）獲得使用者的密碼。
+    
+    
+    而數位簽章方式則可以解決以上的問題，保證交易的完整性和不可抵賴性。用戶端透過私密金鑰對 SOAP 封裝進行數位簽章，由於私密金鑰只為個人擁有，
+    因此不可抵賴到了保證。數位簽章其實是使用了私密金鑰對封包的摘要進行加密，只有封包在傳輸過程中不被篡改，接收端在進行數位簽章驗證時才可能成功，
+    因此完整性又得到了保證。
+  
+    如何使用數位憑證的方式實現安全驗證：
+    可以使用 JDK 附帶的 KeyTool 工具建立金鑰對和數位憑證，分別為服務端和用戶端建立 RSA 金錀對，並產生各自的 X509 數位憑證(包含公開金錀和數位簽章)。
+    服務端和用戶端擁有各自的金鑰庫JKS 檔案，服務端的金錀庫儲存服務端的金鑰對和用戶端的數位憑證，而用戶端的金鑰庫儲存用戶端的金錀對和服務端的數位憑證。 
+    
+    
+    建立金鑰對和數位憑證的步驟:
+    (1)透過別名和密碼建立金鑰到金鑰庫(建立RSA金鑰)：
+       【範例】： keytool -genKey -alias myAlias -keypass myAliasPassword -keystore privatestore.jks -storepass keyStorePassword -dname "cn=myAlias" -keyalg RSA
+                  myAlias：別名。
+                  myAliasPassword ：密碼。
+                  keyStorePassword：金鑰存貯密碼。
+                  採用 RSA 演算法進行處理。
+    
+       【操作】：keytool -genKey -alias admin -keypass admin123 -keystore privatestore.jks -storepass admin123 -dname "cn=admin" -keyalg RSA
+
+    (2)根據金鑰產生證書(X509數位簽章)：
+       【範例】： keytool -selfcert -alias myAlias -keystore privatestore.jks -storepass keyStorePassword -keypass myAliasPassword
+      
+       【操作】： keytool -selfcert -alias admin -keystore privatestore.jks -storepass admin123 -keypass admin123
+       
+    (3)根據金鑰產生公開金鑰：
+       【範例】： keytool -export -alias myAlias -file key.rsa -keystore privatestore.jks -storepass keyStorePassword
+                  key.rsa 為匯出公開金鑰的檔案。
+     
+       【操作】： keytool -export -alias admin -file key.rsa -keystore privatestore.jks -storepass admin123
+     
+    (4)將公開金鑰匯入到公開金鑰庫：
+       【範例】： keytool -import -alias myAlias -file key.rsa -keystore publicstore.jks -storepass keyStorePassword
+                  key.rsa：為公開金鑰檔案。
+                  
+       【操作】： keytool -import -alias admin -file key.rsa -keystore publicstore.jks -storepass admin123
+    
+    (5)建立 insecurity.properties(伺服器端)：
+       org.apache.ws.security.crypto.provider=org.apache.ws.security.components.crypto.Merlin
+       org.apache.ws.security.crypto.merlin.keystore.type=jks
+       org.apache.ws.security.crypto.merlin.keystore.password=admin123
+       org.apache.ws.security.crypto.merlin.alias.password=admin123
+       org.apache.ws.security.crypto.merlin.keystore.alias=admin 
+       org.apache.ws.security.crypto.merlin.file=META-INF/xfire/publicstore.jks
+  
+    (6)建立 outsecurity.properties(客戶端)：
+       org.apache.ws.security.crypto.provider=org.apache.ws.security.components.crypto.Merlin
+       org.apache.ws.security.crypto.merlin.keystore.type=jks
+       org.apache.ws.security.crypto.merlin.keystore.password=admin123
+       org.apache.ws.security.crypto.merlin.alias.password=admin123
+       org.apache.ws.security.crypto.merlin.keystore.alias=admin 
+       org.apache.ws.security.crypto.merlin.file=META-INF/xfire/privatestore.jks
+
+     (7)把檔案 privatestore.jks、publicstore.jks、insecurity.properties、outsecurity.properties 
+        全部複製到 /META-INF/xfire/ 目錄下
+
+
+        
+
+
+
+
+
+
+   《加密(Encryption)》進行身份證驗證 - 尚無法執行
+    http://3w.eztravel.com.tw:8080/xfire1.2.6/services/HelloWebServiceEnc?wsdl
+
+
+
+
+
+
+    【官網範例】
+   《bookService》 - 尚無法執行
+    http://3w.eztravel.com.tw:8080/xfire1.2.6/services/BookService?wsdl
+
+
+************************************************************************************************************************************
+
+
+ 
+ 
+ 

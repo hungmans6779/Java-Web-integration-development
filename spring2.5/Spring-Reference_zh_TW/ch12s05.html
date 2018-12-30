@@ -1,0 +1,204 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>12.5.&#160;iBATIS SQL Maps</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch12.html" title="第&#160;12&#160;章&#160;使用ORM工具進行資料存取">
+<link rel="prev" href="ch12s04.html" title="12.4.&#160;Oracle TopLink">
+<link rel="next" href="ch12s06.html" title="12.6.&#160;JPA">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="orm-ibatis"></a>12.5.&#160;iBATIS SQL Maps</h2></div></div></div>
+<p>
+    
+    在Spring框架中，iBatis的支持很類似JDBC或者Hibernate的支持，因為它和JDBC或Hibernate一樣支持相同的模板式程式， 
+    iBatis的支持能與Spring的異常體系一起工作並讓你享用所有Spring的Ioc特點。
+    </p>
+<p>
+    	事務管理可以由Spring標準機制進行處理。對於iBATIS來說沒有特別的事務策略，除了JDBC 
+    	<code class="interfacename">Connection</code> 以外，也沒有特別的事務資源。因此，Spring
+    	標準的JDBC <code class="classname">DataSourceTransactionManager</code> 或者 <code class="classname">
+    	JtaTransactionManager</code> 已經能夠完全足夠了。
+    </p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>
+      
+      Spring的確支持iBatis的1.x和2.x.但是，只有iBatis 2.x的支持包含在核心Spring發佈版本中。
+			iBatis1.x的支持類別被轉移到Spring 2.0的Spring Modules project，你可以在那裡找到文檔指導。
+      </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="orm-ibatis-setup"></a>12.5.1.&#160;
+      
+      創建SqlMapClient
+      </h3></div></div></div>
+<p>
+      
+      如果我們希望使用iBATIS 2.x來映射剛才的那個Account類別，則需要創建這樣一個SQL map <code class="literal">Account.xml</code>：
+      </p>
+<pre class="programlisting">&lt;sqlMap namespace="Account"&gt;
+
+  &lt;resultMap id="result" class="examples.Account"&gt;
+    &lt;result property="name" column="NAME" columnIndex="1"/&gt;
+    &lt;result property="email" column="EMAIL" columnIndex="2"/&gt;
+  &lt;/resultMap&gt;
+
+  &lt;select id="getAccountByEmail" resultMap="result"&gt;
+    select ACCOUNT.NAME, ACCOUNT.EMAIL
+    from ACCOUNT
+    where ACCOUNT.EMAIL = #value#
+  &lt;/select&gt;
+
+  &lt;insert id="insertAccount"&gt;
+    insert into ACCOUNT (NAME, EMAIL) values (#name#, #email#)
+  &lt;/insert&gt;
+
+&lt;/sqlMap&gt;</pre>
+<p>
+      
+      iBATIS2的配置檔案看起來像這樣：
+      </p>
+<pre class="programlisting">&lt;sqlMapConfig&gt;
+
+  &lt;sqlMap resource="example/Account.xml"/&gt;
+
+&lt;/sqlMapConfig&gt;</pre>
+<p>
+      
+      記住iBATIS從CLASSPATH下載入資源，所以必須確保 <code class="literal">Account.xml</code> 在CLASSPATH下。
+      </p>
+<p>
+      
+      	我們可以使用Spring container中的 <code class="classname">SqlMapClientFactoryBean</code>。
+				注意iBATIS SQL Map 2.x中，JDBC <code class="interfacename">DataSource</code> 通常由 
+				<code class="classname">SqlMapClientFactoryBean</code> 指定，並開啟了延遲載入。
+      </p>
+<pre class="programlisting">&lt;beans&gt;
+
+  &lt;bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close"&gt;
+    &lt;property name="driverClassName" value="${jdbc.driverClassName}"/&gt;
+    &lt;property name="url" value="${jdbc.url}"/&gt;
+    &lt;property name="username" value="${jdbc.username}"/&gt;
+    &lt;property name="password" value="${jdbc.password}"/&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="sqlMapClient" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean"&gt;
+    &lt;property name="configLocation" value="WEB-INF/sqlmap-config.xml"/&gt;
+    &lt;property name="dataSource" ref="dataSource"/&gt;
+  &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="orm-ibatis-template"></a>12.5.2.&#160;
+      
+      	使用 <code class="classname">SqlMapClientTemplate</code> 和 <code class="classname">SqlMapClientDaoSupport</code>
+      </h3></div></div></div>
+<p>
+      <code class="classname">SqlMapClientDaoSupport</code> 提供了類似 <code class="classname">SqlMapDaoSupport</code> 的功能。我們可以繼承它來實作我們自己的DAO：
+      </p>
+<pre class="programlisting">public class SqlMapAccountDao extends SqlMapClientDaoSupport implements AccountDao {
+
+    public Account getAccount(String email) throws DataAccessException {
+        return (Account) getSqlMapClientTemplate().queryForObject("getAccountByEmail", email);
+    }
+
+    public void insertAccount(Account account) throws DataAccessException {
+        getSqlMapClientTemplate().update("insertAccount", account);
+    }
+}</pre>
+<p>
+      我們可以在application context中創建了 <code class="literal">SqlMapAccountDao</code> 
+      並且注入 <code class="literal">SqlMapClient</code> 實例，這樣我們就可以在DAO中使用預先配置的 
+      <code class="classname">SqlMapClientTemplate</code> 來執行查詢了：
+      </p>
+<pre class="programlisting">&lt;beans&gt;
+
+  &lt;bean id="accountDao" class="example.SqlMapAccountDao"&gt;
+    &lt;property name="sqlMapClient" ref="sqlMapClient"/&gt;
+  &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<p>
+      	注意 <code class="classname">SqlMapTemplate</code> 實例也可以手工創建，使用 
+      	<code class="literal">SqlMapClient</code> 作為建構函數參數。
+      	<code class="literal">SqlMapClientDaoSupport</code> 基類別為我們預先初始化了一個 
+      	<code class="classname">SqlMapClientTemplate</code> 實例。
+      </p>
+<p>
+      	<code class="classname">SqlMapClientTemplate</code> 還提供了一個通用的 
+      	<code class="literal">execute</code> 方法，將使用者自定義的 <code class="literal">SqlMapClientCallback</code> 
+      	的實作作為參數。舉例來說，這可以實作批量操作：
+      </p>
+<pre class="programlisting">public class SqlMapAccountDao extends SqlMapClientDaoSupport implements AccountDao {
+
+    public void insertAccount(Account account) throws DataAccessException {
+        getSqlMapClientTemplate().execute(new SqlMapClientCallback() {
+            public Object doInSqlMapClient(SqlMapExecutor executor) throws SQLException {
+                executor.startBatch();
+                executor.update("insertAccount", account);
+                executor.update("insertAddress", account.getAddress());
+                executor.executeBatch();
+            }
+        });
+    }
+}</pre>
+<p>
+      一般來說，任何由 <code class="literal">SqlMapExecutor</code> API提供的操作組合都以這樣的回調形式被使用。
+			而在這個過程中產生的任何 <code class="literal">SQLException</code> 都將被自動地轉化為Spring的通用的 <code class="classname">DataAccessException</code> 異常體系。
+      </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="orm-ibatis-straight"></a>12.5.3.&#160;基於原生的iBATIS API的DAO實作</h3></div></div></div>
+<p>
+      	你也可以基於原生的iBATIS API來程式，而無需對Spring產生任何依賴。直接使用注入的 
+      	<code class="literal">SqlMapClient</code>。一個相應的DAO實作類別看上去就像下面這樣：
+      </p>
+<pre class="programlisting">public class SqlMapAccountDao implements AccountDao {
+        
+    private SqlMapClient sqlMapClient;
+    
+    public void setSqlMapClient(SqlMapClient sqlMapClient) {
+        this.sqlMapClient = sqlMapClient;
+    }
+
+    public Account getAccount(String email) {
+        try {
+            return (Account) this.sqlMapClient.queryForObject("getAccountByEmail", email);
+        }
+        catch (SQLException ex) {
+            throw new MyDaoException(ex);
+        }
+    }
+
+    public void insertAccount(Account account) throws DataAccessException {
+        try {
+            this.sqlMapClient.update("insertAccount", account);
+        }
+        catch (SQLException ex) {
+            throw new MyDaoException(ex);
+        }
+    }
+}</pre>
+<p>
+      	在這種情況下，由iBATIS API拋出的 <code class="literal">SQLException</code> 異常需要以
+      	使用者自定義的方式進行處理：通常封裝成為你的應用程序自身的DAO異常。在application context
+      	中進行的整合看上去依然像以前一樣，這是由於基於原生的iBATIS的DAO依然遵循IoC的模式：
+      </p>
+<pre class="programlisting">&lt;beans&gt;
+
+  &lt;bean id="accountDao" class="example.SqlMapAccountDao"&gt;
+    &lt;property name="sqlMapClient" ref="sqlMapClient"/&gt;
+  &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+</div>
+</div></body>
+</html>

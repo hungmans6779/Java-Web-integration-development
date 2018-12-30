@@ -1,0 +1,261 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>A.3.&#160;Setting up your IDE</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="apa.html" title="附錄&#160;A.&#160;XML Schema-based configuration">
+<link rel="prev" href="apas02.html" title="A.2.&#160;XML Schema-based configuration">
+<link rel="next" href="apb.html" title="附錄&#160;B.&#160;Extensible XML authoring">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="xsd-config-setup"></a>A.3.&#160;Setting up your IDE</h2></div></div></div>
+<p>This final section documents the steps involved in setting up a number of
+        popular Java IDEs to effect the easier editing of Spring's XML Schema-based
+        configuration files. If your favourite Java IDE or editor is not included in the
+		list of documented IDEs, then please do
+        <a href="http://opensource.atlassian.com/projects/spring/secure/Dashboard.jspa" target="_top">raise an issue</a>
+        and an example with your favorite IDE/editor <span class="emphasis"><em>may</em></span> be included
+		in the next release.</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="xsd-config-setup-eclipse"></a>A.3.1.&#160;Setting up Eclipse</h3></div></div></div>
+<div class="procedure">
+<p>The following steps illustrate setting up
+            <a href="http://www.eclipse.org/" target="_top">Eclipse</a> to be XSD-aware. 
+            The assumption in the following steps is that you already have an Eclipse
+            project open (either a brand new project or an already existing one).</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>The following steps were created using Eclipse <span class="bold"><strong>3.2</strong></span>.
+                The setup will probably be the same (or similar) on an earlier or later
+                version of Eclipse.</p>
+</div>
+<ol type="1">
+<li>
+<p class="title"><b>Step One</b></p>
+<p>Create a new XML file. You can name this file whatever you want. In the
+                example below, the file is named <code class="literal">'context.xml'</code>.
+                Copy and paste the following text into the file so that it matches the screenshot.</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd"&gt;
+
+&lt;/beans&gt;</pre>
+<p>
+			        </p>
+<div class="mediaobject" align="center"><img src="images/eclipse-setup-1.png" align="middle"></div>
+<p>
+		        </p>
+</li>
+<li>
+<p class="title"><b>Step Two</b></p>
+<p>As can be seen in the above screenshot (unless you have a customised
+                version of Eclipse with the correct plugins) the XML file will be treated
+                as plain text. There is no XML editing support out of the box in Eclipse,
+                and as such there is not even any syntax highlighting of elements and attributes.
+                To address this, you will have to install an XML editor plugin for Eclipse...</p>
+<div class="table">
+<a name="xsd-config-setup-eclipse-plugins"></a><p class="title"><b>表&#160;A.1.&#160;Eclipse XML editors</b></p>
+<div class="table-contents"><table summary="Eclipse XML editors" border="1">
+<colgroup>
+<col align="left">
+<col>
+</colgroup>
+<thead><tr>
+<th align="center">XML Editor</th>
+<th align="center">Link</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">
+							        <p>The Eclipse Web Tools Platform (WTP)</p>
+						        </td>
+<td>
+							        <a href="http://www.eclipse.org/webtools/" target="_top">http://www.eclipse.org/webtools/</a>
+						        </td>
+</tr>
+<tr>
+<td align="left">
+							        <p>A list of Eclipse XML plugins</p>
+						        </td>
+<td>
+							        <a href="http://eclipse-plugins.2y.net/eclipse/plugins.jsp?category=XML" target="_top">http://eclipse-plugins.2y.net/eclipse/plugins.jsp?category=XML</a>
+						        </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="sidebar">
+<p class="title"><b>Contributing documentation...</b></p>
+<p>Patches showing how to configure an Eclipse XML editor are
+                    welcomed. Any such contributions are best submitted as patches via
+                    the Spring Framework
+                    <a href="http://opensource.atlassian.com/projects/spring/secure/Dashboard.jspa" target="_top">JIRA Issue Tracker</a>
+                    and <span class="emphasis"><em>may</em></span> be featured in the next release.</p>
+</div>
+<p>Unfortunately, precisely because there is no standard XML editor for Eclipse,
+                there are (bar the one below) no further steps showing you how to configure XML
+                Schema support in Eclipse... each XML editor plugin would require its very own
+                dedicated section, and this is <span class="emphasis"><em>Spring</em></span> reference documentation,
+                not Eclipse XML editor documentation. You will have to read the documentation that
+                comes with your XML editor plugin (good luck there) and figure it out for yourself.</p>
+</li>
+<li>
+<p class="title"><b>Spring IDE</b></p>
+<p>There is a dedicated Spring Framework plugin for Eclipse called
+				<a href="http://springide.org/blog/" target="_top">Spring IDE</a> and it is pretty darn cool. (There's a
+				considered and non-biased opinion for you!) This plugin makes using Spring even easier, and it has more
+				than just support for the core Spring Framework... Spring WebFlow is supported too. Details of how to
+				install Spring IDE can be found on the
+				<a href="http://springide.org/project/wiki/SpringideInstall" target="_top">Spring IDE installation page</a>.</p>
+<p>
+			        </p>
+<div class="mediaobject" align="center"><img src="images/eclipse-setup-3.png" align="middle"></div>
+<p>
+		        </p>
+</li>
+<li>
+<p class="title"><b>Web Tools Platform (WTP) for Eclipse</b></p>
+<p>If you are using the Web Tools Platform (WTP) for Eclipse, you don't need to
+                do anything other than open a Spring XML configuration file using the WTP platform's
+                XML editor. As can be seen in the screenshot below, you immediately get some slick
+                IDE-level support for autocompleting tags and suchlike.</p>
+<p>
+			        </p>
+<div class="mediaobject" align="center"><img src="images/eclipse-setup-2.png" align="middle"></div>
+<p>
+		        </p>
+</li>
+</ol>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="xsd-config-setup-idea"></a>A.3.2.&#160;Setting up IntelliJ IDEA</h3></div></div></div>
+<div class="procedure">
+<p>The following steps illustrate setting up the
+            <a href="http://www.jetbrains.com/idea/" target="_top">IntelliJ IDEA</a> IDE to be XSD-aware.
+            The assumption in the following steps is that you already have an IDEA project
+            open (either a brand new project or an already existing one).</p>
+<p>Repeat as required for setting up IDEA to reference the other Spring XSD files.</p>
+<ol type="1">
+<li>
+<p class="title"><b>Step One</b></p>
+<p>Create a new XML file (you can name this file whatever you want). In the
+                example below, the file is named <code class="literal">'context.xml'</code>. Copy and paste
+                the following text into the file so that it matches the screenshot.</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+       http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd"&gt;
+
+&lt;/beans&gt;</pre>
+<p>
+			        </p>
+<div class="mediaobject" align="center"><img src="images/idea-setup-1.png" align="middle"></div>
+<p>
+		        </p>
+</li>
+<li>
+<p class="title"><b>Step Two</b></p>
+<p>As can be seen in the above screenshot, the XML file has a number
+                of nasty red contextual error markers. To rectify this, IDEA has to be
+                made aware of the location of the referenced XSD namespace(s).</p>
+<p>To do this, simply position the cursor over the squiggly red
+                area (see the screenshot below); then press the <span><strong class="keycap">Alt</strong></span>-<span><strong class="keycap">Enter</strong></span> keystroke combination, and press the <span><strong class="keycap">Enter</strong></span> key again when the popup becomes active to fetch the external
+                 resource.</p>
+<p>
+			        </p>
+<div class="mediaobject" align="center"><img src="images/idea-setup-6.png" align="middle"></div>
+<p>
+		        </p>
+</li>
+<li>
+<p class="title"><b>Step Three</b></p>
+<p>If the external resource could not be fetched (maybe no active Internet
+                connection is available), you can manually configure the resource to
+                reference a local copy of the XSD file. Simply open up the <code class="literal">'Settings'</code> dialog
+                (using the <span><strong class="keycap">Ctrl</strong></span>-<span><strong class="keycap">A</strong></span>-<span><strong class="keycap">S</strong></span> keystroke combination or via the <code class="literal">'File|Settings'</code> menu),
+                 and click on the <code class="literal">'Resources'</code> button.</p>
+<p>
+			        </p>
+<div class="mediaobject" align="center"><img src="images/idea-setup-2.png" align="middle"></div>
+<p>
+		        </p>
+</li>
+<li>
+<p class="title"><b>Step Four</b></p>
+<p>As can be seen in the following screenshot, this will bring up a dialog
+                that allows you to add an explicit reference to a local copy of the
+                <code class="literal">util</code> schema file. (You can find all of the various Spring
+                XSD files in the <code class="literal">'src'</code> directory of the Spring distribution.)</p>
+<p>
+			        </p>
+<div class="mediaobject" align="center"><img src="images/idea-setup-3.png" align="middle"></div>
+<p>
+		        </p>
+</li>
+<li>
+<p class="title"><b>Step Five</b></p>
+<p>Clicking the <code class="literal">'Add'</code> button will bring up another dialog
+                that allows you to explicitly to associate a namespace URI with the path to the
+                relevant XSD file. As can be seen in the following screenshot, the
+                <code class="literal">'http://www.springframework.org/schema/util'</code> namespace
+                is being associated with the file resource
+                <code class="literal">'C:\bench\spring\src\org\springframework\beans\factory\xml\spring-util-2.5.xsd'</code>.</p>
+<p>
+			        </p>
+<div class="mediaobject" align="center"><img src="images/idea-setup-4.png" align="middle"></div>
+<p>
+		        </p>
+</li>
+<li>
+<p class="title"><b>Step Six</b></p>
+<p>Exiting out of the nested dialogs by clicking the <code class="literal">'OK'</code> button
+                will then bring back the main editing window, and as can be seen in the
+                following screenshot, the contextual error markers have disappeared; typing
+                the <code class="literal">'&lt;'</code> character into the editing window now also
+                brings up a handy dropdown box that contains all of the imported tags from
+                the <code class="literal">util</code> namespace.</p>
+<p>
+			        </p>
+<div class="mediaobject" align="center"><img src="images/idea-setup-5.png" align="middle"></div>
+<p>
+		        </p>
+</li>
+</ol>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="xsd-config-integration"></a>A.3.3.&#160;Integration issues</h3></div></div></div>
+<p>This final section details integration issues that may arise when you switch over
+            to using the above XSD-style for Spring 2.0 configuration.</p>
+<p>This section is quite small at the moment (and hopefully it will stay that way).
+            It has been included in the Spring documentation as a convenience to Spring users
+            so that if you encounter an issue when switching over to the XSD-style in some
+            specific environment you can refer to this section for the authoritative answer.</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="xsd-config-integration-resin"></a>A.3.3.1.&#160;XML parsing errors in the Resin v.3 application server</h4></div></div></div>
+<p>If you are using the XSD-style for Spring 2.0 XML configuration
+                and deploying to v.3 of Caucho's Resin application server, you will need
+                to set some configuration options prior to startup so that an XSD-aware
+                parser is available to Spring.</p>
+<p>Please do read this resource,
+                <a href="http://www.caucho.com/resin-3.0/xml/jaxp.xtp#xerces" target="_top">http://www.caucho.com/resin-3.0/xml/jaxp.xtp#xerces</a>,
+                for further details.</p>
+</div>
+</div>
+</div></body>
+</html>

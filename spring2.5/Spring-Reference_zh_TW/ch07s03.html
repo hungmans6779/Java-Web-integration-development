@@ -1,0 +1,297 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>7.3.&#160;Spring的通知API</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch07.html" title="第&#160;7&#160;章&#160;Spring AOP APIs">
+<link rel="prev" href="ch07s02.html" title="7.2.&#160;Spring中的切入點API">
+<link rel="next" href="ch07s04.html" title="7.4.&#160;Spring裡的Advisor API">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="aop-api-advice"></a>7.3.&#160;Spring的通知API</h2></div></div></div>
+<p>現在讓我們看一下SPring AOP是怎樣處理通知的。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="aop-api-advice-lifecycle"></a>7.3.1.&#160;通知的生命週期</h3></div></div></div>
+<p>每個通知都是一個Spring bean。一個通知實例既可以被所有被通知的物件共享，也可以被每個被通知物件獨佔。
+        這根據設置<span class="emphasis"><em>類別共享（per-class）</em></span>或<span class="emphasis"><em>基於實例（per-instance）</em></span>的參數來決定。</p>
+<p>類別共享通知經常會被用到。它很適合用作通用的通知例如事務通知器（advisor）。這些通知器不依賴於代理物件的狀態也不會向代理物件添加新的狀態；
+        它們僅僅在方法和參數上起作用。
+        </p>
+<p>基於實例的通知很適合用作導入器來支持混合型別（mixin）。在這種情況下，通知向代理物件添加狀態。</p>
+<p>在同一個AOP代理裡混合使用類別共享和基於實例的通知是可能的。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="aop-api-advice-types"></a>7.3.2.&#160;Spring裡的通知型別</h3></div></div></div>
+<p>Spring自帶了多種通知型別，而且它們也可以被擴展來支持各種通知型別。讓我們先看看基本概念和標準的通知型別。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="aop-api-advice-around"></a>7.3.2.1.&#160;攔截環繞通知</h4></div></div></div>
+<p>在Spring中最基礎的通知型別是<span class="emphasis"><em>攔截環繞通知</em></span>（interception around advice）。</p>
+<p>Spring裡使用方法攔截的環繞通知相容AOP聯盟介面。實作環繞通知的MethodInterceptor應當實作下面的介面：</p>
+<pre class="programlisting">public interface MethodInterceptor extends Interceptor {
+                
+                Object invoke(MethodInvocation invocation) throws Throwable;
+            }</pre>
+<p><code class="methodname">invoke()</code>方法的<code class="classname">MethodInvocation</code>參數暴露了被調用的方法；
+                目標連接點；AOP代理以及傳遞給方法的參數。<code class="methodname">invoke()</code>方法應該返回調用的結果：即連接點的返回值。
+            </p>
+<p>一個簡單的<code class="classname">MethodInterceptor</code>實作看起來像下面這樣：</p>
+<pre class="programlisting">public class DebugInterceptor implements MethodInterceptor {
+                
+                public Object invoke(MethodInvocation invocation) throws Throwable {
+                System.out.println("Before: invocation=[" + invocation + "]");
+                Object rval = invocation.proceed();
+                System.out.println("Invocation returned");
+                return rval;
+                }
+            }</pre>
+<p>注意對MethodInvocation中<code class="methodname">proceed()</code>方法的調用。
+            這個方法繼續運行指向連接點的攔截器鏈並返回proceed()的結果。大多數攔截器會調用這個方法，返回一個值。
+            然而，一個類似任意環繞通知的MethodInterceptor，可以返回一個不同的值或者拋出一個異常而不是調用proceed方法。
+            但除非你有很好的理由，否則不要考慮這樣做！</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>MethodInterceptor提供了與其它AOP聯盟相容實作的互操作性。本節的剩下部分將討論其它的通知型別，
+            	它們實作了通用的AOP概念，但是以一種Spring樣式的方式來實作的。使用最通用的通知型別還有一個好處，
+            	固定使用MethodInterceptor環繞通知可以讓你在其它的AOP框架裡運行你所定制的切面。
+            	要注意現在切入點還不能和其它框架進行互操作，AOP聯盟目前還沒有定義切入點介面。</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="aop-api-advice-before"></a>7.3.2.2.&#160;前置通知</h4></div></div></div>
+<p>一個更簡單的通知型別是<span class="bold"><strong>前置通知</strong></span>（before advice）。
+            它不需要<code class="literal">MethodInvocation</code>物件，因為它只是在進入方法之前被調用。</p>
+<p>前置通知的一個主要優點是它不需要調用<code class="literal">proceed()</code>方法，
+            因此就不會發生無意間運行攔截器鏈失敗的情況。</p>
+<p>下面是<code class="literal">MethodBeforeAdvice</code> 介面。
+            （Spring的API設計能夠為類別中的成員變數提供前置通知，雖然通常物件會被應用於成員變數攔截之上，但看起來Spring並不打算實作這個功能。）
+            </p>
+<pre class="programlisting">public interface MethodBeforeAdvice extends BeforeAdvice {
+                
+                void before(Method m, Object[] args, Object target) throws Throwable;
+            }</pre>
+<p>注意返回值的型別是<code class="literal">void</code>。前置通知可以在連接點執行之前插入自定義行為，但是不能修改連接點的返回值。
+            如果一個前置通知拋出異常，這將中止攔截器鏈的進一步執行。異常將沿著攔截器鏈向回傳播。
+            如果異常是非強制檢查的（unchecked）或者已經被包含在被調用方法的throws宣告中，它將被直接返回給客戶端；
+            否則它將由AOP代理包裹在一個非強制檢查異常中返回。</p>
+<p>這是一個Spring前置通知的例子，它計算所有方法被調用的次數：</p>
+<pre class="programlisting">public class CountingBeforeAdvice implements MethodBeforeAdvice {
+                
+                private int count;
+                
+                public void before(Method m, Object[] args, Object target) throws Throwable {
+                ++count;
+                }
+                
+                public int getCount() { 
+                return count; 
+                }
+            }</pre>
+<div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">提示</h3>
+<p>前置通知可以和任何切入點一起使用。</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="aop-api-advice-throws"></a>7.3.2.3.&#160;異常通知</h4></div></div></div>
+<p>如果連接點拋出異常，<span class="bold"><strong>異常通知（throws advice）</strong></span>將在連接點返回後被調用。
+                Spring提供型別檢查的異常通知（typed throws advice），這意味著<code class="literal">org.springframework.aop.ThrowsAdvice</code>介面不包含任何方法：
+                它只是一個標記介面用來標識所給物件實作了一個或者多個針對特定型別的異常通知方法。這些方法應當滿足下面的格式: </p>
+<pre class="programlisting">afterThrowing([Method, args, target], subclassOfThrowable) </pre>
+<p>只有最後一個參數是必須的。根據異常通知方法對方法及參數的需求，方法的簽章可以有一個或者四個參數。
+            下面是一些異常通知的例子。</p>
+<p>當一個<code class="literal">RemoteException</code>（包括它的子類別）被拋出時，下面的通知會被調用：</p>
+<pre class="programlisting">public class RemoteThrowsAdvice implements ThrowsAdvice {
+
+    public void afterThrowing(RemoteException ex) throws Throwable {
+                <em class="lineannotation"><span class="lineannotation">// Do something with remote exception</span></em>
+    }
+            }</pre>
+<p>當一個<span class="emphasis"><em>ServletException</em></span>被拋出，下面的通知將被調用。
+            和上面的通知不同，它宣告了4個參數，因此它可以存取被調用的方法，方法的參數以及目標物件：</p>
+<pre class="programlisting">public class ServletThrowsAdviceWithArguments implements ThrowsAdvice {
+
+    public void afterThrowing(Method m, Object[] args, Object target, ServletException ex) {
+                <em class="lineannotation"><span class="lineannotation">// Do something with all arguments</span></em>
+    }
+            }</pre>
+<p>最後一個例子說明怎樣在同一個類別裡使用兩個方法來處理
+            <code class="literal">RemoteException</code>和<code class="literal">ServletException</code>。可以在一個類別裡組合任意數量的異常通知方法。</p>
+<pre class="programlisting">public static class CombinedThrowsAdvice implements ThrowsAdvice {
+                
+                public void afterThrowing(RemoteException ex) throws Throwable {
+                // Do something with remote exception
+                }
+                
+                public void afterThrowing(Method m, Object[] args, Object target, ServletException ex) {
+                // Do something with all arguments
+                }
+            }</pre>
+<div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">提示</h3>
+<p>異常通知可以和任何切入點一起使用。</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="aop-api-advice-after-returning"></a>7.3.2.4.&#160;後置通知</h4></div></div></div>
+<p>Spring中的後置通知（After Returning advice）必須實作
+                <span class="emphasis"><em>org.springframework.aop.AfterReturningAdvice</em></span>
+            介面，像下面顯示的那樣：</p>
+<pre class="programlisting">public interface AfterReturningAdvice extends Advice {
+                
+                void afterReturning(Object returnValue, Method m, Object[] args, Object target) 
+                throws Throwable;
+            }</pre>
+<p>後置通知可以存取返回值（但不能進行修改），被調用方法，方法參數以及目標物件。</p>
+<p>下面的後置通知計算所有運行成功（沒有拋出異常）的方法調用：</p>
+<pre class="programlisting">public class CountingAfterReturningAdvice implements AfterReturningAdvice {
+                
+                private int count;
+                
+                public void afterReturning(Object returnValue, Method m, Object[] args, Object target)
+                throws Throwable {
+                ++count;
+                }
+                
+                public int getCount() {
+                return count;
+                }
+            }</pre>
+<p>這個通知不改變執行路徑。如果拋出異常，它將沿著攔截器鏈被拋出而不是返回被調用方法的執行結果。</p>
+<div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">提示</h3>
+<p>後置通知可以和任何切入點一起使用。</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="aop-api-advice-introduction"></a>7.3.2.5.&#160;引入通知</h4></div></div></div>
+<p>Spring 把引入通知（introduction advice）作為一種特殊的攔截通知進行處理。</p>
+<p>引入通知需要一個<code class="literal">IntroductionAdvisor</code>,
+            和一個<code class="literal">IntroductionInterceptor</code>, 後者實作下面的介面：</p>
+<pre class="programlisting">public interface IntroductionInterceptor extends MethodInterceptor {
+                
+                boolean implementsInterface(Class intf);
+            }</pre>
+<p>繼承自AOP聯盟<code class="literal">MethodInterceptor</code> 介面的<code class="literal">invoke() </code>方法，必須確保實作引入：
+            也就是說，如果被調用的方法位於一個已經被引入介面裡，這個引入攔截器將負責完成對這個方法的調用--因為它不能調用<code class="literal">proceed()</code>方法。</p>
+<p>引入通知不能和任何切入點一起使用，因為它是應用在類別級別而不是方法級別。
+                你只能通過<code class="literal">IntroductionAdvisor</code>來使用引入通知，這個介面包括下面的方法：
+            </p>
+<pre class="programlisting">public interface IntroductionAdvisor extends Advisor, IntroductionInfo {
+                
+                ClassFilter getClassFilter();
+                
+                void validateInterfaces() throws IllegalArgumentException;
+                }
+                
+                public interface IntroductionInfo {
+                
+                Class[] getInterfaces();
+            }</pre>
+<p>這裡沒有<code class="interfacename">MethodMatcher</code>介面，因此也就沒有
+            <code class="interfacename">Pointcut</code>與引入通知相關聯。這裡只進行類別過濾。</p>
+<p><code class="literal">getInterfaces()</code>方法返回這個通知器所引入的介面。</p>
+<p><code class="literal">validateInterfaces()</code>方法將被內部使用來查看被引入的介面是否能夠由配置的<code class="literal">IntroductionInterceptor</code>來實作。</p>
+<p>讓我們看看從Spring測試集裡拿來的一個簡單例子。讓我們假設我們希望把下面的介面引入給一個或者多個物件：</p>
+<p>
+                </p>
+<pre class="programlisting">public interface Lockable {
+                    void lock();
+                    void unlock();
+                    boolean locked();
+                }</pre>
+<p>
+            </p>
+<p>這裡描述了一個<span class="bold"><strong>混合型別</strong></span>（mixin）。我們希望不論原本物件是什麼型別，都把這個被通知物件轉換為Lockable介面並可以調用lock和unlock 方法。
+                如果我們調用lock() 方法，我們希望所有的setter 方法拋出一個<code class="literal">LockedException</code>異常。
+            這樣我們就可以加入一個方面來確保物件在得到通知之前是不可修改的：一個關於AOP的好例子。</p>
+<p>首先，我們需要一個<code class="literal">IntroductionInterceptor</code>來做些粗活。這裡，我們擴展了
+                <code class="literal">org.springframework.aop.support.DelegatingIntroductionInterceptor</code>這個方便的類別。
+                我們能夠直接實作IntroductionInterceptor介面，
+                但在這個例子裡使用<code class="literal">DelegatingIntroductionInterceptor</code>是最好的選擇。
+            </p>
+<p>
+                <code class="literal">DelegatingIntroductionInterceptor</code>設計為把一個引入托管給一個實作這個介面的類別，
+                這通過隱藏攔截的使用來實作。托管可以被設置到任何具有建構器方法的類別；這裡使用缺省托管(即使用無參建構器)。
+                因此在下面這個例子裡，托管者將是<code class="literal">DelegatingIntroductionInterceptor</code>的子類別
+                <code class="literal">LockMixin</code>。
+                當一個托管實作被提供，<code class="literal">DelegatingIntroductionInterceptor</code>實例將尋找托管所實作的所有介面
+                （除了IntroductionInterceptor之外），並為這些介面的介紹提供支持。子類別例如<code class="literal">LockMixin</code>
+                可以調用<code class="literal">suppressInterface(Class intf) </code>方法來禁止那些不應該被暴露的介面。
+                然而，不論<code class="literal">IntroductionInterceptor</code>支持多少介面，
+                <code class="literal">IntroductionAdvisor</code>的使用將控制哪些介面真正被暴露。
+                一個被引入的介面將覆寫目標物件實作的相同介面。
+            </p>
+<p>這樣LockMixin就繼承了<code class="literal">DelegatingIntroductionInterceptor</code>並實作了Lockable介面。
+            這裡父類別會自動選擇Lockable介面並提供引入支持，因此我們不需要配置它。用這種方法我們能夠引入任意數量的介面。
+            </p>
+<p>注意<code class="literal">locked</code>實例變數的用法。這有效地向目標物件增加了額外狀態。</p>
+<p>
+                </p>
+<pre class="programlisting">public class LockMixin extends DelegatingIntroductionInterceptor 
+                    implements Lockable {
+                    
+                    private boolean locked;
+                    
+                    public void lock() {
+                    this.locked = true;
+                    }
+                    
+                    public void unlock() {
+                    this.locked = false;
+                    }
+                    
+                    public boolean locked() {
+                    return this.locked;
+                    }
+                    
+                    public Object invoke(MethodInvocation invocation) throws Throwable {
+                    if (locked() &amp;&amp; invocation.getMethod().getName().indexOf("set") == 0)
+                    throw new LockedException();
+                    return super.invoke(invocation);
+                    }
+                    
+                }</pre>
+<p>
+            </p>
+<p>覆寫<code class="literal">invoke()</code>方法通常是不必要的：<code class="literal">DelegatingIntroductionInterceptor</code>就已經夠用了（如果一個方法被引入，這個實作將調用實際的托管方法，否則它將直接處理連接點）。在當前這個例子裡，我們需要增加一個檢查：如果處於加鎖（locked）狀態，沒有setter方法可以被調用。
+            </p>
+<p>引入通知器的要求是很簡單的。它的全部要求只是保持一個特定的<code class="literal">LockMixin</code>實例，
+                並說明被通知的介面 - 在這個例子裡，只有一個<code class="literal">Lockable</code>介面。
+                更複雜的例子中也許會參考一個引入攔截器的（可以被定義為一個原型）：
+                在這種情況下，不需要對<code class="literal">LockMixin</code>進行相關配置，
+                因此我們可以簡單的用<code class="literal">new</code>關鍵字來創建它。
+            </p>
+<p>
+                </p>
+<pre class="programlisting">public class LockMixinAdvisor extends DefaultIntroductionAdvisor {
+                    
+                    public LockMixinAdvisor() {
+                    super(new LockMixin(), Lockable.class);
+                    }
+                }</pre>
+<p>
+            </p>
+<p>我們可以很容易應用這個通知器：它不需要配置。
+                （然而，下面<span class="emphasis"><em>是</em></span>必須記住的：不可以在沒有<span class="emphasis"><em>IntroductionAdvisor</em></span>的情況下使用<code class="literal">IntroductionInterceptor</code>。）
+                通常的引入通知器必須是基於實例的，因為它是有狀態的。因此，對於每個被通知物件我們需要一個不同
+                實例的<code class="literal">LockMixinAdvisor</code>和<code class="literal">LockMixin</code>。
+                這種情況下通知器保存了被通知物件的部分狀態。
+            </p>
+<p>
+                我們能夠通過使用<code class="literal">Advised.addAdvisor() </code>的程式方式來應用通知器，或者像其它通知器那樣（也是推薦的方式）在XML裡進行配置。全部的代理創建選擇（包括「自動代理創建器」）將在下面進行討論，
+                看看如何正確地處理引入和有狀態混合型別。
+            </p>
+</div>
+</div>
+</div></body>
+</html>

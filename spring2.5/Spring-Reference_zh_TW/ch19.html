@@ -1,0 +1,77 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>第&#160;19&#160;章&#160;JMS (Java Message Service)</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="pt04.html" title="部分&#160;IV.&#160;整合">
+<link rel="prev" href="ch18s03.html" title="18.3.&#160;使用Spring提供的輔助類別實作EJB元件">
+<link rel="next" href="ch19s02.html" title="19.2.&#160;使用Spring JMS">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="chapter" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title">
+<a name="jms"></a>第&#160;19&#160;章&#160;JMS (Java Message Service)</h2></div></div></div>
+<div class="toc">
+<p><b>目錄</b></p>
+<dl>
+<dt><span class="section"><a href="ch19.html#jms-introduction">19.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch19s02.html">19.2. 使用Spring JMS</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch19s02.html#id602830">19.2.1. <code class="classname">JmsTemplate</code></a></span></dt>
+<dt><span class="section"><a href="ch19s02.html#jms-connections">19.2.2. 連接處理器</a></span></dt>
+<dt><span class="section"><a href="ch19s02.html#jms-destinations">19.2.3. 目的地管理</a></span></dt>
+<dt><span class="section"><a href="ch19s02.html#jms-mdp">19.2.4. 訊息偵聽容器</a></span></dt>
+<dt><span class="section"><a href="ch19s02.html#jms-tx">19.2.5. 事務管理</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch19s03.html">19.3. 發送訊息</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch19s03.html#jms-msg-conversion">19.3.1. 使用訊息轉換器</a></span></dt>
+<dt><span class="section"><a href="ch19s03.html#jms-callbacks">19.3.2. <code class="interfacename">SessionCallback</code> 和 <code class="interfacename">ProducerCallback</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch19s04.html">19.4. 接收訊息</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch19s04.html#jms-receiving-sync">19.4.1. 同步接收</a></span></dt>
+<dt><span class="section"><a href="ch19s04.html#jms-asynchronousMessageReception">19.4.2. 異步接收 - 訊息驅動的POJO</a></span></dt>
+<dt><span class="section"><a href="ch19s04.html#jms-receiving-async-session-aware-message-listener">19.4.3. <code class="interfacename">SessionAwareMessageListener</code>介面</a></span></dt>
+<dt><span class="section"><a href="ch19s04.html#jms-receiving-async-message-listener-adapter">19.4.4. <code class="classname">MessageListenerAdapter</code></a></span></dt>
+<dt><span class="section"><a href="ch19s04.html#jms-tx-participation">19.4.5. 事務中的訊息處理</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch19s05.html">19.5. JCA訊息端點的支持</a></span></dt>
+<dt><span class="section"><a href="ch19s06.html">19.6. JMS命名空間支持</a></span></dt>
+</dl>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="jms-introduction"></a>19.1.&#160;簡介</h2></div></div></div>
+<p>Spring提供了一個用於簡化JMS API使用的抽象框架，並且對使用者屏蔽了JMS API中1.0.2和1.1版本的差異。</p>
+<p>JMS的功能大致上分為兩塊，叫做訊息製造和訊息消耗。<code class="classname">JmsTemplate</code> 用於製造訊息和同步訊息接收。和Java EE的事件驅動Bean樣式類似，對於異步接收訊息，Spring提供了一些訊息偵聽容器來創建訊息驅動的POJO（MDP）。 
+	</p>
+<div class="sidebar">
+<p class="title"><b>訊息域的統一</b></p>
+<p>JMS規範有兩個主要的版本，1.0.2和1.1。</p>
+<p>JMS1.0.2定義了兩種訊息域，點對點（隊列）和發佈/訂閱（主題）。JMS 1.0.2的API為每個訊息域提供了一個平行的類別層次結構。導致客戶端應用只能使用特定訊息域的JMS API。JMS 1.1引進了統一訊息域的概念使這兩種訊息域之間功能和客戶端API的差別盡可能小。舉個已消除的功能差異的例子，如果你使用的是JMS 1.1的訊息供應者，你可以使用同一個 <code class="literal">Session</code> 事務性地在一個域消耗了一個訊息後並且在另一個域中產生一個訊息。 
+        </p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>JMS 1.1的規範發佈於2002年4月，並且在2003年11月成為J2EE 1.4的一個組成部分，結果，現在基於J2EE1.3的應用伺服器還在大量使用（例如BEA WebLogic 8.1和IBM WebSphere 5.1)），它們只支持JMS 1.0.2的規範。
+        </p>
+</div>
+</div>
+<p><code class="literal">org.springframework.jms.core</code> 套件提供使用JMS的核心功能。
+    就像為JDBC提供的 <code class="literal">JdbcTemplate</code>  一樣，它提供了JMS模板類別來處理資源的創建和釋放以簡化JMS的使用。Spring模板類別的公共設計原則就是通過提供助手方法去執行公共的操作，並將實際的處理任務委派到使用者實作的回調介面上，從而完成更複雜的操作。JMS模板也遵循這樣的設計原則。這些類別提供眾多便利的方法來發送訊息、同步接收訊息、使使用者可以接觸到JMS session和訊息產生者。
+    </p>
+<p><code class="literal">org.springframework.jms.support</code> 套件提供JMSException的轉換功能。它將受控的 JMSException異常層次轉換到一個對應的非受控異常層次。任何受控javax.jms.JMSException異常的子類別都被包裹在非受控UncategorizedJmsException異常裡。 
+    </p>
+<p><code class="literal">org.springframework.jms.support.converter</code> 套件提供一個 <code class="interfacename">MessageConverter</code> 用來抽象Java物件和JMS訊息之間的轉換操作。
+    </p>
+<p>
+         <code class="literal">org.springframework.jms.support.destination</code> 套件為管理JMS目的地提供多種策略，例如為存儲在JNDI中的目的地提供一個服務定位器。 
+    </p>
+<p>最後，<code class="literal">org.springframework.jms.connection</code> 套件提供一個適合在獨立應用中使用的
+<code class="classname">ConnectionFactory</code> 的實作。它還為JMS提供了一個Spring的 <code class="literal">PlatformTransactionManager</code> 的實作（現在叫做 <code class="classname">JmsTransactionManager</code>）。
+這樣可以把JMS作為一個事務資源無縫地整合到Spring的事務管理機制中去。 
+  </p>
+</div>
+</div></body>
+</html>

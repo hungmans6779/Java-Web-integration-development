@@ -1,0 +1,379 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>3.4.&#160;Bean的作用域</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch03.html" title="第&#160;3&#160;章&#160;IoC(控制反轉)容器">
+<link rel="prev" href="ch03s03.html" title="3.3.&#160;依賴">
+<link rel="next" href="ch03s05.html" title="3.5.&#160;定制bean特性">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="beans-factory-scopes"></a>3.4.&#160;Bean的作用域</h2></div></div></div>
+<p>創建一個bean定義，其實質是用該bean定義對應的類別來創建真正實例的<span class="emphasis"><em>「配方(recipe)」</em></span>。把bean定義看成一個配方很有意義，它與class很類似，只根據一張「處方」就可以創建多個實例。</p>
+<p>你不僅可以控制注入到物件中的各種依賴和配置值，還可以控制該物件的作用域。這樣你可以靈活選擇所建物件的作用域，而不必在Java Class級定義作用域。Spring Framework支持五種作用域（其中有三種只能用在基於web的Spring <code class="interfacename">ApplicationContext</code>）。
+    </p>
+<p>內置支持的作用域分列如下：</p>
+<div class="table">
+<a name="beans-factory-scopes-tbl"></a><p class="title"><b>表&#160;3.4.&#160;Bean作用域</b></p>
+<div class="table-contents"><table summary="Bean作用域" border="1">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th align="center">作用域</th>
+<th align="center">描述</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>
+							<p>
+								<a href="ch03s04.html#beans-factory-scopes-singleton" title="3.4.1.&#160;Singleton作用域">singleton</a>
+							</p>
+						</td>
+<td>
+							<p>在每個Spring IoC容器中一個bean定義對應一個物件實例。</p>
+						</td>
+</tr>
+<tr>
+<td>
+							<p>
+								<a href="ch03s04.html#beans-factory-scopes-prototype" title="3.4.2.&#160;Prototype作用域">prototype</a>
+							</p>
+						</td>
+<td>
+							<p>一個bean定義對應多個物件實例。</p>
+						</td>
+</tr>
+<tr>
+<td>
+							<p>
+								<a href="ch03s04.html#beans-factory-scopes-request" title="3.4.4.2.&#160;Request作用域">request</a>
+							</p>
+						</td>
+<td>
+							<p>在一次HTTP請求中，一個bean定義對應一個實例；即每次HTTP請求將會有各自的bean實例，
+              	它們依據某個bean定義創建而成。該作用域僅在基於web的Spring 
+                <code class="interfacename">ApplicationContext</code>情形下有效。</p>
+						</td>
+</tr>
+<tr>
+<td>
+							<p>
+								<a href="ch03s04.html#beans-factory-scopes-global-session" title="3.4.4.4.&#160;global session作用域">session</a>
+							</p>
+						</td>
+<td>
+							<p>在一個HTTP <code class="interfacename">Session</code>中，一個bean定義對應一個實例。該作用域僅在基於web的Spring <code class="interfacename">ApplicationContext</code>情形下有效。</p>
+						</td>
+</tr>
+<tr>
+<td>
+							<p>
+								<a href="ch03s04.html#beans-factory-scopes-global-session" title="3.4.4.4.&#160;global session作用域">global
+                session</a>
+							</p>
+						</td>
+<td>
+							<p>在一個全局的HTTP <code class="interfacename">Session</code>中，一個bean定義對應一個實例。典型情況下，僅在使用portlet context的時候有效。該作用域僅在基於web的Spring <code class="interfacename">ApplicationContext</code>情形下有效。</p>
+						</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="beans-factory-scopes-singleton"></a>3.4.1.&#160;Singleton作用域</h3></div></div></div>
+<p>當一個bean的作用域為singleton, 那麼Spring IoC容器中只會存在一個<span class="emphasis"><em>共享</em></span>的bean實例，並且所有對bean的請求，只要id與該bean定義相匹配，則只會返回bean的同一實例。</p>
+<p>換言之，當把一個bean定義設置為singlton作用域時，Spring IoC容器只會創建該bean定義的<span class="emphasis"><em>唯一</em></span>實例。這個單一實例會被存儲到單例快取記憶體（singleton cache）中，並且<span class="emphasis"><em>所有針對該bean的後續請求和參考</em></span>都將返回被快取記憶體的物件實例。</p>
+<p>
+				</p>
+<div class="mediaobject" align="center"><img src="images/singleton.png" align="middle"></div>
+<p>
+			</p>
+<p>請注意Spring的singleton bean概念與「四人幫」（GoF）模式一書中定義的Singleton模式是完全不同的。經典的GoF Singleton模式中所謂的物件範圍是指在<span class="emphasis"><em>每一個<code class="classname">ClassLoader</code>中</em></span>指定class創建的實例有<span class="emphasis"><em>且僅有一個</em></span>。把Spring的singleton作用域描述成<span class="emphasis"><em>一個<code class="interfacename">container</code>對應一個bean</em></span>實例最為貼切。亦即，假如在單個Spring容器內定義了某個指定class的bean，那麼Spring容器將會創建一個<span class="emphasis"><em>且僅有一個</em></span>由該bean定義指定的類別實例。<span class="emphasis"><em>Singleton作用域是Spring中的缺省作用域</em></span>。要在XML中將bean定義成singleton，可以這樣配置：
+	  </p>
+<pre class="programlisting">&lt;bean id="accountService" class="com.foo.DefaultAccountService"/&gt;
+
+<em class="lineannotation"><span class="lineannotation">&lt;!-- the following is equivalent, though redundant (singleton scope is the default); using <code class="literal">spring-beans-2.0.dtd</code> --&gt;</span></em>
+&lt;bean id="accountService" class="com.foo.DefaultAccountService" scope="singleton"/&gt;
+
+<em class="lineannotation"><span class="lineannotation">&lt;!-- the following is equivalent and preserved for backward compatibility in <code class="literal">spring-beans.dtd</code> --&gt;</span></em>
+&lt;bean id="accountService" class="com.foo.DefaultAccountService" singleton="true"/&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="beans-factory-scopes-prototype"></a>3.4.2.&#160;Prototype作用域</h3></div></div></div>
+<p>Prototype作用域的bean會導致在每次對該bean請求（將其注入到另一個bean中，或者以程序的方式調用容器的<code class="literal">getBean()</code>方法）時都會<span class="emphasis"><em>創建一個新的bean實例</em></span>。根據經驗，對有狀態的bean應該使用prototype作用域，而對無狀態的bean則應該使用singleton作用域。</p>
+<p>下圖演示了Spring的prototype作用域。<span class="emphasis"><em>請注意，通常情況下，DAO不會被配置成prototype，因為DAO通常不會持有任何Session狀態，因此應該使用singleton作用域。</em></span>
+			</p>
+<p>
+				</p>
+<div class="mediaobject" align="center"><img src="images/prototype.png" align="middle"></div>
+<p>
+			</p>
+<p>要在XML中將bean定義成prototype，可以這樣配置：</p>
+<pre class="programlisting">
+				<em class="lineannotation"><span class="lineannotation">&lt;!-- using <code class="literal">spring-beans-2.0.dtd</code> --&gt;</span></em>
+&lt;bean id="accountService" class="com.foo.DefaultAccountService" scope="prototype"/&gt;
+
+<em class="lineannotation"><span class="lineannotation">&lt;!-- the following is equivalent and preserved for backward compatibility in <code class="literal">spring-beans.dtd</code> --&gt;</span></em>
+&lt;bean id="accountService" class="com.foo.DefaultAccountService" singleton="false"/&gt;</pre>
+<p>
+       對於prototype作用域的bean，有一點非常重要，那就是Spring不能對一個prototype bean的整個生命週期負責：容器在初始化、配置、裝飾或者是裝配完一個prototype實例後，將它交給客戶端，隨後就對該prototype實例不聞不問了。不管何種作用域，容器都會調用所有物件的初始化生命週期回調方法。但對prototype而言，任何配置好的析構生命週期回調方法都將<span class="emphasis"><em>不會</em></span>被調用。清除prototype作用域的物件並釋放任何prototype bean所持有的昂貴資源，都是客戶端程式碼的職責。（讓Spring容器釋放被prototype作用域bean佔用資源的一種可行方式是，通過使用<a href="ch03s07.html#beans-factory-extension-bpp" title="3.7.1.&#160;用BeanPostProcessor定制bean">bean的後置處理器</a>，該處理器持有要被清除的bean的參考。）
+      </p>
+<p>談及prototype作用域的bean時，在某些方面你可以將Spring容器的角色看作是Java <code class="literal">new</code>操作的替代者。任何遲於該時間點的生命週期事宜都得交由客戶端來處理。（在<a href="ch03s05.html#beans-factory-lifecycle" title="3.5.1.&#160;生命週期回調">第&#160;3.5.1&#160;節 「生命週期回調」</a>一節中會進一步講述Spring容器中的bean生命週期。）
+      </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="beans-factory-scopes-sing-prot-interaction"></a>3.4.3.&#160;Singleton beans和prototype-bean的依賴</h3></div></div></div>
+<p>當使用依賴於prototype bean的singleton-scoped bean時，請注意<span class="emphasis"><em>依賴是在實例化時處理的</em></span>。這也就是說，如果要把一個prototype-scoped bean注入到singleton-scoped bean，實際上只是實例化一個新的prototype bean注入到 singleton bean...<span class="emphasis"><em>但這是全部</em></span>。這種情況下，singleton-scoped bean獲得的prototype實例是唯一的。</p>
+<p>然而，你可能需要在運行期讓singleton-scoped bean每次都獲得prototype-scoped bean的新實例。在這種情況下，只將prototype-scoped bean注入到你的singleton bean中是沒有用的，因為正如上文所說的，僅僅在當Spring容器實例化singleton bean並且處理注入的依賴時，產生唯一實例。如果你需要在運行期一次又一次的產生(prototype) bean的新實例，你可以參考<a href="ch03s03.html#beans-factory-method-injection" title="3.3.7.&#160;方法注入">第&#160;3.3.7&#160;節 「方法注入」</a>
+			</p>
+</div>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">向後相容性：在XML中指定生命週期作用域</h3>
+<p>如果你在bean定義檔案中參考<code class="filename">'spring-beans.dtd'</code> DTD，
+      要顯式說明bean的生命週期作用域你必須使用"<code class="literal">singleton</code>"屬性(記住<a href="ch03s04.html#beans-factory-scopes-singleton" title="3.4.1.&#160;Singleton作用域">singleton生命週期作用域</a>是預設的)。
+      如果參考的是<code class="filename">'spring-beans-2.0.dtd'</code> DTD或者是Spring 2.0 XSD schema，
+      那麼需要使用"<code class="literal">scope</code>"屬性(因為"<code class="literal">singleton</code>"屬性被刪除了，
+      新的DTD和XSD檔案使用"<code class="literal">scope</code>"屬性)</p>
+<p>簡單地說，如果你用"<code class="literal">singleton</code>"屬性那麼就<span class="emphasis"><em>必須<span class="emphasis"><em>在那個檔案裡</em></span>
+				</em></span>參考<code class="filename">'spring-beans.dtd'</code> DTD。
+       如果你用"<code class="literal">scope</code>"屬性那麼必須 <span class="emphasis"><em>在那個檔案裡</em></span>參考<code class="filename">'spring-beans-2.0.dtd'</code> DTD 或<code class="filename">'spring-beans-2.0.xsd'</code> XSD。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="beans-factory-scopes-other"></a>3.4.4.&#160;其他作用域</h3></div></div></div>
+<p>其他作用域，即<code class="literal">request</code>、<code class="literal">session</code>以及<code class="literal">global session</code>
+      僅在基於web的應用中使用（不必關心你所採用的是什麼web應用框架）。</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>下面介紹的作用域<span class="emphasis"><em>僅僅</em></span>在使用基於web的Spring <code class="interfacename">ApplicationContext</code>實作（如<code class="classname">XmlWebApplicationContext</code>）時有用。
+         如果在普通的Spring IoC容器中，比如像<code class="classname">XmlBeanFactory</code>或<code class="classname">ClassPathXmlApplicationContext</code>，
+         嘗試使用這些作用域，你<span class="emphasis"><em>將會</em></span>得到一個<code class="classname">IllegalStateException</code>異常（未知的bean作用域）。
+        </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="beans-factory-scopes-other-web-configuration"></a>3.4.4.1.&#160;初始化web配置</h4></div></div></div>
+<p>要使用<code class="literal">request</code>、<code class="literal">session</code>和
+        <code class="literal">global session</code>作用域的bean（即具有web作用域的bean），
+         在開始設置bean定義之前，還要做少量的初始配置。請注意，假如你只想要「常規的」作用域，（singleton和prototype），就<span class="emphasis"><em>不需要</em></span>這一額外的設置。
+        </p>
+<p>在目前的情況下，根據你的特定servlet環境，有多種方法來完成這一初始設置...</p>
+<p>如果你用Spring Web MVC，即用Spring<code class="classname">DispatcherServlet</code>或<code class="classname">DispatcherPortlet</code>來處理請求，則不需要做特別的配置：<code class="classname">DispatcherServlet</code> 和
+        <code class="classname">DispatcherPortlet</code>已經處理了所有有關的狀態</p>
+<p>當使用了Spring's DispatcherServlet以外的Servlet 2.4及以上的Web容器時（如使用JSF或Struts），你需要在Web應用的<code class="literal">'web.xml'</code>檔案中增加 <code class="interfacename">javax.servlet.ServletRequestListener</code> 定義</p>
+<pre class="programlisting">&lt;web-app&gt;
+  ...
+  &lt;listener&gt;
+    &lt;listener-class&gt;org.springframework.web.context.request.RequestContextListener&lt;/listener-class&gt;
+  &lt;/listener&gt;
+  ...
+&lt;/web-app&gt;</pre>
+<p>如果你用的是早期版本的web容器（Servlet 2.4以前的版本），那麼你要使用一個<code class="interfacename">javax.servlet.Filter</code>的實作。請看下面的web.xml配置片段：</p>
+<pre class="programlisting">&lt;web-app&gt;
+  ..
+  &lt;filter&gt; 
+    &lt;filter-name&gt;requestContextFilter&lt;/filter-name&gt; 
+    &lt;filter-class&gt;org.springframework.web.filter.RequestContextFilter&lt;/filter-class&gt;
+  &lt;/filter&gt; 
+  &lt;filter-mapping&gt; 
+    &lt;filter-name&gt;requestContextFilter&lt;/filter-name&gt; 
+    &lt;url-pattern&gt;/*&lt;/url-pattern&gt;
+  &lt;/filter-mapping&gt;
+  ...
+&lt;/web-app&gt;</pre>
+<p>
+					<code class="classname">RequestContextListener</code>和<code class="classname">RequestContextFilter</code>兩個類別做的都是同樣的工作：
+        將HTTP request物件綁定到為該請求提供服務的<code class="classname">Thread</code>。
+        這使得具有request和session作用域的bean能夠在後面的調用鏈中被存取到。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="beans-factory-scopes-request"></a>3.4.4.2.&#160;Request作用域</h4></div></div></div>
+<p>考慮下面bean定義：</p>
+<pre class="programlisting">&lt;bean id="loginAction" class="com.foo.LoginAction" scope="request"/&gt;</pre>
+<p>針對每次HTTP請求，Spring容器會根據<code class="literal">loginAction</code> bean定義創建一個全新的<code class="classname">LoginAction</code> bean實例，
+         且該<code class="literal">loginAction</code> bean實例僅在當前HTTP request內有效，因此可以根據需要放心的更改所建實例的內部狀態，
+         而其他請求中根據<code class="literal">loginAction</code> bean定義創建的實例，將不會看到這些特定於某個請求的狀態變化。
+         當處理請求結束，request作用域的bean實例將被銷毀。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="beans-factory-scopes-session"></a>3.4.4.3.&#160;Session作用域</h4></div></div></div>
+<p>考慮下面bean定義：</p>
+<pre class="programlisting">&lt;bean id="userPreferences" class="com.foo.UserPreferences" scope="session"/&gt;</pre>
+<p>針對某個HTTP <code class="interfacename">Session</code>，Spring容器會根據<code class="literal">userPreferences</code> bean定義創建一個全新的<code class="classname">userPreferences</code> bean實例，
+        且該<code class="literal">userPreferences</code> bean僅在當前HTTP <code class="interfacename">Session</code>內有效。
+        與<code class="literal">request作用域</code>一樣，你可以根據需要放心的更改所創建實例的內部狀態，而別的HTTP <code class="interfacename">Session</code>中根據<code class="literal">userPreferences</code>創建的實例，
+        將不會看到這些特定於某個HTTP <code class="interfacename">Session</code>的狀態變化。
+        當HTTP <code class="interfacename">Session</code>最終被廢棄的時候，在該HTTP <code class="interfacename">Session</code>作用域內的bean也會被廢棄掉。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="beans-factory-scopes-global-session"></a>3.4.4.4.&#160;global session作用域</h4></div></div></div>
+<p>考慮下面bean定義：</p>
+<pre class="programlisting">&lt;bean id="userPreferences" class="com.foo.UserPreferences" scope="globalSession"/&gt;</pre>
+<p>
+					<code class="literal">global session</code>作用域類似於標準的HTTP <code class="interfacename">Session</code>作用域，不過它僅僅在基於portlet的web應用中才有意義。Portlet規範定義了全局<code class="interfacename">Session</code>的概念，它被所有構成某個portlet web應用的各種不同的portlet所共享。在<code class="literal">global session</code>作用域中定義的bean被限定於全局portlet <code class="interfacename">Session</code>的生命週期範圍內。</p>
+<p>請注意，假如你在編寫一個標準的基於Servlet的web應用，並且定義了一個或多個具有<code class="literal">global session</code>作用域的bean，系統會使用標準的HTTP <code class="interfacename">Session</code>作用域，並且不會引起任何錯誤。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="beans-factory-scopes-other-injection"></a>3.4.4.5.&#160;作用域bean與依賴</h4></div></div></div>
+<p>能夠在HTTP request或者<code class="interfacename">Session</code>（甚至<a href="ch03s04.html#beans-factory-scopes-custom" title="3.4.5.&#160;自定義作用域">自定義</a>）作用域中定義bean固然很好，但是Spring IoC容器除了管理物件（bean）的實例化，同時還負責協作者（或者叫依賴）的實例化。如果你打算將一個Http request範圍的bean注入到另一個bean中，那麼需要注入一個AOP代理來替代被注入的作用域bean。也就是說，你需要注入一個代理物件，該物件具有與被代理物件一樣的公共介面，而容器則可以足夠智能的從相關作用域中（比如一個HTTP request）獲取到真實的目標物件，並把方法調用委派給實際的物件。</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>
+						<code class="literal">&lt;aop:scoped-proxy/&gt;</code>
+						<span class="emphasis"><em>不能</em></span>和作用域為<code class="literal">singleton</code>或<code class="literal">prototype</code>的bean一起使用。為singleton bean創建一個scoped proxy將拋出<code class="classname">BeanCreationException</code>異常。</p>
+</div>
+<p>讓我們看一下將相關作用域bean作為依賴的配置，配置並不複雜（只有一行），但是對理解「<span class="quote">為何這麼做</span>」以及「<span class="quote">如何做</span>」是很重要的。</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd"&gt;
+
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- a HTTP <code class="interfacename">Session</code>-scoped bean exposed as a proxy --&gt;</span></em>
+    &lt;bean id="userPreferences" class="com.foo.UserPreferences" <span class="bold"><strong>scope="session"</strong></span>&gt;
+          
+          <em class="lineannotation"><span class="lineannotation">&lt;!-- this next element effects the proxying of the surrounding bean --&gt;</span></em>
+					<span class="bold"><strong>&lt;aop:scoped-proxy/&gt;</strong></span>
+    &lt;/bean&gt;
+    
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- a singleton-scoped bean <span class="bold"><strong>injected with a proxy to the above bean</strong></span> --&gt;</span></em>
+    &lt;bean id="userService" class="com.foo.SimpleUserService"&gt;
+    
+        <em class="lineannotation"><span class="lineannotation">&lt;!-- a reference to the <span class="bold"><strong>proxied</strong></span>
+						<code class="literal">'userPreferences'</code> bean --&gt;</span></em>
+        &lt;property name="userPreferences" ref="userPreferences"/&gt;
+
+    &lt;/bean&gt;
+&lt;/beans&gt;
+</pre>
+<p>要創建這樣的代理，只需要在Bean作用域定義中增加一個<code class="literal">&lt;aop:scoped-proxy/&gt;</code>子元素(為了讓容器可以有效的使用基於類別（而不是介面）的代理，你需要在classpath中加入CGLIB包，
+        並且要使用<a href="apa.html" title="附錄&#160;A.&#160;XML Schema-based configuration">附錄&#160;A, <i>XML Schema-based configuration</i></a>配置方式)。為什麼在<code class="literal">request</code>,<code class="literal">session</code>, <code class="literal">globalSession</code> 和 '<span class="emphasis"><em>自定義作用域</em></span>' 需要<code class="literal">&lt;aop:scoped-proxy/&gt;</code>元素？在下面配置片段中可以找到解釋(注意下面 <code class="literal">'userPreferences'</code> Bean定義是<span class="emphasis"><em>不完整</em></span>的):</p>
+<pre class="programlisting">&lt;bean id="userPreferences" class="com.foo.UserPreferences" scope="session"/&gt;
+
+&lt;bean id="userManager" class="com.foo.UserManager"&gt;
+    &lt;property name="userPreferences" ref="userPreferences"/&gt;
+&lt;/bean&gt;</pre>
+<p>從上述配置中可以很明顯的看到singleton bean <code class="literal">userManager</code>被注入了一個指向HTTP <code class="interfacename">Session</code>作用域bean <code class="literal">userPreferences</code>的參考。singleton <code class="literal">userManager</code> bean會被容器僅實例化<span class="emphasis"><em>一次</em></span>，並且其依賴（即<code class="literal">userPreferences</code> bean）也僅被注入一次。這意味著，<code class="literal">userManager</code>在理論上只會操作同一個<code class="literal">userPreferences</code>物件，即原先被注入的那個bean。而注入一個HTTP <code class="interfacename">Session</code>作用域的bean作為依賴，有違我們的初衷。因為我們<span class="emphasis"><em>想要</em></span>的只是一個<code class="literal">userManager</code>物件，在它進入一個HTTP <code class="interfacename">Session</code>生命週期時，我們希望去使用一個HTTP <code class="interfacename">Session</code>的<code class="literal">userPreferences</code>物件。</p>
+<p>當注入某種型別物件時，該物件實作了和<code class="classname">UserPreferences</code>類別一樣的公共介面（即<code class="classname">UserPreferences</code>實例）。並且不論我們底層選擇了何種作用域機制（HTTP request、<code class="interfacename">Session</code>等等），容器都會足夠智能的獲取到<code class="interfacename">真正的</code>
+					<code class="classname">UserPreferences</code>物件，因此我們需要將該物件的代理注入到<code class="literal">userManager</code> bean中, 而<code class="literal">userManager</code> bean並不會意識到它所持有的是一個指向<code class="classname">UserPreferences</code>參考的代理。在本例中，當<code class="interfacename">UserManager</code>實例調用了一個使用<code class="classname">UserPreferences</code>物件的方法時，實際調用的是代理物件的方法。隨後代理物件會從HTTP <code class="interfacename">Session</code>獲取真正的<code class="classname">UserPreferences</code>物件，並將方法調用委派給獲取到的實際的<code class="classname">UserPreferences</code>物件。</p>
+<p>這就是當把<code class="literal">request-</code>,
+        <code class="literal">session-</code>, 和
+        <code class="literal">globalSession-scoped</code> beans 注入到協作物件中時，需要以下的正確而完整的配置：</p>
+<pre class="programlisting">&lt;bean id="userPreferences" class="com.foo.UserPreferences" scope="session"&gt;
+    <span class="bold"><strong>
+						<code class="literal">&lt;aop:scoped-proxy/&gt;</code>
+					</strong></span>
+&lt;/bean&gt;
+
+&lt;bean id="userManager" class="com.foo.UserManager"&gt;
+    &lt;property name="userPreferences" ref="userPreferences"/&gt;
+&lt;/bean&gt;</pre>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="beans-factory-scopes-other-injection-proxies"></a>3.4.4.5.1.&#160;選擇創建代理的型別</h5></div></div></div>
+<p>預設情況下，當一個bean有<code class="literal">&lt;aop:scoped-proxy/&gt;</code>標記時，Spring容器將為它創建一個基於CGLIB的類別代理，這意味著你需要
+		  將CGLIB資源庫添加到應用的classpath中。</p>
+<p>
+						<span class="emphasis"><em>注意：CGLIB代理僅僅攔截public方法的調用！</em></span>對於非public的方法調用，不會對目標物件產生委託。</p>
+<p>你可以將<code class="literal">&lt;aop:scoped-proxy/&gt;</code>的屬性'<code class="literal">proxy-target-class</code>'設置為'<code class="literal">false</code>'來選擇標準JDK推薦的基於介面的代理，這樣就不需要在應用的classpath中增加額外的資源庫。但是，這就意味著類別必須實作至少一個介面。並且<span class="emphasis"><em>所有的</em></span>協作者必須通過某一個
+		  介面來參考bean。</p>
+<pre class="programlisting">
+						<em class="lineannotation"><span class="lineannotation">&lt;!-- <code class="classname">DefaultUserPreferences</code> implements the <code class="interfacename">UserPreferences</code> interface --&gt;</span></em>
+&lt;bean id="userPreferences" class="com.foo.DefaultUserPreferences" scope="session"&gt;
+    &lt;aop:scoped-proxy <span class="bold"><strong>proxy-target-class="false"<code class="literal"></code>
+						</strong></span>/&gt;
+&lt;/bean&gt;
+
+&lt;bean id="userManager" class="com.foo.UserManager"&gt;
+    &lt;property name="userPreferences" ref="userPreferences"/&gt;
+&lt;/bean&gt;</pre>
+<p>題為<a href="ch06s06.html" title="6.6.&#160;代理機制">第&#160;6.6&#160;節 「代理機制」</a>的章節也可以有助於理解對選擇基於類別還是基於介面的代理的細微差別。</p>
+</div>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="beans-factory-scopes-custom"></a>3.4.5.&#160;自定義作用域</h3></div></div></div>
+<p>在Spring 2.0中，Spring的bean作用域機制是可以擴展的。這意味著，你不僅可以使用Spring提供的預定義bean作用域；還可以定義自己的作用域，甚至重新定義現有的作用域（不提倡這麼做，而且你<span class="emphasis"><em>不能</em></span>覆寫內置的<code class="literal">singleton</code>和<code class="literal">prototype</code>作用域）。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="beans-factory-scopes-custom-creating"></a>3.4.5.1.&#160;創建自定義作用域</h4></div></div></div>
+<p>作用域是由<code class="interfacename">org.springframework.beans.factory.config.Scope</code>介面定義的。要將你自己的自定義作用域整合到Spring容器中，需要實作該介面。你可能想參考Spring框架本身提供的<code class="interfacename">Scope</code>實作來瞭解如何創建自己的實作，<a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/beans/factory/config/Scope.html" target="_top">Scope Javadoc</a>展示了創建自定義作用域的實作的更多細節</p>
+<p>
+					<code class="literal">Scope</code>介面提供了四個方法來處理獲取物件，移除物件和必要的時候'銷毀'物件。</p>
+<p>第一個方法可以從作用域中獲取物件。例如，Session作用域的實作會返回一個session-scoped bean(如果不存在，則返回一個綁定了Session參考的新實例)。</p>
+<pre class="programlisting">Object get(String name, ObjectFactory objectFactory)</pre>
+<p>第二個方法可以從作用域中移除物件。例如，session作用域的實作可以從session中移除並返回session-scoped bean(如果沒有找到相應名稱的物件昂，則可以返回null)。</p>
+<pre class="programlisting">Object remove(String name)</pre>
+<p>第三個方法是註冊作用域析構的回調方法，當作用域銷毀或作用域中的某個物件銷毀時候會執行。請參考Javadoc或Spring Scope的實作獲得更多析構回調的資訊。</p>
+<pre class="programlisting">void registerDestructionCallback(String name, Runnable destructionCallback)</pre>
+<p>The last method deals with obtaining the conversation identifier
+        for the underlying scope. This identifier is different for each scope.
+        For a session for example, this can be the session identifier.</p>
+<p>最後一個方法處理作用域的Session標識。對每一個作用域來說標識是不一樣的。例如，對於session，將獲得session標識</p>
+<pre class="programlisting">String getConversationId()</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="beans-factory-scopes-custom-using"></a>3.4.5.2.&#160;使用自定義作用域</h4></div></div></div>
+<p>在你編寫和測試完一個或多個自定義<code class="interfacename">Scope</code>實作後，你需要讓Spring容器裝配你的作用域。把一個新的<code class="interfacename">Scope</code>
+         註冊到Spring 容器中的核心方法定義在<code class="interfacename">ConfigurableBeanFactory</code>介面中，下面就是這個方法的範例：
+        </p>
+<pre class="programlisting">void registerScope(String scopeName, Scope scope);</pre>
+<p>
+					<code class="methodname">registerScope(..)</code> 方法的第一個參數是一個作用域的唯一名稱，例如，Spring 容器中的<code class="literal">'singleton'</code>和<code class="literal">'prototype'</code>。<code class="methodname">registerScope(..)</code> 方法的第二個參數是你要註冊和使用的自定義<code class="interfacename">Scope</code>的實例。</p>
+<p>假如你實作了自定義的<code class="interfacename">Scope</code>，並像下面例子一樣進行了註冊：</p>
+<pre class="programlisting">
+					<em class="lineannotation"><span class="lineannotation">// note: the <code class="classname">ThreadScope</code> class does <span class="bold"><strong>not</strong></span> ship with the Spring Framework</span></em>
+Scope customScope = new ThreadScope();
+beanFactory.registerScope("<span class="bold"><strong>thread</strong></span>", scope);</pre>
+<p>你可以像下面一樣來創建自定義作用域的規則：</p>
+<pre class="programlisting">&lt;bean id="..." class="..." <span class="bold"><strong>scope="thread"</strong></span>/&gt;</pre>
+<p>有了自定義作用域的實作，你將不僅僅可以使用以上的註冊方式，還可以使用<code class="classname">CustomScopeConfigurer</code>類別來進行宣告式註冊，</p>
+<p>以下是使用<code class="classname">CustomScopeConfigurer</code>來進行宣告式註冊的自定義作用域的例子：</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd"&gt;
+
+    &lt;bean class="org.springframework.beans.factory.config.CustomScopeConfigurer"&gt;
+        &lt;property name="scopes"&gt;
+            &lt;map&gt;<span class="bold"><strong>
+                &lt;entry key="thread"&gt;
+                    &lt;bean class="com.foo.ThreadScope"/&gt;
+                &lt;/entry&gt;</strong></span>
+            &lt;/map&gt;
+        &lt;/property&gt;
+    &lt;/bean&gt;
+
+    &lt;bean id="bar" class="x.y.Bar" <span class="bold"><strong>scope="thread"</strong></span>&gt;
+        &lt;property name="name" value="Rick"/&gt;
+        &lt;aop:scoped-proxy/&gt;
+    &lt;/bean&gt;
+
+    &lt;bean id="foo" class="x.y.Foo"&gt;
+        &lt;property name="bar" ref="bar"/&gt;
+    &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+</div>
+</div>
+</div></body>
+</html>

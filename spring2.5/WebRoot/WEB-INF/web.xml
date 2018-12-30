@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.5" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee   http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+
+ 
+  <!-- Spring 設定 -->
+  <context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>
+      /WEB-INF/classes/applicationContext-orm.xml,
+      /WEB-INF/classes/spring-servlet.xml
+    </param-value>    <!-- 設定檔的位置(可以多個設定檔，用,隔開即可)  -->  <!--  spring-servlet.xml  Spring MVC 設定 -->
+  </context-param>
+
+  <!-- 使用 Lister 載入 Spring 設定檔  -->
+  <listener>
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>   <!-- 初始化器  -->
+  </listener>
+
+ 
+
+
+
+
+
+ 
+ 
+  <!-- Struts 1.x 載入的 Servlet --> 
+  <servlet>
+    <servlet-name>action</servlet-name>
+    <servlet-class>org.apache.struts.action.ActionServlet</servlet-class>
+    <init-param>
+      <param-name>config</param-name>
+      <param-value>/WEB-INF/struts-config.xml</param-value>
+    </init-param>
+    <init-param>
+      <param-name>debug</param-name>
+      <param-value>3</param-value>
+    </init-param>
+    <init-param>
+      <param-name>detail</param-name>
+      <param-value>3</param-value>
+    </init-param>
+    <load-on-startup>0</load-on-startup>  <!-- 啟動時不載入  -->
+  </servlet>
+  
+  <!-- Spring MVC 模組 載入的  Servlet -->
+  <servlet>
+    <servlet-name>spring</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <init-param>
+      <param-name>contextConfigLocation</param-name>
+      <param-value>/WEB-INF/classes/spring-servlet.xml</param-value>  <!-- 設定檔的位置 -->
+    </init-param>
+    <load-on-startup>1</load-on-startup> <!--  啟動時載入 -->
+  </servlet>
+  
+  
+  
+  
+  <!-- Struts 1.x 載入的 Servlet --> 
+  <servlet-mapping>
+    <servlet-name>action</servlet-name>
+    <url-pattern>*.do</url-pattern>
+  </servlet-mapping>
+  
+   <!-- Spring MVC 模組 載入的  Servlet -->
+  <servlet-mapping>
+    <servlet-name>spring</servlet-name>
+    <url-pattern>*.mvc</url-pattern>      <!-- 攔截所有.mvc 的URL -->
+  </servlet-mapping>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <!-- OpenSessionInViewFilter,將Session 範圍擴大到 JSP 層，防止拋出延遲載入例外  -->
+  <filter>
+    <filter-name>hibernateFilter</filter-name>
+    <filter-class>org.springframework.orm.hibernate3.support.OpenSessionInViewFilter</filter-class>
+  </filter>
+  <!--  字元編碼 Filter  -->
+  <filter>
+    <filter-name>CharacterEncodingFilter</filter-name>
+    <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+    <init-param>
+      <param-name>encoding</param-name>       <!--  編碼方式 -->
+      <param-value>utf-8</param-value>        <!--  UTF-8 編碼 -->
+    </init-param>
+    <init-param>
+      <param-name>forceEncoding</param-name>  <!-- 是否啟用編碼 -->
+      <param-value>true</param-value>         <!-- 啟用 -->
+    </init-param>
+  </filter>
+  <!-- Struts 2.x 載入的 Filter   --> 
+  <filter>
+  	<filter-name>struts2</filter-name>
+  	<filter-class>org.apache.struts2.dispatcher.FilterDispatcher</filter-class>
+  	<init-param>
+  	  <param-name>struts.action.extension</param-name>  <!-- 該參數可省略，預設為 "*.action"  -->
+  	  <param-value>action</param-value>                 <!-- 預設".action"   -->
+  	</init-param>
+  </filter>
+
+  
+  <!-- 設定 OpenSessionInViewFilter  -->
+  <filter-mapping>
+    <filter-name>hibernateFilter</filter-name>
+    <url-pattern>*.do</url-pattern>     <!-- 對 Struts1.x 的 Action 起作用 -->
+  </filter-mapping>
+  <!-- 設定字元編碼Filter -->
+  <filter-mapping>
+    <filter-name>CharacterEncodingFilter</filter-name>  
+    <url-pattern>/*</url-pattern>  <!-- 對所有URL 啟用 -->
+  </filter-mapping>
+  <!-- Struts 2.x 載入的 Filter --> 
+  <!-- 
+             雖然 Struts2 的預設副檔名為"*.action" ，此處 URL 映射仍然設定為 /* 而不是/.action 。
+             因為 Struts2 還整合了一些資源例如DOJO 類別函式庫、CSS檔案，而這些檔案是以 .js、.css 等結尾。
+  --> 
+  <filter-mapping>
+    <filter-name>struts2</filter-name>  
+    <url-pattern>/*</url-pattern> 
+  </filter-mapping>
+
+
+
+  
+  
+  
+ 
+  
+  
+  <display-name />
+  
+  
+  
+  <welcome-file-list>
+    <welcome-file>index.jsp</welcome-file>
+  </welcome-file-list>
+  
+  
+  
+  
+</web-app>
+

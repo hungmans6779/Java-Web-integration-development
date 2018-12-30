@@ -1,0 +1,37 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>16.9.&#160;Portlet應用的部署</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch16.html" title="第&#160;16&#160;章&#160;Portlet MVC框架">
+<link rel="prev" href="ch16s08.html" title="16.8.&#160;異常處理">
+<link rel="next" href="pt04.html" title="部分&#160;IV.&#160;整合">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="portlet-deployment"></a>16.9.&#160;Portlet應用的部署</h2></div></div></div>
+<p>Spring Portlet MVC應用的部署過程和JSR-168 Portlet應用的一樣。然而，
+		這部分內容常常使人感到困惑，所以值得在這裡簡單地介紹一下。</p>
+<p>通常情況下，portal/portlet容器在servlet容器的某個Web應用中運行，
+		你的Portlet運行在servlet容器的另一個Web應用裡。為了使得Portlet容器能夠調用
+		Portlet應用，Portlet容器必須對一個顯式的Servlet進行跨Context的調用，那個Servlet
+		提供了對在 <code class="literal">portlet.xml</code> 定義的Portlet服務的存取支持。
+		</p>
+<p>JSR-168規範對這方面沒有規定，所以每個Portlet容器都有自己的機制，通常
+		會引入一些「佈署時的處理」來改變Portlet應用並且把Portlet註冊到Portlet容器裡。
+		</p>
+<p>至少，在Portlet應用中 <code class="literal">web.xml</code> 檔案需要通過修改來注入
+		Portlet容器會顯式調用的Servlet。有時候，單個Servlet實例對Web應用中的所有
+		Portlet提供支持，有時候，對於每個Portlet需要一個Servlet實例。
+		</p>
+<p>有些Portlet容器也會在Web應用中注入類別資源庫或者配置檔案。Portlet容器需要實作Portlet JSP Tab資源庫以供使用。
+		</p>
+<p>最重要的是理解你選擇的portal對Portlet佈署的要求，並且確保滿足它們
+		(通常是按照它提供的自動佈署程序)。仔細閱讀portal這方面的文檔。</p>
+<p>在你佈署完Portlet後，檢查 <code class="literal">web.xml</code> 。有些老的portal
+		會破壞 <code class="classname">ViewRendererServlet</code> 的定義，破壞你的Portlet顯示。
+		</p>
+</div></body>
+</html>

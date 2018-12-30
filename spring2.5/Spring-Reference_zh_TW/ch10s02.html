@@ -1,0 +1,47 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>10.2.&#160;一致的異常層次</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch10.html" title="第&#160;10&#160;章&#160;DAO支持">
+<link rel="prev" href="ch10.html" title="第&#160;10&#160;章&#160;DAO支持">
+<link rel="next" href="ch10s03.html" title="10.3.&#160;一致的DAO支持抽象類別">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="dao-exceptions"></a>10.2.&#160;一致的異常層次</h2></div></div></div>
+<p>
+			Spring提供了一種方便的方法，把特定於某種技術的異常，如<code class="classname">SQLException</code>，
+			轉化為自己的異常，這種異常屬於以<code class="classname">DataAccessException</code>
+			為根的異常層次。這些異常封裝了原始異常物件，這樣就不會有丟失任何錯誤資訊的風險。
+		</p>
+<p>
+			除了對JDBC異常的封裝，Spring也對Hibernate異常進行了封裝，把它們從一種專有的checked異常
+			（Hibernate3.0以前的版本），轉化為一系列抽象的運行時異常。對JDO也是這樣。
+			它可以讓你輕鬆處理大多數持久化異常（這些異常大多是不可恢復的，而且只出現在特定
+			的層次），而不再需要在DAO中編寫討厭的樣板式的catch/throw程式碼塊和異常宣告。你仍然可以在需要
+			的地方捕獲並處理這些異常。就像我們上面提到的，JDBC異常（包括特定於某種資料庫
+			方言的異常）也可以被轉化為同樣的異常層次，這意味著你可以在一致的程式模型下，通
+			過JDBC來執行某些操作。
+		</p>
+<p>
+			上述情況適用於Spring支持的各種ORM框架的模板類別。如果使用基於攔截器的類別，你在應用中
+			就得自己小心處理<code class="classname">HibernateException</code>、
+			<code class="classname">JDOException</code>等，最好是委託給
+			<code class="classname">SessionFactoryUtils</code>的
+			<code class="methodname">convertHibernateAccessException</code>、
+			<code class="methodname">convertJdoAccessException</code>等方法。這些方法可以把相應的異常轉
+			化為與<code class="literal">org.springframework.dao</code>中定義的異常層次相相容的異常。
+			其中<code class="classname">JDOException</code>屬unchecked異常，它們也可以被簡單地拋出，
+			但這樣做在異常處理方面犧牲了通用的DAO抽象。
+		</p>
+<p>
+			下圖展示了Spring提供的異常層次。
+			（注意圖上所包含的異常類別只是整個龐大的<code class="classname">DataAccessException</code>
+			異常層次中的一部分。）
+		</p>
+<div class="mediaobject" align="center"><img src="images/DataAccessException.gif" align="middle"></div>
+</div></body>
+</html>

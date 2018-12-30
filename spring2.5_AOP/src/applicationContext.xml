@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+
+
+  <!-- 
+     AOP (Aspect Oriented Programming，方面導向程式設計) 是 SpringFramework 的另一個重要特徵。
+     AOP 把一個業務流程分成幾部份，例如許可權的檢查、業務處理、記錄檔處理，每個部份單獨處理，然後把它們組裝成完整的業務流程。
+     每個部份被稱為方面(Aspect)或者關心點。
+     
+     AOP 有一些重要的概念，包括方面、連接點(Joinpoint)、通知(Advice)、切入點(Pointcut)、參考(Introduction)等。
+     這些概念 並不是 Spring 定義的，對於剛剛接觸 AOP 的開發者來說，這些概念非常抽象，往往很難理解。
+     
+     
+     
+     
+     
+     
+     
+     § 攔截器與 Filter 的區別
+     
+     Spring 的攔截器與 Servlet 的 Filter 有相似之處，例如二者都是 AOP 程式設計思想的表現，都能實現許可權檢查、記錄檔記錄。 
+     不同的是：
+     
+     ● 使用範圍不同：
+        Filter 是 Servlet 規範規定的，只能用於 Web 程式中，而攔截器既可以用於 Web 程式，也可以用於 Application、Swing 程式中。
+        
+     ● 規範不同：
+        Filter 是在 Servlet 規範中定義的，是 Servlet 容器的。而攔截器是在 Spring 容器內的，是SpringFramework 支援的。
+     
+     ● 使用的資源不同：
+        同其他的程式碼區塊一樣，攔截器也是一個 Spring 的元件，歸 Spring 管理，設定在 Spring 檔案中，因此能使用 Spring 的任何資源、物件。
+        例如 Service 物件、資料來源、交易管理等、透過 IoC 植入到攔截器即可；而 Filter 則不能。 
+     
+     ● 深度不同：
+        Filter 在只在 Servlet 前後起作用。而攔截器能夠深入到方法前後、例外拋出前後等，因此攔截器的使用具有更大的彈性。
+        所以在 Spring 架構的程式中，更優先使用攔截器。
+     
+     
+     
+     
+     
+     
+     § AOP 的相關概念
+     
+     看一下方面導向的程式設計的幾個常用的概念：方面(Aspect)、通知(Advisor) 與切入點(Pointcut)。
+     
+     ● 方面 (Aspect)：
+        在本例中com.spring.aop.service.impl.AopServiceImpl，方法 withAop()、 withoutAop() 中者有一些程式碼。
+        雖然只是一些輸出敘述、但是在真實的程式中這裡應該是一些有意義的程式碼 (如讀寫資料庫、許可權檢查、例外情況記錄等)。
+        這些程式碼可以看做是 AOP 中的方面(Aspect)。可以將方面了解為模組。
+     
+     ● 通知 (Advisor)：
+        本例的 3個攔截器都是實現某個 Advisor 介面。從類別名稱上看就知道 3個攔截器都是 AOP 中的通知(Advisor)。
+        一旦 Spring 符合條件，就會派發出通知。與生活中的通知不同的是，Spring 中的通知是帶有執行程式碼的，能實現某種功能。
+      
+     ● 切入點 (Pointcut)：
+        在設定欄截器的時候，XML 中設定了 withAop() 方法使用攔截器，而 withoutAop() 方法沒有設定攔截器。
+        這種設定是借助於 org.springframework.aop.support.NameMatchMethodPointcutAdvisor 完成的。
+        從類別名稱上看，這是一個切入點(Pointcut)。該類別物件能設定對哪些方法使用攔截器，從哪個地方"切入"進去。
+        設定時可以使用萬用字元。該類別名上也帶有 Advisor 是因為它是用通知(Advisor)實現的。
+        簡單地說、"切入點"負責往 "什麼地方" 插入程式碼、而"通知"負責插入 "什麼程式碼"。
+      
+     ● 切入點設定方式：
+        Spring 提供靈活的切入點設定方式，例如使用正則運算式。
+ 
+ 
+ 
+ 
+ 
+     § AOP 的代理模式
+     
+     代理模式是 Spring 中常用的設計模式。Spring 提供了幾個常用的代理類別，例如普通的代理類別、交易代理類別等。
+     
+     
+     ProxyFactoryBean 代理工廠物件
+     設定 AopServiceImpl 時使用了 org.springframework.aop.framework.ProxyFactoryBean 類別。
+     這是 Spring 內建的代理類別，引入了一個中間層，能夠建立不同類型的物件。利用它可以實現任何形式的AOP。
+        
+        
+     TransactionProxyFactoryBean  交易代理工廠物件  
+     另一個很有用的代理類別是 TransactionProxyFactoryBean，是 ProxyFactoryBean 的子類別，常用在資料庫程式設計上。
+     Spring 利用 TransactionProxyFactoryBean 對交易進行管理，在指定方法前利用 AOP 連接資料庫並開啟交易，
+     然後在指定方法傳回後利用 AOP 傳送交易並斷開資料庫。
+     
+     
+     AOP 模組提供對方面導向程式設計的支援。Spring 提供三種攔截器：方法前攔截器、傳回後攔截器、例外拋出攔截器。
+     分別在方法執行前、執行後、例外拋出後執行。
+     攔截器能夠作用在指定的類別、指定的方法上、能夠使用 Spring 的資料來源等資料。
+      
+  -->
+
+
+  <!-- 攔截器在 withAop() 方法前執行 安裝到 NameMatchMethodPointcutAdvisor 中  -->
+  <bean id="aopMethodBeforeInterceptor" class="org.springframework.aop.support.NameMatchMethodPointcutAdvisor" >
+    <property name="advice" >
+      <bean class="com.spring.interceptor.MethodBeforeInterceptor"  /> <!-- 採用匿名類別物件的方式 -->
+    </property>
+    <property name="mappedName" value="withAop" ></property>           <!-- 攔截 withAop 的方法 -->
+  </bean>
+  
+  
+  <!-- 攔截器在 withAop() 傳回後執行 安裝到 NameMatchMethodPointcutAdvisor 中  -->
+  <bean id="aopMethodAfterInterceptor" class="org.springframework.aop.support.NameMatchMethodPointcutAdvisor" >
+    <property name="advice" >
+      <bean class="com.spring.interceptor.MethodAfterInterceptor" />   <!-- 採用匿名類別物件的方式 -->
+    </property>
+    <property name="mappedName" value="withAop" ></property>           <!-- 攔截 withAop 的方法 -->
+  </bean>
+  
+  
+  <!-- 攔截器 在例外拋出後執行 安裝到 NameMatchMethodPointcutAdvisor 中  -->
+  <bean id="aopThrowsInterceptor" class="org.springframework.aop.support.NameMatchMethodPointcutAdvisor" >
+    <property name="advice" >
+      <bean class="com.spring.interceptor.ThrowsInterceptor" />        <!-- 採用匿名類別物件的方式 -->
+    </property>
+    <property name="mappedName" value="withAop" ></property>           <!-- 攔截 withAop 的方法 -->
+  </bean>
+  
+  
+  
+  
+  
+  
+  
+  
+  <!-- Service 物件，安裝到  ProxyFactoryBean 物件中  -->
+  <bean id="aopService" class="org.springframework.aop.framework.ProxyFactoryBean" >
+    <!-- 攔截器 -->
+    <property name="interceptorNames" >
+      <list>
+        <value>aopMethodBeforeInterceptor</value>
+        <value>aopMethodAfterInterceptor</value>
+        <value>aopThrowsInterceptor</value>
+      </list>
+    </property>
+ 
+    <!-- 被攔截的物件 -->
+    <property name="target" >
+      <bean class="com.spring.aop.service.impl.AopServiceImpl" >  <!-- 採用匿名類別物件的方式 -->
+        <property name="name" value="kevin" />
+      </bean>
+    </property>
+  </bean>
+  
+  
+  
+  
+  
+</beans>

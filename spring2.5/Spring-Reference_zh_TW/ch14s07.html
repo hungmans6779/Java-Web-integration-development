@@ -1,0 +1,463 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>14.7.&#160;JasperReports</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch14.html" title="第&#160;14&#160;章&#160;整合視圖技術">
+<link rel="prev" href="ch14s06.html" title="14.6.&#160;文檔視圖（PDF/Excel）">
+<link rel="next" href="ch15.html" title="第&#160;15&#160;章&#160;整合其它Web框架">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="view-jasper-reports"></a>14.7.&#160;JasperReports</h2></div></div></div>
+<p>
+			JasperReports (
+			<a href="http://jasperreports.sourceforge.net" target="_top">http://jasperreports.sourceforge.net</a>
+			) 是一個功能強大，開源的報表引擎，
+			支持使用一種易於理解的XML文檔創建報表設計，並可以輸出4種格式的報表：CSV、Excel、HTML和PDF。
+		</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="view-jasper-reports-dependencies"></a>14.7.1.&#160;依賴的資源</h3></div></div></div>
+<p>
+				應用程序需要包含最新版本的JasperReports（寫本文檔的時候是 0.6.1）。
+				JasperReports自身依賴於下面的項目:
+			</p>
+<div class="itemizedlist"><ul type="bullet">
+<li style="list-style-type: disc"><p>BeanShell</p></li>
+<li style="list-style-type: disc"><p>Commons BeanUtils</p></li>
+<li style="list-style-type: disc"><p>Commons Collections</p></li>
+<li style="list-style-type: disc"><p>Commons Digester</p></li>
+<li style="list-style-type: disc"><p>Commons Logging</p></li>
+<li style="list-style-type: disc"><p>iText</p></li>
+<li style="list-style-type: disc"><p>POI</p></li>
+</ul></div>
+<p>JasperReports還需要一個JAXP解析器。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="view-jasper-reports-configuration"></a>14.7.2.&#160;配置</h3></div></div></div>
+<p>
+				要在
+				<code class="literal">ApplicationContext</code>中配置JasperReports，你必須定義一個
+				<code class="literal">ViewResolver</code>來把視圖名映射到適當的視圖類別，這取決於你希望輸出什麼格式的報表。
+			</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="view-jasper-reports-configuration-resolver"></a>14.7.2.1.&#160;
+					配置<code class="interfacename">ViewResolver</code>
+				</h4></div></div></div>
+<p>
+					通常，你會使用<code class="classname">ResourceBundleViewResolver</code>
+					來根據一個屬性檔案把視圖名映射到視圖類別和相關檔案：
+				</p>
+<pre class="programlisting">&lt;bean id="viewResolver" class="org.springframework.web.servlet.view.ResourceBundleViewResolver"&gt;
+    &lt;property name="basename" value="views"/&gt;
+&lt;/bean&gt;</pre>
+<p>
+					這裡我們已經定義了一個
+					<code class="classname">ResourceBundleViewResolver</code>
+					的實例， 它將通過基名（base name）
+					<code class="literal">views</code>
+					在資源檔案中尋找視圖映射。 這個檔案的詳細內容將在下節內容敘述。
+				</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="view-jasper-reports-configuration-views"></a>14.7.2.2.&#160;
+					配置<code class="literal">View</code>
+				</h4></div></div></div>
+<p>
+					Spring中包含了JasperReports的五種視圖實作，其中四種對應到JasperReports支持的四種輸出格式，另一種支持在運行時確定輸出格式。
+				</p>
+<div class="table">
+<a name="view-jasper-reports-configuration-views-classes"></a><p class="title"><b>表&#160;14.2.&#160;
+						JasperReports
+						<code class="literal">View</code>
+						Classes
+					</b></p>
+<div class="table-contents"><table summary="
+						JasperReports
+						View
+						Classes
+					" border="1">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>類別名</th>
+<th>渲染格式</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>
+									<code class="literal">
+										JasperReportsCsvView
+									</code>
+								</td>
+<td>CSV</td>
+</tr>
+<tr>
+<td>
+									<code class="literal">
+										JasperReportsHtmlView
+									</code>
+								</td>
+<td>HTML</td>
+</tr>
+<tr>
+<td>
+									<code class="literal">
+										JasperReportsPdfView
+									</code>
+								</td>
+<td>PDF</td>
+</tr>
+<tr>
+<td>
+									<code class="literal">
+										JasperReportsXlsView
+									</code>
+								</td>
+<td>Microsoft Excel</td>
+</tr>
+<tr>
+<td>
+									<code class="literal">
+										JasperReportsMultiFormatView
+									</code>
+								</td>
+<td>
+									運行時確定格式（參考
+									<a href="ch14s07.html#view-jasper-reports-configuration-multiformat-view" title="14.7.2.4.&#160;
+					使用
+					JasperReportsMultiFormatView
+				">第&#160;14.7.2.4&#160;節 「
+					使用
+					<code class="literal">JasperReportsMultiFormatView</code>
+				」</a>
+									）
+								</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><p>把這些類別映射到視圖名和報表檔案只需要簡單地在前述資源檔案中添加適當的條目。如下：</p>
+<pre class="programlisting">
+					simpleReport.class=org.springframework.web.servlet.view.jasperreports.JasperReportsPdfView
+					simpleReport.url=/WEB-INF/reports/DataSourceReport.jasper
+				</pre>
+<p>
+					這裡你可以看到名為<code class="literal">simpleReport</code>
+					的視圖被映射到<code class="literal">JasperReportsPdfView</code>
+					類別。 這將產生PDF格式的報表輸出。該視圖的url屬性被設置為底層報表檔案的位置。
+				</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="view-jasper-reports-configuration-report-files"></a>14.7.2.3.&#160;關於報表檔案</h4></div></div></div>
+<p>
+					JasperReports有兩種不同的報表檔案：一種是設計檔案，以
+					<code class="literal">.jrxml</code>
+					為擴展名；另一種是編譯後的格式，以
+					<code class="literal">.jasper</code>
+					為擴展名。 通常，你使用JasperReports自帶的Ant任務來把你的
+					<code class="literal">.jrxml</code>
+					檔案編譯為
+					<code class="literal">.jasper</code>
+					檔案，然後部署到應用中。
+					在Spring裡你可以把任一種設計檔案映射到報表檔案，Spring能幫你自動編譯
+					<code class="literal">.jrxml</code>
+					檔案。 但你要注意，
+					<code class="literal">.jrxml</code>
+					被編譯後即快取記憶體起來並在整個應用活動期間有效，如果你要做一些改動，就得重啟應用。
+				</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="view-jasper-reports-configuration-multiformat-view"></a>14.7.2.4.&#160;
+					使用
+					<code class="literal">JasperReportsMultiFormatView</code>
+				</h4></div></div></div>
+<p>
+					<code class="literal">JasperReportsMultiFormatView</code>
+					允許在運行時指定報表格式， 真正解析報表委託給其它JasperReports的view類別 -
+					<code class="literal">JasperReportsMultiFormatView</code>類別簡單地增加了一層包裹，允許在運行時準確地指定實作。
+				</p>
+<p>
+					<code class="literal">JasperReportsMultiFormatView</code>
+					類別引入了兩個概念：format key和discriminator key。
+					<code class="literal">JasperReportsMultiFormatView</code>
+					使用mapping key來尋找實際實作類別，而使用format key來尋找mapping key。
+					從程式角度來說，你在model中添加一個條目，以format key作鍵並以mapping key作值，例如：
+				</p>
+<pre class="programlisting">
+					public ModelAndView
+					handleSimpleReportMulti(HttpServletRequest request,
+					HttpServletResponse response) throws Exception {
+
+					String uri = request.getRequestURI(); String format
+					= uri.substring(uri.lastIndexOf(".") + 1);
+
+					Map model = getModel(); model.put("format", format);
+
+					return new ModelAndView("simpleReportMulti", model);
+					}
+				</pre>
+<p>
+					在這個例子中，mapping key由 request URI的擴展名來決定，並以預設的format key值
+					<code class="literal">format</code>
+					加入了model。 如果希望使用不同的format key，你可以使用
+					<code class="literal">JasperReportsMultiFormatView</code>
+					類別的<code class="literal">formatKey</code>屬性來配置它。
+				</p>
+<p>
+					<code class="literal">JasperReportsMultiFormatView</code>中預設已經配置了下列mapping key：
+					</p>
+<div class="table">
+<a name="view-jasper-reports-configuration-multiformat-view-mappings"></a><p class="title"><b>表&#160;14.3.&#160;
+							JasperReportsMultiFormatView預設Mapping Key映射
+						</b></p>
+<div class="table-contents"><table summary="
+							JasperReportsMultiFormatView預設Mapping Key映射
+						" border="1">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Mapping Key</th>
+<th>View Class</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>csv</td>
+<td>
+										<code class="literal">
+											JasperReportsCsvView
+										</code>
+									</td>
+</tr>
+<tr>
+<td>html</td>
+<td>
+										<code class="literal">
+											JasperReportsHtmlView
+										</code>
+									</td>
+</tr>
+<tr>
+<td>pdf</td>
+<td>
+										<code class="literal">
+											JasperReportsPdfView
+										</code>
+									</td>
+</tr>
+<tr>
+<td>xls</td>
+<td>
+										<code class="literal">
+											JasperReportsXlsView
+										</code>
+									</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p><br class="table-break">
+					所以上例中一個對/foo/myReport.pdf的請求將被映射至
+					<code class="literal">JasperReportsPdfView</code>。 你可以使用
+					<code class="literal">JasperReportsMultiFormatView</code>
+					的<code class="literal">formatMappings</code>屬性覆寫mapping key到視圖類別的映射配置。
+				</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="view-jasper-reports-model"></a>14.7.3.&#160;
+				建構<code class="literal">ModelAndView</code>
+			</h3></div></div></div>
+<p>
+				為了以你選擇的格式正確地渲染報表，你必須為Spring提供所有需要的報表資料。
+				對JasperReports來說，這就是報表資料源（report datasource）和參數（report
+				parameters）。 報表參數就是一些可以加到model的
+				<code class="interfacename">Map</code>中的簡單鍵值對。
+			</p>
+<p>
+				當添加資料源到model中時，有兩種選擇。第一種是以任意值為key，添加一個
+				<code class="literal">JRDataSource</code>
+				或<code class="literal">Collection</code>
+				到 model<code class="interfacename">Map</code>
+				。 Spring將從model中找到它並用作報表資料源。例如，你可能這樣建構model：
+				</p>
+<pre class="programlisting">
+					private Map getModel() { Map model = new HashMap();
+					Collection beanData = getBeanData();
+					model.put("myBeanData", beanData); return model; }
+				</pre>
+<p>
+			</p>
+<p>
+				第二種方式是以一個特定鍵值添加
+				<code class="literal">JRDataSource</code>
+				或<code class="literal">Collection</code>
+				的實例， 並把該它賦給視圖類別的
+				<code class="literal">reportDataKey</code>
+				屬性。 不管哪種方式，Spring都會把
+				<code class="literal">Collection</code>
+				實例轉化為
+				<code class="literal">JRBeanCollectionDataSource</code>
+				實例。例如：
+				</p>
+<pre class="programlisting">
+					private Map getModel() { Map model = new HashMap();
+					Collection beanData = getBeanData(); Collection
+					someData = getSomeData(); model.put("myBeanData",
+					beanData); model.put("someData", someData); return
+					model; }
+				</pre>
+<p>
+				這裡你可以看到有兩個
+				<code class="literal">Collection</code>
+				實例被加到model裡。 為了確保使用正確的那個，我們得適當地改動一下視圖的配置：
+				</p>
+<pre class="programlisting">
+					simpleReport.class=org.springframework.web.servlet.view.jasperreports.JasperReportsPdfView
+					simpleReport.url=/WEB-INF/reports/DataSourceReport.jasper
+					simpleReport.reportDataKey=myBeanData
+				</pre>
+<p>
+			</p>
+<p>
+				注意當使用第一種方式時，Spring將使用它遇到的第一個
+				<code class="literal">JRDataSource</code>或
+				<code class="literal">Collection</code>
+				。 如果你要放置多個這樣的實例到model中，你就得使用第二種方式。
+			</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="view-jasper-reports-subreports"></a>14.7.4.&#160;使用子報表</h3></div></div></div>
+<p>
+				JasperReports提供了對嵌入在主報表檔案中的子報表的支持。有多種機制支持在報表檔案中包含子報表。
+				最簡單的方法是在設計檔案中直接寫入子報表的路徑和SQL查詢。
+				這種方法的缺點很明顯：相關資訊被硬編碼進報表檔案，降低了可復用性，並使報表設計難以修改。
+				為了克服這些，你可以宣告式地配置子報表，並為其包含更多直接來自controller的資料。
+			</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="view-jasper-reports-subreports-config-reports"></a>14.7.4.1.&#160;配置子報表檔案</h4></div></div></div>
+<p>
+					使用Spring時，為了控制哪個子報表檔案被包含，你的報表檔案必須被配置為能夠從外部來源接受子報表。
+					要完成這些你得在報表檔案中宣告一個參數，像這樣：
+					</p>
+<pre class="programlisting">
+						&lt;parameter name="ProductsSubReport"
+						class="net.sf.jasperreports.engine.JasperReport"/&gt;
+					</pre>
+<p>
+					然後，你用這個參數定義一個子報表：
+					</p>
+<pre class="programlisting">
+						&lt;subreport&gt; &lt;reportElement
+						isPrintRepeatedValues="false" x="5" y="25"
+						width="325" height="20"
+						isRemoveLineWhenBlank="true"
+						backcolor="#ffcc99"/&gt; &lt;subreportParameter
+						name="City"&gt;
+						&lt;subreportParameterExpression&gt;&lt;![CDATA[$F{city}]]&gt;&lt;/subreportParameterExpression&gt;
+						&lt;/subreportParameter&gt;
+						&lt;dataSourceExpression&gt;&lt;![CDATA[$P{SubReportData}]]&gt;&lt;/dataSourceExpression&gt;
+						&lt;subreportExpression
+						class="net.sf.jasperreports.engine.JasperReport"&gt;
+						&lt;![CDATA[$P{ProductsSubReport}]]&gt;&lt;/subreportExpression&gt;
+						&lt;/subreport&gt;
+					</pre>
+<p>
+					這樣就定義了一個主報表檔案，接受一個名為
+					<code class="literal">ProductsSubReport</code>
+					的參數， 它的值是一個
+					<code class="literal">
+						net.sf.jasperreports.engine.JasperReports
+					</code>
+					型別實例。 然後配置Jasper視圖類別時，你通過使用
+					<code class="literal">subReportUrls</code>
+					屬性來告訴Spring載入一個報表檔案並作為子報表傳遞給JasperReports引擎。
+					</p>
+<pre class="programlisting">
+						&lt;property name="subReportUrls"&gt;
+						&lt;map&gt; &lt;entry key="ProductsSubReport"
+						value="/WEB-INF/reports/subReportChild.jrxml"/&gt;
+						&lt;/map&gt; &lt;/property&gt;
+					</pre>
+<p>
+					這裡<code class="interfacename">Map</code>
+					中的key對應於報表設計檔案中子報表參數的名字，它的值代表子報表檔案的URL。
+					Spring將載入該檔案，需要的話進行編譯，然後以給定的key為參數名傳遞給JasperReports引擎。
+				</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="view-jasper-reports-subreports-config-datasources"></a>14.7.4.2.&#160;配置子報表資料源</h4></div></div></div>
+<p>
+					當使用Spring配置子報表時，這一步完全是可選的。如果你喜歡，仍可以使用靜態查詢作為子報表的資料源。
+					然而，如果你希望Spring把你返回的
+					<code class="literal">ModelAndView</code>中的資料轉化為
+					<code class="literal">JRDataSource</code>， 你就得告訴Spring
+					<code class="literal">ModelAndView</code>
+					中的那個參數需要被轉化。 實際操作時，你需要使用所選視圖類別的
+					<code class="literal">subReportDataKeys</code>
+					屬性，為其配置一個參數名列表：
+					</p>
+<pre class="programlisting">
+						&lt;property name="subReportDataKeys"
+						value="SubReportData"/&gt;
+					</pre>
+<p>
+					這裡提供的key值必須與<code class="literal">ModelAndView</code>和報表設計檔案中使用的key值對應。
+				</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="view-jasper-reports-exporter-parameters"></a>14.7.5.&#160;配置Exporter的參數</h3></div></div></div>
+<p>
+				如果你對exporter的配置有特殊要求，比如你可能要求特定頁面尺寸的PDF報表，
+				那你可以在Spring配置檔案中宣告式地配置這些，通過使用視圖類別的
+				<code class="literal">exporterParameters</code>
+				屬性， 該屬性是<code class="interfacename">Map</code>
+				型值，其中的key應該是一個代表exporter參數定義的靜態域的全限定名，value是要賦給參數的值。
+				範例如下：
+			</p>
+<pre class="programlisting">
+				&lt;bean id="htmlReport"
+				class="org.springframework.web.servlet.view.jasperreports.JasperReportsHtmlView"&gt;
+				&lt;property name="url"
+				value="/WEB-INF/reports/simpleReport.jrxml"/&gt;
+				&lt;property name="exporterParameters"&gt; &lt;map&gt;
+				&lt;entry
+				key="net.sf.jasperreports.engine.export.JRHtmlExporterParameter.HTML_FOOTER"&gt;
+				&lt;value&gt;Footer by Spring!
+				&amp;lt;/td&amp;gt;&amp;lt;td
+				width="50%"&amp;gt;&amp;amp;nbsp;
+				&amp;lt;/td&amp;gt;&amp;lt;/tr&amp;gt;
+				&amp;lt;/table&amp;gt;&amp;lt;/body&amp;gt;&amp;lt;/html&amp;gt;
+				&lt;/value&gt; &lt;/entry&gt; &lt;/map&gt;
+				&lt;/property&gt; &lt;/bean&gt;
+			</pre>
+<p>
+				這裡你可以看到，我們為
+				<code class="classname">JasperReportsHtmlView</code>
+				配置了一個exporter參數， 參數
+				<code class="literal">
+					net.sf.jasperreports.engine.export.JRHtmlExporterParameter.HTML_FOOTER
+				</code>
+				定義了結果HTML中的頁腳。
+			</p>
+</div>
+</div></body>
+</html>

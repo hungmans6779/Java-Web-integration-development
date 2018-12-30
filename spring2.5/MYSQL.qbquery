@@ -1,0 +1,40 @@
+﻿
+use spring;
+
+show tables;
+
+
+select * from tb_person;
+
+select * from tb_cat;
+
+
+select count(*) from tb_cat;
+
+
+
+
+
+
+
+
+
+
+ select
+        count(cat0_.id) as col_0_0_
+    from
+        tb_cat cat0_;
+
+
+select count(*) from tb_cat;
+
+
+
+  select
+        cat0_.id as id0_,
+        cat0_.createDate as createDate0_,
+        cat0_.name as name0_
+    from
+        tb_cat cat0_
+    where
+        cat0_.name= 'Hello Kitty';

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.0.dtd">
+
+<struts>
+
+  <constant name="struts.objectFactory"  value="spring" />    <!-- 把值設為spring，表示該Action 是由  Spring 產生。 -->
+  <constant name="srtuts.devMode"        value="true"   />    <!-- 開發模式  --> 
+  
+  <package name="cat" extends="struts-default" >
+  
+    <!-- 例外處理頁面 -->
+    <global-results>
+      <result name="exception" >/form/struts2/exception.jsp</result>
+    </global-results>
+
+    <!-- 例外處理設定 -->  
+    <global-exception-mappings>
+      <exception-mapping exception="java.lang.Exceptoin"  result="execulte" />
+    </global-exception-mappings>
+  
+    <!-- class 的屬性參照  -->
+    <action name="*_cat" method="{1}" class="catAction" >  
+      <param name="action" >{1}</param>
+      <result>/form/struts2/listCat.jsp</result>
+      <result name="list" >/form/struts2/listCat.jsp</result>
+    </action>
+  
+  
+  </package>                                               
+
+
+
+</struts>    

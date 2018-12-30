@@ -1,0 +1,471 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+
+  <!-- 
+     Core 模組是 Spring 最核心、最基本的模組，實現載入設定檔、管理、初始化 Bean 等功能。
+     Spring 設定檔中可以設定各種各樣建構函數的類別，不過最常見的還是使用不帶參數的建構函數。
+     Spring 的一些設定(例如：資料庫設定)也可以拿到 properties 中。  
+  
+  -->
+
+
+
+
+  <!-- 工廠方法 factory-method 宣告範例 -->
+  <!-- 等同於 exampleBean = examples.MyFactoryBean.createInstance();  -->
+  <!-- 
+    <bean id="exampleBean" class="examples.MyFactoryBean" factory-method="createInstance" />
+  -->
+   
+  <!-- 等同於 exampleBean2 = myFacctoryBean.createInstance(); -->
+  <!--  
+    <bean id="exampleBean2" factory-bean="myFactoryBean" factory-method="createInstance" /> 
+  -->
+  
+  
+  
+  
+  
+  <!-- 建構函數 <constructor-arg > -->
+  <!-- 
+      等同於
+      public class ExampleBean{
+        private AnotherBean beanOne;
+        private YetAnotherBean beanTwo;
+        private int i;
+        
+        public ExampleBean(AnotherBean anotherBean,YetAnotherBean yetAnotherBean,int i){
+          this.beanOne = anotherBean;
+          this.beanTwo = yetAnotherBean;
+          this.i = i;
+        }
+      }
+  
+  -->
+  <!-- 
+    <bean id="exampleBean" class="example.ExampleBean" >
+       <constructor-arg><ref bean="anotherExampleBean" /></constructor-arg> 
+       <constructor-arg><ref bean="yetAnotherBean" /></constructor-arg> 
+       <constructor-arg><value>1</value></constructor-arg> 
+    </bean>
+  -->
+  
+  
+  
+  
+  
+  
+  <!-- 單例模式 singleton -->
+  <!-- 
+    <bean id="exampleBean" class="examples.ExampleBean" singleton="false" />
+  -->
+  
+  
+  
+  
+  
+  <!-- 
+    設定 <ref> 的屬性 
+    local:只能使用本設定檔中的bean。
+    parent：只能使用父設定檔中的 bean。
+    bean：沒有任何限制。
+  -->
+  <!--
+    方式一： 
+    <bean id="daoImpl" class="com.spring.example.DaoImpl" />
+    <bean id="serviceImpl" class="com.spring.example.serviceImpl" >
+      <property name="dao" >
+        <ref bean="daoImp" /> 
+      </property>
+    </bean>
+    
+    
+    方式二：簡寫方式，適用於 dao  只有一個值的狀態下
+    <bean id="daoImpl" class="com.spring.example.DaoImpl" />
+    <bean id="serviceImpl" class="com.spring.example.serviceImpl" >
+      <property name="dao" ref="daoImpl" />
+    </bean>
+    
+    
+    方式三：採用匿名類別物件的方式
+    <bean id="serviceImpl" class="com.spring.example.serviceImpl" >
+      <property name="dao" >
+        <bean class="com.spring.example.DaoImpl" /> 
+      </property>
+    </bean>
+  -->
+  
+  
+  
+  
+  
+  <!-- 
+    設定 List 屬性 <list>
+    <list>設定 java.util.List 類型的屬性。List 屬性中可設定任意物件。
+    如果是 Java 物件，則使用 <ref/> 指定，或者使用 <bean> 定義新實例，如果是普通類型如 String、int double 等，直接用字串即可。 
+    <list/>裡的元素會按設定的先後順序排序：
+  -->
+  <!-- 
+  <property name="someList" >
+    <list>
+      <value>String、int、Double、Boolean 等類型物件</value>
+      <ref bean="myDataSource" />
+    </list>
+  </property>
+  -->
+   
+   
+   
+   
+ 
+ 
+   
+ 
+  <!-- 
+    設定 Set 屬性 <set>
+    <set> 設定 java.util.Set 類型的屬性。Set 屬性中可設定任意物件。
+    如果是 Java 物件，則使用 <ref/> 指定，或者使用 <bean> 定義新實例，如果是普通類型如 String、int double 等，直接用字串即可。 
+  -->
+  <!-- 
+  <property name="somSet" >
+    <set>
+      <value>String、int、Double、Boolean 等類型物件</value>
+      <ref bean="myDataSource" />
+    </set>
+  </property>
+  -->
+   
+       
+       
+       
+       
+  <!-- 
+    設定 Map 屬性 <map>
+    <map> 設定 java.util.Map 類型的屬性。<entry> 設定 Map 裡的元素，key 指定索引， value 指定值 。
+    如果是 Java 物件，則使用 <ref/> 指定，或者使用 <bean> 定義新實例，如果 key 為物件，使用 key-ref 屬性。 
+  -->
+  <!-- 
+  <property name="somMap" >
+    <map>
+      <entry key="yup an entry" >
+        <value>just some string</value>
+      </entry>
+      <entry key-ref="myDataSource >
+        <ref bean="serviceImpl" />
+      </entry>
+    </map>
+  </property>
+  -->
+   
+   
+   
+          
+   
+  <!-- 
+    設定 properties 屬性 <props>
+    使用 <props> 與 <prop> 設定 properties 屬性。 <props /> 設定一個 Properties 物件，<prop /> 設定一條屬性，屬性 key 設定索引。
+    
+    等同於
+    Properties props = new Properties(){
+      put("url","http://tb.hhtravel.com");
+      put("name","kevin");
+    }
+    bean.setProps(props);
+  -->
+  <!--
+  <property name="props" >
+    <props>
+      <prop key="url"  >http://tb.hhtravel.com</prop>
+      <prop key="name" >kevin</prop>
+    </props>
+  </property>     
+  -->
+  
+  
+  
+  
+  
+  <!-- 
+    <idref> 與 <ref> 的區別
+    <idref> 與 <ref> 的作用是一樣的，都是設定 Java 物件的。 <idref>的用也與 <ref> 基本相同，
+    不同的是，<idref>只有 bean 及 local 屬性，沒有 parent 屬性。
+    
+    Spring 載入 XML 設定檔時，會檢查 <idref> 設定的 Bean 存在不存在。而<ref> 只會在第一次呼叫時才會檢查。
+    換句話說，如果 Bean 不存在，<idref> 能在啟動程式的時候就拋出錯誤，而<ref> 只會在執行中拋出錯誤。
+  -->
+  <!-- 
+  <idref local="dataSource" />
+  -->
+  
+  
+  
+  
+  
+  <!-- 
+    設定 destroy-method 銷毀方法
+    有的物件 (例如資料來源、JDBC 連接、輸入和輸出流等) 在使用完畢後需要執行 close() 方法釋放資源。
+    可以使用 destroy-method 設定。 Spring 在登出這些資源時會呼叫 destroy-method 裡設定的方法
+  -->
+  <!-- destroy-method：資料來源，使用完畢後需要關閉  -->
+  <!-- 
+  <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="false" >
+    ...
+  </bean>
+  -->
+  
+  
+  
+  
+  
+  
+  <!-- 
+    設定 depends-on 相依物件
+    Spring 會預設按照設定檔裡 Bean 設定的先後順序產生實體 Bean 。但有時候在產生實體 A 物件之前需要先產生實體後面的 B 物件。
+    這時候可以使用 depends-on ，強制先 B 物件。
+     
+    這時，在產生實體 A 物件時會檢查 B 是否存在，如果不存在，先產生實體 B 物件。 
+  -->
+  <!-- 
+  <bean id="a" class="examples.A" depends-on="b" ></bean>
+  <bean id="b" class="examples.B" ></bean>
+  -->
+   
+   
+   
+   
+   
+   
+  <!-- 
+    初始化方法 init-method
+    有的物件在產生實體後需要執行某些初始化程式碼，但這些初始化程式碼不能寫在建構函數中。這時候可以把初始化程式碼寫在某個方法中，例如，init()，
+    傳回使用 init-method 屬性，強制 Spring 執行該方法進行初始化。
+    
+    等於 Java 程式碼：
+    C c = new C();
+    c.init();
+  -->
+  <!-- 
+  <bean id="c" class="example.C" init-method="init" ></bean>
+  -->
+    
+   
+   
+   
+   
+   
+  <!-- 
+    屬性自動裝配 autowire
+    
+    如果每個屬性者使用<ref> 設定，一個大項目的 Spring 設定檔會十分龐大。為此 Spring 提供了自動裝配機制，
+    不用設定 <ref> 而根據某種規則自動設定屬性。
+    
+    可以透過 <bean> 的 autowire 屬性設定自動裝配規則。使用 autowire 後，不需要再用 <property name="" value="" /> 
+    顯示地設定該 Bean 的屬性、相依關係。Spring 會根據反射，自動尋找符合條件的屬性，設定到該 Bean 屬性上。
+    如果 autowire 設定為 byType ，將會按照屬性的類型自動比對。
+    
+    <bean> 的 autowire 屬性取值
+    (1) no 或者 default： 預設值，不自動裝配任何屬性。所有屬性都要使用 <ref> 或者 <idref> 設定，在大的佈署環境中推薦使用預設值，
+                                  使用 <ref> 或者 <idref>  顯示設定屬性會使相依性更加明確。
+    (2) byName：根據名稱自動裝配，如果Bean 中有個名為 dateSource 的屬性，Spring 會把 id 為 dataSource 的屬性設定到該 Bean 中。
+    (3) byType：根據類型自動裝配，如果Bean 中有個 DataSource 類型的屬性，Spring 會把 DataSource 類型的 Bean 設定到該 Bean 中。
+                注意如果有多個 DataSource 類型的Bean，會拋出例外。
+    (4) constructor：根據類型自動裝配建構函數。如果沒有或者有多個類型比對的Bean ，都會拋出例外。
+    (5) autodetect： 自動探測。如果建構函數帶有參數，則同 constructor ，否則同 byType。
+    
+    ※ 如果顯示地定義了 <property>  或者 <constructor-arg >，會覆蓋預設裝配。自動裝配一般與下面的相依檢查連用。
+  -->
+  <!-- 
+    <bean id="d"  class="examples.D" autowire="byType" />
+  -->
+  
+  
+
+
+
+
+  <!--  
+    相依檢查 dependency
+    
+    有時候某些 Bean 的屬性設定有錯誤，例如某個屬性沒有設定。 
+    這種錯誤在程式啟動的時候不會有任何例外表現，會一直潛伏到 Spring 呼叫該 Bean 時才會被發現。
+    為了防止這種情況，Spring 提供相依檢查，在程式啟動的時候檢查相依設定。
+    如果有錯誤，啟動時就會拋出例外，以便發現設定錯誤。
+    
+    
+    dependency 屬性取值範圍
+    dependency 屬性有很多種取值，分別應付不同的情況。但是需要注意， dependency 相依檢查是很生硬的，
+    例如設定為 object ，將會檢查所有的 Java 物件屬性。只要有一個屬性沒有設定，就會拋出例外，即某屬性明明不需要設定，
+    但是沒有辦法避免 dependency 檢查，容易造成"一竿子全打死"的現象。 
+ 
+    (1) no 或者 default：不做任何檢查。
+    (2) simple：僅檢查基本類型、集合屬性。如果沒有屬性設定，會拋出例外。
+    (3) object；僅檢查 Java 物件屬性。如果有屬性沒有設定，會拋出例外。
+    (4) all：檢查所有屬性，等同於 simple 與 object 的聯集。   
+  --> 
+  <!-- 
+    <bean id="bean" class="examples.Bean" dependency-check="all"  />  
+  -->
+ 
+ 
+ 
+
+
+ 
+ 
+
+  
+
+  <!-- 
+    屬性覆蓋器
+    
+    對於一些參數，更實用更簡單的方法是使用 properties 設定，而不是設定在 Spring 的設定檔中。
+    Spring 提供屬性替代設定，允許把某些屬性設定在 properties 檔案中。
+    
+     PropertyOverrideConfigurer 允許把 XML 設定的某些參數設定到
+  -->
+  <bean id="jdbc" class="org.springframework.beans.factory.config.PropertyOverrideConfigurer" >
+    <property name="location" value="classpath:jdbc.properties"  />
+  </bean>
+
+  <!-- 資料庫連線設定 -->
+  <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close" >
+    <property name="driverClassName"    value="${jdbc.driverClassName}"      />
+    <property name="url"                value="${jdbc.url}"                  />
+    <property name="username"           value="${jdbc.username}"             />
+    <property name="password"           value="${jdbc.password}"             />
+  </bean>
+
+  
+  
+  
+  <!-- PropertyOverrideConfigurer 屬性覆蓋器  -->
+  <bean class="org.springframework.beans.factory.config.PropertyOverrideConfigurer" >
+     <property name="location" value="classpath:propertyOverrideHolder.properties" />
+  </bean>
+  <bean id="myPropertyBean01" class="com.spring.core.propertyOverrideConfigurer.PropertyOverrideConfigurer01" >
+    <property name="name"         value='${myPropertyBean01.name}'          />
+    <property name="age"          value="${myPropertyBean01.age}"           />
+    <property name="worker"       value="${myPropertyBean01.worker}"        />
+    <property name="workCompany"  value="${myPropertyBean01.workCompany}"   />
+  </bean>
+  
+
+  
+  
+  
+  
+  
+  <!-- 
+      BeanNameAware 介面獲得 Bean 的 id
+      
+      BeanNameAware 介面明  JavaBean 知道自己在設定檔中的id 。實現 BeanNameAware 介面，實現方法過為 setBeanName() 方法，
+      初始化該物件後 Spring 就會執行該回檔方法，將 id 設定進來。Bean 中設定一個寫程式，接收 id 名稱即可。
+   -->
+  <bean id="beanNameId" class="com.spring.core.aware.WhatsTheNameBean"  />
+  
+  
+
+
+  
+  <!--
+      BeanFactoryAware 介面獲得 BeanFactory
+      
+      BeanFactoryAware 介面明JavaBean 知道哪個BeanFactory 產生實體了自己。
+      BeanFactoryAware 介面中有setBeanFactory 的回檔方法，初始化該物件後，會回檔該方法，將BeanFactory 傳遞進來。
+  
+      實現了BeanFactoryAware介面的JavaBean能夠獲得BeanFactory，從BeanFactory 中能夠獲得到該BeanFactory中設定的其他JavaBean。
+       Spring不推薦這樣做，因為這樣會與Spring耦合。獲得其他JavaBean一般透過設定getter、setter方法，用相依植入實現。
+  -->
+  <bean id="a" class="com.spring.core.aware.A" ></bean>
+  <bean id="b" class="com.spring.core.aware.B" scope="prototype" ></bean>
+  
+  
+  
+
+  <!--
+    InitializingBean 介面執行初始化方法
+      
+    實現了InitializingBean 介面的Java Bean會在產生實體後、所有屬性被設定後呼叫初始化方法。
+    但使用該介面會與Spring程式碼發生耦合，因此不建議使用。
+  -->
+  <bean id="initializingBean01" class="com.spring.core.init.InitializingBean01"  />
+  <bean id="initializingBean02" class="com.spring.core.init.InitializingBean02" init-method="afterPropertiesSet" />
+  
+  
+  
+  
+  <!-- 
+     DisposableBean 介面執行銷毀方法
+ 
+    實現了 DisposableBean 介面的 JavaBean 會在物件丟棄的時候呼叫銷毀方法。
+    但使用該介面會與 Spring 程式碼發生耦合，因此不推薦使用。
+  -->
+  <bean id="destoryBean01" class="com.spring.core.destroy.DestroyBean01"  >
+    <property name="message" value="kevin-1" />
+  </bean>
+   <bean id="destoryBean02" class="com.spring.core.destroy.DestroyBean02" destroy-method="destroy"  >
+    <property name="message" value="kevin-2" />
+  </bean> 
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <!-- 攔截器物件：在某些方法前執行的攔截器  -->
+  <bean id="methodBeforeAdviceImpl"  class="com.spring.interceptor.MethodBeforeAdviceImpl"  />
+       
+  <!-- 設定攔截器。用的是 Spring 的元件 --> 
+  <bean id="theAdvisor" class="org.springframework.aop.support.NameMatchMethodPointcutAdvisor" >
+    <property name="advice" >
+      <ref local="methodBeforeAdviceImpl" />           <!-- 攔截器物件 -->
+    </property>
+    <property name="mappedName" value="*" ></property> <!-- 攔截所有的方法 -->
+  </bean>      
+  
+
+
+  <!-- daoImpl 的實例 -->
+  <bean id="daoImpl" class="com.spring.core.dao.impl.DaoImpl" dependency-check="all" />
+  
+  <!-- serviceImpl 物件 -->
+  <bean id="serviceImpl" class="com.spring.core.service.impl.ServiceImpl" >
+    <property name="dao" >
+       <ref local="daoImpl" />
+    </property>
+  </bean>
+  
+    
+  
+  <!-- 代理類別 Spring 的元件  -->
+  <bean id="service" class="org.springframework.aop.framework.ProxyFactoryBean" >
+    
+    <!-- 攔截器 -->
+    <property name="interceptorNames" value="theAdvisor" />  
+    
+    <!-- 被攔截器的物件 -->
+    <property name="target" >  
+      <ref local="serviceImpl" />
+    </property>
+    
+  </bean>
+       
+        
+        
+          
+  
+  
+  
+</beans>

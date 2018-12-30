@@ -1,0 +1,94 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>5.2.&#160;使用Spring的Validator介面進行校驗</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch05.html" title="第&#160;5&#160;章&#160;校驗，資料綁定，BeanWrapper，與屬性編輯器">
+<link rel="prev" href="ch05.html" title="第&#160;5&#160;章&#160;校驗，資料綁定，BeanWrapper，與屬性編輯器">
+<link rel="next" href="ch05s03.html" title="5.3.&#160;從錯誤程式碼到錯誤資訊">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="validator"></a>5.2.&#160;使用Spring的<code class="interfacename">Validator</code>介面進行校驗</h2></div></div></div>
+<p>你可以使用Spring提供的validator介面進行物件的校驗。<code class="interfacename">Validator</code>介面與<code class="interfacename">Errors</code>協同工作，在Spring做校驗的時候，它會將所有的校驗錯誤匯總到<code class="interfacename">Errors</code>物件中去。</p>
+<p>來看這個簡單的資料物件：</p>
+<pre class="programlisting">
+public class Person {
+
+  private String name;
+  private int age;
+
+  <em class="lineannotation"><span class="lineannotation">// the usual getters and setters...</span></em>
+}</pre>
+<p>
+			實作<code class="interfacename">org.springframework.validation.Validator</code>介面中的兩個方法，我們將為對<code class="classname">Person</code>類別加上校驗行為：
+			</p>
+<div class="itemizedlist"><ul type="disc" compact>
+<li><p><code class="methodname">supports(Class)</code>：表示這個<code class="interfacename">Validator</code>是否支持該<code class="classname">Class</code>的實例？</p></li>
+<li><p><code class="methodname">validate(Object, org.springframework.validation.Errors)</code>：對提供的物件進行校驗，並將校驗的錯誤註冊到傳入的<code class="interfacename">Errors</code> 物件中。</p></li>
+</ul></div>
+<p>
+		</p>
+<p>
+			實作一個<code class="interfacename">Validator</code>也比較簡單，尤其是當你學會了Spring所提供的<code class="classname">ValidationUtils</code>以後。我們一起來看一下如何才能創建一個校驗器。
+		</p>
+<pre class="programlisting">public class PersonValidator implements Validator {
+    
+    <em class="lineannotation"><span class="lineannotation">/**
+    * This <code class="interfacename">Validator</code> validates <span class="bold"><strong>just</strong></span> <code class="classname">Person</code> instances
+    */</span></em>
+    public boolean supports(Class clazz) {
+        return Person.class.equals(clazz);
+    }
+    
+    public void validate(Object obj, Errors e) {
+        ValidationUtils.rejectIfEmpty(e, "name", "name.empty");
+        Person p = (Person) obj;
+        if (p.getAge() &lt; 0) {
+            e.rejectValue("age", "negativevalue");
+        } else if (p.getAge() &gt; 110) {
+            e.rejectValue("age", "too.darn.old");
+        }
+    }
+}</pre>
+<p>如你所見，我們使用了<code class="classname">ValidationUtils</code>中的一個<code class="literal">靜態</code>方法<code class="methodname">rejectIfEmpty(..)</code>來對name屬性進行校驗，假若<code class="literal">'name'</code>屬性是 <code class="literal">null</code> 或者空字元串的話，就拒絕驗證通過 。請參照<code class="classname">ValidationUtils</code>相關的JavaDoc，查看一下除了例子中介紹過的之外其他的一些功能。</p>
+<p>對複雜物件來說，實作<code class="interfacename">Validator</code>類別來驗證其內置的屬性類別當然也是可行的，但是為每個內置類別的範例實作<code class="interfacename">Validator</code>可能是個更好的主意。關於這樣的一個<span class="emphasis"><em>'rich'</em></span>這樣的例子是<code class="classname">Customer</code>類別，它包含兩個<code class="classname">String</code>屬性(first name 和second name)，還有一個複雜的<code class="classname">Address</code>物件。<code class="classname">Address</code>對象可能獨立於<code class="classname">Customer</code>物件，因此獨立實作了一個<code class="classname">AddressValidator</code>。假若你希望你的<code class="classname">CustomerValidator</code>重用<code class="classname">AddressValidator</code>內部的邏輯，但是又不想通過拷貝粘貼來實作，你可以在你的<code class="classname">CustomerValidator</code>中依賴注入<code class="classname">AddressValidator</code>物件，或者創建一個。然後這樣用：</p>
+<pre class="programlisting">public class CustomerValidator implements Validator {
+
+   private final Validator addressValidator;
+
+   public CustomerValidator(Validator addressValidator) {
+      if (addressValidator == null) {
+          throw new IllegalArgumentException("The supplied [Validator] is required and must not be null.");
+      }
+      if (!addressValidator.supports(Address.class)) {
+          throw new IllegalArgumentException(
+            "The supplied [Validator] must support the validation of [Address] instances.");
+      }
+      this.addressValidator = addressValidator;
+   }
+
+    <em class="lineannotation"><span class="lineannotation">/**
+    * This <code class="interfacename">Validator</code> validates <code class="classname">Customer</code> instances, and any subclasses of <code class="classname">Customer</code> too
+    */</span></em>
+   public boolean supports(Class clazz) {
+      return Customer.class.isAssignableFrom(clazz);
+   }
+
+   public void validate(Object target, Errors errors) {
+      ValidationUtils.rejectIfEmptyOrWhitespace(errors, "firstName", "field.required");
+      ValidationUtils.rejectIfEmptyOrWhitespace(errors, "surname", "field.required");
+      Customer customer = (Customer) target;
+      try {
+          errors.pushNestedPath("address");
+          ValidationUtils.invokeValidator(this.addressValidator, customer.getAddress(), errors);
+      } finally {
+          errors.popNestedPath();
+      }
+   }
+}</pre>
+<p>驗證錯誤會被報告到傳來的<code class="interfacename">Errors</code>物件中。在Spring Web MVC中，你可以使用<code class="literal">&lt;spring:bind/&gt;</code>標籤來檢查錯誤資訊，當然你也可以自行處理錯誤。可以在它的Javadoc中找到它提供的方法的描述。</p>
+</div></body>
+</html>

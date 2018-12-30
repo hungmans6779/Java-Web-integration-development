@@ -1,0 +1,59 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>9.8.&#160;與特定應用伺服器整合</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch09.html" title="第&#160;9&#160;章&#160;事務管理">
+<link rel="prev" href="ch09s07.html" title="9.7.&#160;選擇程式式事務管理還是宣告式事務管理">
+<link rel="next" href="ch09s09.html" title="9.9.&#160;常見問題的解決方法">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="transaction-application-server-integration"></a>9.8.&#160;與特定應用伺服器整合</h2></div></div></div>
+<p>一般來說，Spring的事務抽象與應用伺服器是無關的。此外，使用Spring的 <code class="classname">JtaTransactionManager</code> 類別時，
+	一種可選的方式是通過JNDI查詢獲得JTA <code class="interfacename">UserTransaction</code> 和 <code class="interfacename">TransactionManager</code> 物件，
+	其中後者可以被設置為自動探測，這時針對不同的應用伺服器有不同的方式。能夠直接存取 <code class="interfacename">TransactionManager</code>，
+	確實在很大程度上增強了事務語義，可以參考 <code class="classname">JtaTransactionManager</code> 類別的javadoc獲得更多細節。</p>
+<p>當在J2EE應用伺服器上運行時，Spring的<code class="classname">JtaTransactionManager</code>是一個標準的選擇，它在已知的所有通用伺服器上都能正常工作。
+	它的一些諸如事務掛起等高層級功能也可以在無須特殊配置的情況下在已知的許多伺服器上工作（包括 GlassFish、JBoss、Geronimo和Oracle OC4J），
+	然而，為了完全支持事務掛起等高層級功能，Spring為IBM WebSphere 、BEA WebLogic以及Oracle OC4J提供了特殊支持。我們會在後面的章節中討論這個話題.</p>
+<p><span class="emphasis"><em>在標準的場景中，包括 WebLogic、WebSphere和OC4J，請考慮簡單的使用<code class="literal">'&lt;tx:jta-transaction-manager/&gt;'</code>配置元素。
+    </em></span> 它會自動檢測底層所使用的伺服器以此來選擇最合適的事務管理器。 
+	這意味著你不需要顯式的為伺服器配置特殊的適配器（就像在後面的部分討論的那樣），選擇會自動完成，
+	並且如果找不到的話會啟用標準的 <code class="classname">JtaTransactionManager</code>來管理。
+	 </p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="transaction-application-server-integration-websphere"></a>9.8.1.&#160;IBM WebSphere</h3></div></div></div>
+<p>在WebSphere 6.0以及後續版本中，推薦使用的Spring JTA 事務管理器是<code class="classname">WebSphereUowTransactionManager</code>。
+	  這個適配器充分利用了WebSphere應用伺服器 （6.0.2.19 以及更高的版本和6.1.0.9以及更高的版本）中提供的 <code class="interfacename">UOWManager</code> API。
+	  通過使用這個適配器，Spring驅動的事務掛起（<code class="literal">PROPAGATION_REQUIRES_NEW</code>發起的掛起/恢復）得到了IBM的官方支持。
+	  </p>
+<p>在WebSphere 5.1環境下，你可以使用Spring的 <code class="classname">WebSphereTransactionManagerFactoryBean</code> 類別。 
+	  這是一個處理器類別，通過WebSphere的 <code class="literal">靜態</code> 存取方法獲取到JTA <code class="literal">TransactionManager</code> 實例。
+	  一旦通過處理器bean獲取到JTA <code class="interfacename">TransactionManager</code> 實例，
+	  就可以使用該實例裝配一個Spring的 <code class="classname">JtaTransactionManager</code> bean，
+	  它封裝了JTA <code class="interfacename">UserTransaction</code>，提供增強的事務語義。請參考相關javadoc以獲得完整資訊。</p>
+<p><span class="emphasis"><em>請注意<code class="classname">WebSphereTransactionManagerFactoryBean</code>雖然可以在WAS 5.1和6.0上正常工作，但是並沒有得到官方的正式支持。
+	 </em></span> 如果需要運行在WAS6.0或者更高的版本上，請參考上面的<code class="classname">WebSphereUowTransactionManager</code>部分。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="transaction-application-server-integration-weblogic"></a>9.8.2.&#160;BEA WebLogic</h3></div></div></div>
+<p>在一個使用WebLogic 8.1或更高版本的環境中，你一般會優先選用特定於WebLogic的 <code class="classname">WebLogicJtaTransactionManager</code> 類別。 
+		來取代<code class="classname">JtaTransactionManager</code> 類別。在WebLogic環境中，該類別提供了對Spring事務定義的完全支持，超過了標準的JTA語義。
+		它的特性包括：支持事務名，支持為每個事務定義隔離級別，以及在任何環境下正確地恢復事務的能力。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="transaction-application-server-integration-oc4j"></a>9.8.3.&#160;Oracle OC4J</h3></div></div></div>
+<p>Spring為OC4J 10.1.3以及更高的版本提供了一個特殊的適配器：
+	  <code class="classname">OC4JJtaTransactionManager</code>。這個適配器跟前面的<code class="classname">WebLogicJtaTransactionManager</code>很類似，
+	  在OC4J上提供類似的輔助功能：事務名稱和針對每個事務不同的獨立等級。 </p>
+<p>請注意所有的 JTA 功能，包括事務掛起，都可以很好的通過Spring的 <code class="classname">JtaTransactionManager</code>在 OC4J 工作。
+	  特殊的<code class="classname">OC4JJtaTransactionManager</code>提供了比標準JTA更多的超值功能。 </p>
+</div>
+</div></body>
+</html>

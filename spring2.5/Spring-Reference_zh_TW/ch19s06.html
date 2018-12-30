@@ -1,0 +1,307 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>19.6.&#160;JMS命名空間支持</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch19.html" title="第&#160;19&#160;章&#160;JMS (Java Message Service)">
+<link rel="prev" href="ch19s05.html" title="19.5.&#160;JCA訊息端點的支持">
+<link rel="next" href="ch20.html" title="第&#160;20&#160;章&#160;JMX">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="jms-namespace"></a>19.6.&#160;JMS命名空間支持</h2></div></div></div>
+<p>Spring 2.5引入了XML命名空間以簡化JMS的配置。使用JMS命名空間元素時，需要參考如下的JMS Schema：
+	</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       <span class="bold"><strong>xmlns:jms="http://www.springframework.org/schema/jms"</strong></span>
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+<span class="bold"><strong>http://www.springframework.org/schema/jms http://www.springframework.org/schema/jms/spring-jms-2.5.xsd"</strong></span>&gt;
+
+<em class="lineannotation"><span class="lineannotation">&lt;!-- <code class="literal">&lt;bean/&gt;</code> definitions here --&gt;</span></em>
+
+&lt;/beans&gt;</pre>
+<p>這個命名空間由兩級元素組成：<code class="literal">&lt;listener-container/&gt;</code> 和 <code class="literal">&lt;jca-listener-container/&gt;</code>，它們都可以包含一個或這個多個 <code class="literal">&lt;listener/&gt;</code> 子元素。下面是一個基本配置的範例，包含兩個監聽器。</p>
+<pre class="programlisting">&lt;jms:listener-container&gt;
+
+    &lt;jms:listener destination="queue.orders" ref="orderService" method="placeOrder"/&gt;
+
+    &lt;jms:listener destination="queue.confirmations" ref="confirmationLogger" method="log"/&gt;
+
+&lt;/jms:listener-container&gt;</pre>
+<p>上面的例子等同於在 <a href="ch19s04.html#jms-receiving-async-message-listener-adapter" title="19.4.4.&#160;MessageListenerAdapter">第&#160;19.4.4&#160;節 「<code class="classname">MessageListenerAdapter</code>」</a> 的範例中，定義兩個不同的監聽器容器和兩個不同的 <code class="classname">MessageListenerAdapter</code> 。除了上面的屬性外，<code class="literal">listener</code> 元素還具有幾個可選的屬性。下面的表格列出了所有的屬性：
+   </p>
+<div class="table">
+<a name="jms-namespace-listener-tbl"></a><p class="title"><b>表&#160;19.1.&#160;JMS <code class="literal">listener</code> 元素的屬性</b></p>
+<div class="table-contents"><table summary="JMS listener 元素的屬性" border="1">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>屬性</th>
+<th>描述</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>
+                        <p>監聽器容器的Bean名稱。如果沒有指定，將自動產生一個Bean名稱。</p>
+                    </td>
+</tr>
+<tr>
+<td>destination <span class="bold"><strong>（必須）</strong></span>
+</td>
+<td>
+                        <p>監聽器目的地的名稱，由 <code class="interfacename">DestinationResolver</code> 的策略決定。</p>
+                    </td>
+</tr>
+<tr>
+<td>ref <span class="bold"><strong>（必須）</strong></span>
+</td>
+<td>
+                        <p>處理物件的Bean名稱</p> 
+                    </td>
+</tr>
+<tr>
+<td>method</td>
+<td>
+                        <p>處理器中被調用的方法名。如果 <code class="literal">ref</code> 指向
+                        <code class="interfacename">MessageListener</code> 或者 Spring
+                        <code class="interfacename">SessionAwareMessageListener</code>，則這個屬性可以被忽略。
+                        </p> 
+                    </td>
+</tr>
+<tr>
+<td>response-destination</td>
+<td>
+                       <p>預設的響應目的地是發送響應訊息抵達的目的地。 這用於請求訊息沒有包含"JMSReplyTo"域的情況。響應目的地型別被監聽器容器的"destination-type"屬性決定。記住：這僅僅適用於有返回值的監聽器方法，因為每個結果對象都會被轉化成響應訊息。
+                        </p>
+                    </td>
+</tr>
+<tr>
+<td>subscription</td>
+<td>
+                        <p>持久訂閱的名稱，如果需要的話。</p>
+                    </td>
+</tr>
+<tr>
+<td>selector</td>
+<td>
+                         <p>監聽器的一個可選的訊息選擇器。</p> 
+                    </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><p><code class="literal">&lt;listener-container/&gt;</code>元素也有幾個可選的屬性。
+    這些屬性允許像 基本的 JMS設置和資源參考一樣來定義不同的策略 （例如
+    <span class="property">taskExecutor</span> 和 <span class="property">destinationResolver</span>）。
+    使用這些屬性，可以定義很廣泛的定制監聽器容器，同時仍享有命名空間的便利。</p>
+<pre class="programlisting">&lt;jms:listener-container connection-factory="myConnectionFactory"
+                        task-executor="myTaskExecutor"
+                        destination-resolver="myDestinationResolver"
+                        transaction-manager="myTransactionManager"
+                        concurrency="10"&gt;
+
+    &lt;jms:listener destination="queue.orders" ref="orderService" method="placeOrder"/&gt;
+
+    &lt;jms:listener destination="queue.confirmations" ref="confirmationLogger" method="log"/&gt;
+
+&lt;/jms:listener-container&gt;</pre>
+<p>下面的表格描述了所有可用的屬性。參考 <code class="classname">AbstractMessageListenerContainer</code> 類別和具體子類別的Javadoc來瞭解每個屬性的細節。這部分的Javadoc也提高那個了事務選擇和訊息傳輸場景的討論。</p>
+<div class="table">
+<a name="jms-namespace-listener-container-tbl"></a><p class="title"><b>表&#160;19.2.&#160;JMS <code class="literal">&lt;listener-container/&gt;</code> 元素的屬性</b></p>
+<div class="table-contents"><table summary="JMS &lt;listener-container/&gt; 元素的屬性" border="1">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>屬性</th>
+<th>描述</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>container-type</td>
+<td>
+                        <p>監聽器容器的型別。可用的選項是： 
+                        <code class="literal">default</code>、<code class="literal">simple</code>、<code class="literal">default102</code> 或者 <code class="literal">simple102</code>
+                        （預設值是 <code class="literal">'default'</code>）。</p>
+                    </td>
+</tr>
+<tr>
+<td>connection-factory</td>
+<td>
+                        <p>JMS <code class="interfacename">ConnectionFactory</code> Bean的參考（預設的Bean名稱是 <code class="literal">'connectionFactory'</code>）。</p>
+                    </td>
+</tr>
+<tr>
+<td>task-executor</td>
+<td>
+                        <p>JMS監聽器調用者Spring <code class="interfacename">TaskExecutor</code>
+                      的參考。</p>
+                    </td>
+</tr>
+<tr>
+<td>destination-resolver</td>
+<td>
+                        <p><code class="interfacename">DestinationResolver</code> 策略的參考，用以解析JMS <code class="interfacename">Destinations</code>。
+                        </p>
+                    </td>
+</tr>
+<tr>
+<td>message-converter</td>
+<td>
+                         <p><code class="interfacename">MessageConverter</code>
+                        策略的參考，用以轉換JMS Messages 成監聽器方法的參數。預設值是 <code class="classname">SimpleMessageConverter</code>。</p>
+                    </td>
+</tr>
+<tr>
+<td>destination-type</td>
+<td>
+                        <p>監聽器的JMS目的地型別。可用的選項包含：
+                        <code class="literal">queue</code>、<code class="literal">topic</code> 或者 <code class="literal">durableTopic</code> （預設值是 <code class="literal">'queue'</code>）。</p>
+                    </td>
+</tr>
+<tr>
+<td>client-id</td>
+<td>
+                        <p>這個監聽器容器在JMS客戶端的id。</p>
+                    </td>
+</tr>
+<tr>
+<td>acknowledge</td>
+<td>
+                        <p>本地JMS應答模式。可用的選項包含：
+                        <code class="literal">auto</code>、<code class="literal">client</code>、<code class="literal">dups-ok</code> 或者 <code class="literal">transacted</code>
+                        （預設值是 <code class="literal">'auto'</code>）。
+                        <code class="literal">'transacted'</code> 的值可啟動本地事務性 <code class="interfacename">Session</code>。
+                        也可以通過指定下面介紹的 <code class="literal">transaction-manager</code> 屬性。</p>
+                    </td>
+</tr>
+<tr>
+<td>transaction-manager</td>
+<td>
+                        <p>Spring <code class="interfacename">PlatformTransactionManager</code> 的參考。</p>
+                    </td>
+</tr>
+<tr>
+<td>concurrency</td>
+<td>
+                        <p>每個監聽器可啟動的Session最大並發數。</p>
+                    </td>
+</tr>
+<tr>
+<td>prefetch</td>
+<td>
+                        <p>載入進每個Session的最大訊息數。記住增加這個值會造成並發空閒。</p>
+                    </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><p>使用「jms」 Schema支持來配置基於JCA的監聽器容器很相似。</p>
+<pre class="programlisting">&lt;jms:jca-listener-container resource-adapter="myResourceAdapter"
+                            destination-resolver="myDestinationResolver"
+                            transaction-manager="myTransactionManager"
+                            concurrency="10"&gt;
+
+    &lt;jms:listener destination="queue.orders" ref="myMessageListener"/&gt;
+
+&lt;/jms:jca-listener-container&gt;</pre>
+<p>JCA可用的配置選項描述如下表：</p>
+<div class="table">
+<a name="jms-namespace-jca-listener-container-tbl"></a><p class="title"><b>表&#160;19.3.&#160;JMS <code class="literal">&lt;jca-listener-container/&gt;</code> 元素的屬性</b></p>
+<div class="table-contents"><table summary="JMS &lt;jca-listener-container/&gt; 元素的屬性" border="1">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>屬性</th>
+<th>描述</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>resource-adapter</td>
+<td>
+                        <p>JCA <code class="interfacename">ResourceAdapter</code> Bean 的一個參考（預設的Bean名稱是<code class="literal">'resourceAdapter'</code>）。</p>
+                    </td>
+</tr>
+<tr>
+<td>activation-spec-factory</td>
+<td>
+                        <p><code class="interfacename">JmsActivationSpecFactory</code> 的一個參考。
+                        預設自動檢測JMS提供者和它的 <code class="interfacename">ActivationSpec</code> 類別
+                        （參考 <code class="classname">DefaultJmsActivationSpecFactory</code>）</p>
+                    </td>
+</tr>
+<tr>
+<td>destination-resolver</td>
+<td>
+                         <p><code class="interfacename">DestinationResolver</code> 策略的參考，用以解析JMS <code class="interfacename">Destinations</code>。
+                        </p>
+                    </td>
+</tr>
+<tr>
+<td>message-converter</td>
+<td>
+                        <p><code class="interfacename">MessageConverter</code> 策略的參考，用以轉換JMS Messages 成監聽器方法參數。
+                        預設值是 <code class="classname">SimpleMessageConverter</code>。
+                        </p>
+                    </td>
+</tr>
+<tr>
+<td>destination-type</td>
+<td>
+                        <p>監聽器的JMS目的地型別。可用的選項包含 <code class="literal">queue</code>、<code class="literal">topic</code> 或者 <code class="literal">durableTopic</code>
+                        預設是 <code class="literal">'queue'</code>）。</p>
+                    </td>
+</tr>
+<tr>
+<td>client-id</td>
+<td>
+                        <p>這個監聽器容器在JMS客戶端的id。</p>
+                    </td>
+</tr>
+<tr>
+<td>acknowledge</td>
+<td>
+                        <p>本地JMS應答模式。可用的選項包含：<code class="literal">auto</code>、<code class="literal">client</code>、<code class="literal">dups-ok</code> 或者 <code class="literal">transacted</code>
+                        （預設值是 <code class="literal">'auto'</code>）。
+                          <code class="literal">'transacted'</code> 的值可啟動本地事務性 <code class="interfacename">Session</code>。
+                          也可以通過指定下面介紹的 <code class="literal">transaction-manager</code> 屬性</p>
+                    </td>
+</tr>
+<tr>
+<td>transaction-manager</td>
+<td>
+                        <p>Spring <code class="classname">JtaTransactionManager</code>
+                        或者 <code class="interfacename">javax.transaction.TransactionManager</code> 的參考，用以為傳進的訊息應用XA事務。
+                        如果沒有指定，將使用本地應答模型（參見「acknowledge」屬性）。
+                        </p>
+                    </td>
+</tr>
+<tr>
+<td>concurrency</td>
+<td>
+                        <p>每個監聽器可啟動的Session最大並發數。</p>
+                    </td>
+</tr>
+<tr>
+<td>prefetch</td>
+<td>
+                        <p>載入進每個Session的最大訊息數。記住增加這個值會造成並發空閒。</p>
+                    </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break">
+</div></body>
+</html>

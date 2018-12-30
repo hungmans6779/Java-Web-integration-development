@@ -1,0 +1,264 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>20.7.&#160;通知</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch20.html" title="第&#160;20&#160;章&#160;JMX">
+<link rel="prev" href="ch20s06.html" title="20.6.&#160;通過代理存取MBean">
+<link rel="next" href="ch20s08.html" title="20.8.&#160;更多資源">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="jmx-notifications"></a>20.7.&#160;通知</h2></div></div></div>
+<p>
+    Spring提供的JMX對JMX通知包含了全面的支持。
+    </p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jmx-notifications-listeners"></a>20.7.1.&#160;為通知註冊監聽器</h3></div></div></div>
+<p>
+      Spring的JMX支持使得用任意數量MBean註冊任意數量的 <code class="classname">NotificationListeners</code> 監聽器（包括由Spring的 <code class="classname">MBeanExporter</code> 輸出和其他機制註冊的MBean）都非常容易。
+	  通過例子，考慮當目標MBean發生了變化都想得到通知（通過 <code class="classname">Notification</code>）的場景。
+	  </p>
+<pre class="programlisting">package com.example;
+
+import javax.management.AttributeChangeNotification;
+import javax.management.Notification;
+import javax.management.NotificationFilter;
+import javax.management.NotificationListener;
+
+public class ConsoleLoggingNotificationListener
+               implements NotificationListener, NotificationFilter {
+
+    public void handleNotification(Notification notification, Object handback) {
+        System.out.println(notification);
+        System.out.println(handback);
+    }
+
+    public boolean isNotificationEnabled(Notification notification) {
+        return AttributeChangeNotification.class.isAssignableFrom(notification.getClass());
+    }
+}</pre>
+<pre class="programlisting">&lt;beans&gt;
+
+  &lt;bean id="exporter" class="org.springframework.jmx.export.MBeanExporter"&gt;
+    &lt;property name="beans"&gt;
+      &lt;map&gt;
+        &lt;entry key="bean:name=testBean1" value-ref="testBean"/&gt;
+      &lt;/map&gt;
+    &lt;/property&gt;
+    &lt;property name="notificationListenerMappings"&gt;
+      &lt;map&gt;
+        &lt;entry key="bean:name=testBean1"&gt;
+          &lt;bean class="com.example.ConsoleLoggingNotificationListener"/&gt;
+        &lt;/entry&gt;
+      &lt;/map&gt;
+    &lt;/property&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="testBean" class="org.springframework.jmx.JmxTestBean"&gt;
+    &lt;property name="name" value="TEST"/&gt;
+    &lt;property name="age" value="100"/&gt;
+  &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<p>
+		上述配置就緒後，每當目標MBean（<code class="literal">bean:name=testBean1</code>）廣播一個JMX <code class="classname">Notification</code> 時，
+		通過 <code class="literal">notificationListenerMappings</code> 屬性註冊的 <code class="classname">ConsoleLoggingNotificationListener</code> 都能得到通知。
+		<code class="classname">ConsoleLoggingNotificationListener</code> 就可以採取任何它認為合適的行為來響應 <code class="classname">Notification</code>。
+		</p>
+<p>
+		你也可以直接使用Bean名作為輸出的Bean和監聽器直接的連接。
+		</p>
+<pre class="programlisting">&lt;beans&gt;
+
+  &lt;bean id="exporter" class="org.springframework.jmx.export.MBeanExporter"&gt;
+    &lt;property name="beans"&gt;
+      &lt;map&gt;
+        &lt;entry key="bean:name=testBean1" value-ref="testBean"/&gt;
+      &lt;/map&gt;
+    &lt;/property&gt;
+    &lt;property name="notificationListenerMappings"&gt;
+      &lt;map&gt;
+        &lt;entry key="<span class="bold"><strong>testBean</strong></span>"&gt;
+          &lt;bean class="com.example.ConsoleLoggingNotificationListener"/&gt;
+        &lt;/entry&gt;
+      &lt;/map&gt;
+    &lt;/property&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="<span class="bold"><strong>testBean</strong></span>" class="org.springframework.jmx.JmxTestBean"&gt;
+    &lt;property name="name" value="TEST"/&gt;
+    &lt;property name="age" value="100"/&gt;
+  &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<p>
+		如果有人想為所有通過 <code class="classname">MBeanExporter</code> 輸出的Bean註冊單個 <code class="classname">NotificationListener</code>實例，可以使用通配符'*'（沒有引號）作為 <code class="literal">notificationListenerMappings</code> 屬性映射中一個實體的鍵值；如下：
+		
+		</p>
+<pre class="programlisting">&lt;property name="notificationListenerMappings"&gt;
+  &lt;map&gt;
+    &lt;entry key="*"&gt;
+      &lt;bean class="com.example.ConsoleLoggingNotificationListener"/&gt;
+    &lt;/entry&gt;
+  &lt;/map&gt;
+&lt;/property&gt;</pre>
+<p>
+      如果想做相反的事情（也就是，為一個MBean註冊多個不同的監聽器），那麼他就要使用 <code class="literal">notificationListeners</code> 列表屬性來替代（優先於 <code class="literal">notificationListenerMappings</code> 屬性）。
+      這時就要配置多個 <code class="classname">NotificationListenerBean</code> 實例，而不僅僅是一個了……
+      一個 <code class="classname">NotificationListenerBean</code> 不但封裝了一個或者多個 <code class="classname">NotificationListener</code> 和已註冊到一個 <code class="interfacename">MBeanServer</code> 的 <code class="classname">ObjectName</code>，它也封裝了許多其他屬性，例如一個 <code class="classname">NotificationFilter</code> 和一個可以用於JMX高層級通知場景的回傳物件。
+      </p>
+<p>
+      當使用多個 <code class="classname">NotificationListenerBean</code> 實例時，這個配置與前面展示的並沒有太大的不同。
+      </p>
+<pre class="programlisting">&lt;beans&gt;
+
+  &lt;bean id="exporter" class="org.springframework.jmx.export.MBeanExporter"&gt;
+    &lt;property name="beans"&gt;
+      &lt;map&gt;
+        &lt;entry key="bean:name=testBean1" value-ref="testBean"/&gt;
+      &lt;/map&gt;
+    &lt;/property&gt;
+    &lt;property name="notificationListeners"&gt;
+        &lt;list&gt;
+            &lt;bean class="org.springframework.jmx.export.NotificationListenerBean"&gt;
+                &lt;constructor-arg&gt;
+                    &lt;bean class="com.example.ConsoleLoggingNotificationListener"/&gt;
+                &lt;/constructor-arg&gt;
+                &lt;property name="mappedObjectNames"&gt;
+                    &lt;list&gt;
+                        &lt;value&gt;bean:name=testBean1&lt;/value&gt;
+                    &lt;/list&gt;
+                &lt;/property&gt;
+            &lt;/bean&gt;
+        &lt;/list&gt;
+    &lt;/property&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="testBean" class="org.springframework.jmx.JmxTestBean"&gt;
+    &lt;property name="name" value="TEST"/&gt;
+    &lt;property name="age" value="100"/&gt;
+  &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<p>
+      上面例子等同與第一個通知範例。假設每次 <code class="classname">Notification</code> 發生時，我們想得到一個回傳物件，
+      且想通過提供一個 <code class="classname">NotificationFilter</code> 過濾出無關的 <code class="classname">Notifications</code>。
+      至於什麼是一個回傳物件，<code class="classname">NotificationFilter</code> 到底又是什麼的全面的探討，請參考JMX規範（1.2）<code class="literal">'The JMX Notification Model'</code> 章節。
+      </p>
+<pre class="programlisting">&lt;beans&gt;
+
+  &lt;bean id="exporter" class="org.springframework.jmx.export.MBeanExporter"&gt;
+    &lt;property name="beans"&gt;
+      &lt;map&gt;
+        &lt;entry key="bean:name=testBean1" value-ref="testBean1"/&gt;
+        &lt;entry key="bean:name=testBean2" value-ref="testBean2"/&gt;
+      &lt;/map&gt;
+    &lt;/property&gt;
+    &lt;property name="notificationListeners"&gt;
+        &lt;list&gt;
+            &lt;bean class="org.springframework.jmx.export.NotificationListenerBean"&gt;
+                &lt;constructor-arg ref="customerNotificationListener"/&gt;
+                &lt;property name="mappedObjectNames"&gt;
+                    &lt;list&gt;
+                        <em class="lineannotation"><span class="lineannotation">&lt;!-- handles notifications from two distinct MBeans --&gt;</span></em>
+                        &lt;value&gt;bean:name=testBean1&lt;/value&gt;
+                        &lt;value&gt;bean:name=testBean2&lt;/value&gt;
+                    &lt;/list&gt;
+                &lt;/property&gt;
+                &lt;property name="handback"&gt;
+                    &lt;bean class="java.lang.String"&gt;
+                        &lt;constructor-arg value="This could be anything..."/&gt;
+                    &lt;/bean&gt;
+                &lt;/property&gt;
+                &lt;property name="notificationFilter" ref="customerNotificationListener"/&gt;
+            &lt;/bean&gt;
+        &lt;/list&gt;
+    &lt;/property&gt;
+  &lt;/bean&gt;
+  
+  <em class="lineannotation"><span class="lineannotation">
+  &lt;!-- 實作了<code class="interfacename">NotificationListener</code> 和 <code class="interfacename">NotificationFilter</code>介面 --&gt;
+  </span></em>
+  &lt;bean id="customerNotificationListener" class="com.example.ConsoleLoggingNotificationListener"/&gt;
+
+  &lt;bean id="testBean1" class="org.springframework.jmx.JmxTestBean"&gt;
+    &lt;property name="name" value="TEST"/&gt;
+    &lt;property name="age" value="100"/&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="testBean2" class="org.springframework.jmx.JmxTestBean"&gt;
+    &lt;property name="name" value="ANOTHER TEST"/&gt;
+    &lt;property name="age" value="200"/&gt;
+  &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jmx-notifications-publishing"></a>20.7.2.&#160;發佈通知</h3></div></div></div>
+<p>
+      Spring不但提供了註冊接收通知的支持，也提供了對發佈通知的支持。
+      </p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>
+        要注意的是，本章節僅僅與通過 <code class="classname">MBeanExporter</code> 暴露的，被Spring管理的Bean相關。
+        任何現存的，使用者定義的MBean應當使用標準JMX API來做通知發佈。
+        </p>
+</div>
+<p>
+      Spring的JMX通知發佈支持中的關鍵介面是 <code class="classname">NotificationPublisher</code>（定義於 <code class="literal">org.springframework.jmx.export.notification</code> 套件中）。
+      任意要通過 <code class="classname">MBeanExporter</code> 實例輸出為MBean的Bean都可以實作
+      <code class="classname">NotificationPublisherAware</code> 介面來獲得對 <code class="classname">NotificationPublisher</code> 實例的存取。
+      <code class="classname">NotificationPublisherAware</code> 僅僅提供通過一個簡單的setter方法給實作了這個介面的Bean注入一個
+      <code class="classname">NotificationPublisher</code> 實例，那些Bean就因此可以發佈 <code class="classname">Notification</code> 了。
+      </p>
+<p>
+      就如 <code class="classname">NotificationPublisher</code> 類別的Javadoc描述的一樣，通過 <code class="classname">NotificationPublisher</code> 機制發佈事件的受控Bean是 <span class="emphasis"><em>不</em></span> 需要對任何通知的監聽器或者其他諸如此類別的監聽器的狀態管理負責的。Spring的JMX支持將處理與JMX架構相關的所有問題。
+      作為一個應用程序開發者，他所需要做的只是實作 <code class="classname">NotificationPublisherAware</code> 介面，然後利用注入的 <code class="classname">NotificationPublisher</code> 實例發佈事件。要注意，受控Bean註冊到一個 <code class="interfacename">MBeanServer</code> 後，<code class="classname">NotificationPublisher</code> 才被設置。
+      </p>
+<p>
+      使用 <code class="classname">NotificationPublisher</code> 實例的方法很直觀，人們只要建構一個 <code class="classname">Notification</code> 實例（或者一個合適的 <code class="classname">Notification</code> 子類別的實例），接著填充與將要發佈的事件相關的資料到通知裡，然後傳入 <code class="classname">Notification</code>，調用<code class="classname">NotificationPublisher</code>實例的方法 <code class="methodname">sendNotification(Notification)</code> 就可以了。
+      </p>
+<p>
+      讓我們來看一個簡單的例子，在這個場景裡，輸出 <code class="classname">JmxTestBean</code> 實例在每次 <code class="literal">add(int, int)</code> 操作調用時都會發佈 <code class="classname">NotificationEvent</code>。
+      </p>
+<pre class="programlisting">package org.springframework.jmx;
+			
+import org.springframework.jmx.export.notification.NotificationPublisherAware;
+import org.springframework.jmx.export.notification.NotificationPublisher;
+import javax.management.Notification;
+
+public class JmxTestBean implements IJmxTestBean, NotificationPublisherAware {
+
+    private String name;
+    private int age;
+    private boolean isSuperman;
+    private NotificationPublisher publisher;
+
+    <em class="lineannotation"><span class="lineannotation">// 清晰起見，忽略了其他getter和setter</span></em>
+
+    public int add(int x, int y) {
+        int answer = x + y;
+        this.publisher.sendNotification(new Notification("add", this, 0));
+        return answer;
+    }
+
+    public void dontExposeMe() {
+        throw new RuntimeException();
+    }
+    
+    public void setNotificationPublisher(NotificationPublisher notificationPublisher) {
+        this.publisher = notificationPublisher;
+    }
+}</pre>
+<p><code class="classname">NotificationPublisher</code> 介面和一套使之運作的機制是Spring JMX支持的優良特性之一。
+	  它帶來的代價確實是使你的類別與Spring，JMX緊耦合了；與以往一樣，我們的建議也是很實際的……如果你需要 <code class="classname">NotificationPublisher</code> 提供的功能，並且接受與Spring，JMX的緊耦合，那麼就行動吧。
+	  </p>
+</div>
+</div></body>
+</html>

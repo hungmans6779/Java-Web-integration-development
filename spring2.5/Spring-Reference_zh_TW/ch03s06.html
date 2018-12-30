@@ -1,0 +1,51 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>3.6.&#160;bean定義的繼承</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch03.html" title="第&#160;3&#160;章&#160;IoC(控制反轉)容器">
+<link rel="prev" href="ch03s05.html" title="3.5.&#160;定制bean特性">
+<link rel="next" href="ch03s07.html" title="3.7.&#160;容器擴展點">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="beans-child-bean-definitions"></a>3.6.&#160;bean定義的繼承</h2></div></div></div>
+<p>在bean定義中包含了大量的配置資訊，其中包括容器相關的資訊（比如初始化方法、靜態處理器方法名等等）以及建構器參數和屬性值。子bean定義就是從父bean定義繼承配置資料的bean定義。它可以覆寫父bean的一些值，或者添加一些它需要的值。使用父/子bean定義的形式可以節省很多的輸入工作。實際上，這就是一種模板形式。</p>
+<p>當以程式的方式使用<code class="interfacename">BeanFactory</code>時，子bean定義用<code class="classname">ChildBeanDefinition</code>類別表示。大多數使用者從來不需要以這個方式使用它們，而是以類似<code class="classname">XmlBeanFactory</code>中的宣告方式去配置bean定義。當使用基於XML的配置元資料時，給<code class="literal">'parent'</code>屬性指定值，意味著子bean定義的宣告。</p>
+<pre class="programlisting">&lt;bean id="inheritedTestBean" abstract="true"
+    class="org.springframework.beans.TestBean"&gt;
+  &lt;property name="name" value="parent"/&gt;
+  &lt;property name="age" value="1"/&gt;
+&lt;/bean&gt;
+
+&lt;bean id="inheritsWithDifferentClass"
+      class="org.springframework.beans.DerivedTestBean"
+      <span class="bold"><strong>parent="inheritedTestBean"</strong></span> init-method="initialize"&gt;
+    
+  &lt;property name="name" value="override"/&gt;
+  <em class="lineannotation"><span class="lineannotation">&lt;!-- the age property value of 1 will be inherited from  parent --&gt;</span></em>
+
+&lt;/bean&gt;</pre>
+<p>如果子bean定義沒有指定class屬性，它將使用父bean定義的class屬性，當然也可以覆寫它。在後面一種情況中，子bean的class屬性值必須同父bean相容，也就是說它必須接受父bean的屬性值。</p>
+<p>一個子bean定義可以從父bean繼承建構器參數值、屬性值以及覆寫父bean的方法，並且可以有選擇地增加新的值。如果指定了init-method，destroy-method和/或<code class="literal">靜態</code>factory-method，它們就會覆寫父bean相應的設置。</p>
+<p>剩餘的設置將總是從子bean定義處得到：<span class="emphasis"><em>依賴</em></span>、<span class="emphasis"><em>自動裝配模式</em></span>、<span class="emphasis"><em>依賴檢查</em></span>、<span class="emphasis"><em>singleton</em></span>、<span class="emphasis"><em>作用域</em></span>和<span class="emphasis"><em>延遲初始化</em></span>。</p>
+<p>注意在上面的例子中，我們使用<span class="emphasis"><em>abstract</em></span>屬性顯式地將父bean定義標記為抽象的。下面是個父bean定義並沒有指定class屬性的例子，其中父bean必須顯式地標上<code class="literal">abstract</code>：</p>
+<pre class="programlisting">&lt;bean id="inheritedTestBeanWithoutClass" abstract="true"&gt;
+    &lt;property name="name" value="parent"/&gt;
+    &lt;property name="age" value="1"/&gt;
+&lt;/bean&gt;
+
+&lt;bean id="inheritsWithClass" class="org.springframework.beans.DerivedTestBean"
+    parent="inheritedTestBeanWithoutClass" init-method="initialize"&gt;
+  &lt;property name="name" value="override"/&gt;
+  <em class="lineannotation"><span class="lineannotation">&lt;!-- age will inherit the value of <code class="literal">1</code> from the parent bean definition--&gt;</span></em>
+&lt;/bean&gt;</pre>
+<p>由於這樣的父bean是不完整的，而且還被顯式標記為<code class="literal">抽象的</code>，因而它無法得到自己的實例。<code class="literal">抽象</code>bean定義可作為子bean定義的模板。若要嘗試單獨使用這樣的父bean（比如將它作為其他bean的ref屬性而參考，或者直接使用這個父bean的id作為參數調用<code class="methodname">getBean()</code>方法），將會導致錯誤。同樣地，容器內部的<code class="methodname">preInstantiateSingletons()</code>方法會完全忽略abstract的bean定義。</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>預設情況下，<code class="literal">ApplicationContext</code>（<span class="emphasis"><em>不是</em></span><code class="literal">BeanFactory</code>）會預實例化所有singleton的bean。因此很重要的一點是：如果你只想把一個（父）bean定義當作模板使用，而它又指定了class屬性，那麼你就得將<span class="emphasis"><em>'abstract'</em></span>屬性設置為<span class="emphasis"><em>'true'</em></span>，否則應用上下文將會（試著）預實例化<code class="literal">抽象</code>bean。</p>
+</div>
+</div></body>
+</html>

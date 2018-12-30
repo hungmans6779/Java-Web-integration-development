@@ -1,0 +1,67 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>4.2.&#160;Resource介面</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch04.html" title="第&#160;4&#160;章&#160;資源">
+<link rel="prev" href="ch04.html" title="第&#160;4&#160;章&#160;資源">
+<link rel="next" href="ch04s03.html" title="4.3.&#160;內置 Resource 實作">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="resources-resource"></a>4.2.&#160;<code class="interfacename">Resource</code>介面</h2></div></div></div>
+<p>Spring的 <code class="interfacename">Resource</code> 介面是為了提供更強的存取底層資源能力的抽象。
+		</p>
+<pre class="programlisting">public interface InputStreamSource {
+
+    boolean exists();
+
+    boolean isOpen();
+
+    URL getURL() throws IOException;
+
+    File getFile() throws IOException;
+
+    Resource createRelative(String relativePath) throws IOException;
+
+    String getFilename();
+
+    String getDescription();
+}</pre>
+<pre class="programlisting">public interface InputStreamSource {
+
+    InputStream getInputStream() throws IOException;
+
+}</pre>
+<p>
+			<code class="interfacename">Resource</code> 介面一些比較重要的方法如下：
+		</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>
+					<code class="methodname">getInputStream()</code>: 定位並打開資源，返回讀取此資源的一個 <code class="classname">InputStream</code>。每次調用預期會返回一個新的 <code class="classname">InputStream</code>，由調用者負責關閉這個串流。</p></li>
+<li><p>
+					<code class="methodname">exists()</code>: 返回標識這個資源在物理上是否的確存在的 <code class="literal">boolean</code> 值。</p></li>
+<li><p>
+					<code class="methodname">isOpen()</code>: 返回標識這個資源是否有已打開串流的處理類別的 <code class="literal">boolean</code> 值。如果為 <code class="literal">true</code>，則此<code class="classname">InputStream</code> 就不能被多次讀取，
+而且只能被讀取一次然後關閉以避免資源洩漏。除了 <code class="classname">InputStreamResource</code>，常見的resource實作都會返回 <code class="literal">false</code>。
+				</p></li>
+<li><p>
+					<code class="methodname">getDescription()</code>: 返回資源的描述，一般在與此資源相關的錯誤輸出時使用。此描述通常是完整的檔案名或實際的URL位址。
+				</p></li>
+</ul></div>
+<p>其它方法讓你獲得表示該資源的實際的 <code class="classname">URL</code> 或	<code class="classname">File</code> 物件(如果隱含的實作支持該方法並保持一致的話)。
+		</p>
+<p>Spring自身處理資源請求的多種方法宣告中將<code class="interfacename">Resource</code> 抽象作為參數而廣泛地使用。
+Spring APIs中的一些其它方法(比如許多<code class="interfacename">ApplicationContext</code>的實作建構函數)，使用普通格式的 <code class="classname">String</code> 來創建與context相符的<code class="interfacename">Resource</code>，也可以使用特殊的路徑<code class="classname">String</code>前綴來讓調用者指定創建和使用特定的 <code class="interfacename">Resource</code> 實作。
+		</p>
+<p>
+			<code class="interfacename">Resource</code>不僅被Spring自身大量地使用，它也非常適合在你自己的程式碼中獨立作為輔助類別使用。
+使用者程式碼甚至可以在不用關心Spring其它部分的情況下存取資源。這樣的確會造成程式碼與Spring之間的耦合，但也僅僅是與很少量的輔助類別耦合。這些類別可以作為比 <code class="classname">URL</code> 更有效的替代，而且與為這個目的而使用其它類別資源庫基本相似。
+		</p>
+<p>需要注意的是 <code class="interfacename">Resource</code> 抽象並沒有改變功能：它盡量使用封裝。
+			比如 <code class="classname">UrlResource</code> 封裝了URL，然後使用被封裝的 <code class="classname">URL</code> 來工作。
+		</p>
+</div></body>
+</html>

@@ -1,0 +1,58 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>7.6.&#160;簡化代理定義</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch07.html" title="第&#160;7&#160;章&#160;Spring AOP APIs">
+<link rel="prev" href="ch07s05.html" title="7.5.&#160;使用ProxyFactoryBean創建AOP代理">
+<link rel="next" href="ch07s07.html" title="7.7.&#160;使用ProxyFactory通過程式創建AOP代理">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="aop-concise-proxy"></a>7.6.&#160;簡化代理定義</h2></div></div></div>
+<p>你也許需要許多相似的代理定義，特別是定義事務性代理的時候。使用父子bean定義，以及內部bean定義，可以讓代理定義大大得到極大的簡化。</p>
+<p>首先從父bean開始，為代理bean創建bean定義<span class="emphasis"><em>模版</em></span>：</p>
+<p>
+        </p>
+<pre class="programlisting">&lt;bean id="txProxyTemplate" abstract="true"
+            class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean"&gt;
+            &lt;property name="transactionManager" ref="transactionManager"/&gt;
+            &lt;property name="transactionAttributes"&gt;
+            &lt;props&gt;
+            &lt;prop key="*"&gt;PROPAGATION_REQUIRED&lt;/prop&gt;
+            &lt;/props&gt;
+            &lt;/property&gt;
+        &lt;/bean&gt;</pre>
+<p>
+    </p>
+<p>這個bean本身將永遠不會被初始化，所以實際上是不完整的。而後每個需要創建的代理都是這個bean定義的子bean定義，它們把代理的目標類別包裹為一個內部bean定義，因為目標物件本身將不會被單獨使用。
+        </p>
+<pre class="programlisting">&lt;bean id="myService" parent="txProxyTemplate"&gt;
+            &lt;property name="target"&gt;
+            &lt;bean class="org.springframework.samples.MyServiceImpl"&gt;
+            &lt;/bean&gt;
+            &lt;/property&gt;
+    &lt;/bean&gt;</pre>
+<p>當然你可以覆寫從模版中繼承的屬性，例如在下面這個例子裡的事務傳播設置：</p>
+<pre class="programlisting">&lt;bean id="mySpecialService" parent="txProxyTemplate"&gt;
+            &lt;property name="target"&gt;
+            &lt;bean class="org.springframework.samples.MySpecialServiceImpl"&gt;
+            &lt;/bean&gt;
+            &lt;/property&gt;
+            &lt;property name="transactionAttributes"&gt;
+            &lt;props&gt;
+            &lt;prop key="get*"&gt;PROPAGATION_REQUIRED,readOnly&lt;/prop&gt;
+            &lt;prop key="find*"&gt;PROPAGATION_REQUIRED,readOnly&lt;/prop&gt;
+            &lt;prop key="load*"&gt;PROPAGATION_REQUIRED,readOnly&lt;/prop&gt;
+            &lt;prop key="store*"&gt;PROPAGATION_REQUIRED&lt;/prop&gt;
+            &lt;/props&gt;
+            &lt;/property&gt;
+    &lt;/bean&gt;</pre>
+<p>要注意上面例子中我們已經明確地通過設定<span class="emphasis"><em>abstract</em></span>屬性把父bean定義標注為<span class="emphasis"><em>abstract</em></span>，在<a href="ch03s06.html" title="3.6.&#160;bean定義的繼承">前面</a>的章節裡有描述，這樣它實際上不能被初始化。
+        缺省情況下應用程序上下文（不僅僅是bean處理器）將預先初始化所有的實例為單例。
+        因此下面這點是很重要的（至少對於單例bean來說），如果你有一個（父）bean定義你希望僅僅作為模版使用，而這個定義說明了一個類別，你必須把<span class="emphasis"><em>abstract</em></span>參數設置為<span class="emphasis"><em>true</em></span>，否則應用程序上下文將試圖預先初始化它。
+    </p>
+</div></body>
+</html>

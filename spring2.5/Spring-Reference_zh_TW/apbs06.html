@@ -1,0 +1,39 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>B.6.&#160;Using a custom extension in your Spring XML configuration</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="apb.html" title="附錄&#160;B.&#160;Extensible XML authoring">
+<link rel="prev" href="apbs05.html" title="B.5.&#160;Registering the handler and the schema">
+<link rel="next" href="apbs07.html" title="B.7.&#160;Meatier examples">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="extensible-xml-using"></a>B.6.&#160;Using a custom extension in your Spring XML configuration</h2></div></div></div>
+<p>Using a custom extension that you yourself have implemented is no different from
+		using one of the 'custom' extensions that Spring provides straight out of the box. Find below
+		an example of using the custom <code class="literal">&lt;dateformat/&gt;</code> element developed in the
+		previous steps in a Spring XML configuration file.</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:myns="http://www.mycompany.com/schema/myns"
+      xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+http://www.mycompany.com/schema/myns http://www.mycompany.com/schema/myns/myns.xsd"&gt;
+
+   <em class="lineannotation"><span class="lineannotation">&lt;!-- as a top-level bean --&gt;</span></em>
+   &lt;myns:dateformat id="defaultDateFormat" pattern="yyyy-MM-dd HH:mm" lenient="true"/&gt;
+
+   &lt;bean id="jobDetailTemplate" abstract="true"&gt;
+      &lt;property name="dateFormat"&gt;
+         <em class="lineannotation"><span class="lineannotation">&lt;!-- as an inner bean --&gt;</span></em>
+         &lt;myns:dateformat pattern="HH:mm MM-dd-yyyy"/&gt;
+      &lt;/property&gt;
+   &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+</div></body>
+</html>

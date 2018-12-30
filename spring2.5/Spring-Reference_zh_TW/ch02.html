@@ -1,0 +1,84 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>第&#160;2&#160;章&#160;Spring 2.0和 2.5的新特性</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="prev" href="ch01.html" title="第&#160;1&#160;章&#160;簡介">
+<link rel="next" href="ch02s02.html" title="2.2.&#160;控制反轉(IoC)容器">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="chapter" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title">
+<a name="new-in-2"></a>第&#160;2&#160;章&#160;Spring 2.0和 2.5的新特性</h2></div></div></div>
+<div class="toc">
+<p><b>目錄</b></p>
+<dl>
+<dt><span class="section"><a href="ch02.html#new-in-2-intro">2.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch02s02.html">2.2. 控制反轉(IoC)容器</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch02s02.html#new-in-2-ioc-scopes">2.2.1. 新的bean作用域</a></span></dt>
+<dt><span class="section"><a href="ch02s02.html#new-in-2-ioc-configuration">2.2.2. 更簡單的XML配置</a></span></dt>
+<dt><span class="section"><a href="ch02s02.html#new-in-2-ioc-custom-configuration">2.2.3. 可擴展的XML編寫</a></span></dt>
+<dt><span class="section"><a href="ch02s02.html#new-in-2-ioc-annotations">2.2.4. Annotation(註釋)驅動配置</a></span></dt>
+<dt><span class="section"><a href="ch02s02.html#new-in-2-ioc-component-scanning">2.2.5. 在classpath中自動搜尋元件</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch02s03.html">2.3. 切面導向程式(AOP)</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch02s03.html#new-in-2-aop-configuration">2.3.1. 更加簡單的AOP XML配置</a></span></dt>
+<dt><span class="section"><a href="ch02s03.html#new-in-2-aop-aspectj">2.3.2. 對@AspectJ 切面的支持</a></span></dt>
+<dt><span class="section"><a href="ch02s03.html#new-in-2-aop-bean-pointcuts">2.3.3. 對bean命名pointcut( bean name pointcut element)的支持</a></span></dt>
+<dt><span class="section"><a href="ch02s03.html#new-in-2-aop-load-time-weaving">2.3.4. 對AspectJ裝載時織入（AspectJ load-time weaving）的支持</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch02s04.html">2.4. 中間層</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch02s04.html#new-in-2-middle-tier-transaction-configuration">2.4.1. 在XML裡更為簡單的宣告性事務配置</a></span></dt>
+<dt><span class="section"><a href="ch02s04.html#new-in-2-middle-tier-websphere">2.4.2. 對Websphere 事務管理的完整支持</a></span></dt>
+<dt><span class="section"><a href="ch02s04.html#new-in-2-middle-tier-jpa">2.4.3. JPA</a></span></dt>
+<dt><span class="section"><a href="ch02s04.html#new-in-2-middle-tier-async-jms">2.4.4. 異步的JMS</a></span></dt>
+<dt><span class="section"><a href="ch02s04.html#new-in-2-middle-tier-jdbc">2.4.5. JDBC</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch02s05.html">2.5. Web層</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch02s05.html#new-in-2-web-convention">2.5.1. Spring MVC合理的預設值</a></span></dt>
+<dt><span class="section"><a href="ch02s05.html#new-in-2-web-portlet">2.5.2. Portlet 框架</a></span></dt>
+<dt><span class="section"><a href="ch02s05.html#new-in-2-web-annotations">2.5.3. 基於Annotation的控制器</a></span></dt>
+<dt><span class="section"><a href="ch02s05.html#new-in-2-web-form-tags">2.5.4. Spring MVC的表單標籤資源庫</a></span></dt>
+<dt><span class="section"><a href="ch02s05.html#new-in-2-web-tiles2">2.5.5. 對Tiles 2 支持</a></span></dt>
+<dt><span class="section"><a href="ch02s05.html#new-in-2-web-jsf12">2.5.6. 對JSF 1.2支持</a></span></dt>
+<dt><span class="section"><a href="ch02s05.html#new-in-2-web-jaxws">2.5.7. JAX-WS支持</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch02s06.html">2.6. 其他</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch02s06.html#new-in-2-other-dynamic-language-support">2.6.1. 動態語言支持</a></span></dt>
+<dt><span class="section"><a href="ch02s06.html#new-in-2-other-testing">2.6.2. 增強的測試支持</a></span></dt>
+<dt><span class="section"><a href="ch02s06.html#new-in-2-other-jmx">2.6.3. JMX 支持</a></span></dt>
+<dt><span class="section"><a href="ch02s06.html#new-in-2-other-jca">2.6.4. 將Spring 應用程序上下文部署為JCA adapter</a></span></dt>
+<dt><span class="section"><a href="ch02s06.html#new-in-2-other-taskexecutor">2.6.5. 計劃任務</a></span></dt>
+<dt><span class="section"><a href="ch02s06.html#new-in-2-other-java5">2.6.6. 對Java 5 (Tiger) 支持</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch02s07.html">2.7. 移植到Spring 2.5</a></span></dt>
+<dd><dl><dt><span class="section"><a href="ch02s07.html#new-in-2-migrating-changes">2.7.1. 改變</a></span></dt></dl></dd>
+<dt><span class="section"><a href="ch02s08.html">2.8. 更新的樣例應用</a></span></dt>
+<dt><span class="section"><a href="ch02s09.html">2.9. 改進的文檔</a></span></dt>
+</dl>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="new-in-2-intro"></a>2.1.&#160;簡介</h2></div></div></div>
+<p>如果你已經用了一段時間的Spring Framework，那你將發現Spring經歷了兩次大的修訂: 一次是2006年10月發佈的Spring 2.0, 另一次是2007年11月發佈 Spring 2.5 。</p>
+<div class="sidebar">
+<a name="new-in-2-intro-java"></a><p class="title"><b>Java SE 與 Java EE 支持</b></p>
+<p>Spring Framework繼續保持與所有Java版本的相容性 - 從Java 1.4.2開始(包括1.4.2)。這意味著spring對Java1.4.2,Java 5和 Java 6都支持，
+      但是Spring Framework的一些高層級功能無法在1.4.2中使用。從Spring 2.5起,Spring框架完全支持Java 6，而Spring 2.0則對Java 5支持比較好。</p>
+<p>此外，Spring延續了對J2EE 1.3及更高版本的相容性，同時對Java EE 5提供完全支持。也就是說，Spring可以繼續在應用伺服器中運行，包括 BEA WebLogic 8.1, 9.0, 9.2 和 10, IBM WebSphere 5.1, 6.0 和 6.1,
+      Oracle OC4J 10.1.3 和 11, JBoss 3.2, 4.0 和 4.2, 以及 Tomcat
+      4.1, 5.0, 5.5 和 6.0, Jetty 4.2, 5.1 和 6.1, Resin 2.1, 3.0 和 3.1
+      還有 GlassFish V1 和 V2.</p>
+</div>
+<p>本章是對Spring 2.0與2.5新特性與改進特性的嚮導。我們希望提供一個高階的概觀使那些有經驗的Spring架構師與開發人員能很快熟悉Spring 2.x的新功能。
+		如果想瞭解關於特性更多更深層的資訊，請參考在本章裡超連接的相應部分。</p>
+</div>
+</div></body>
+</html>

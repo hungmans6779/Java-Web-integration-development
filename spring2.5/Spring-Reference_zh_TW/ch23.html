@@ -1,0 +1,47 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>第&#160;23&#160;章&#160;Spring中的定時調度(Scheduling)和執行緒池(Thread Pooling)</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="pt04.html" title="部分&#160;IV.&#160;整合">
+<link rel="prev" href="ch22s03.html" title="22.3.&#160;使用MimeMessageHelper">
+<link rel="next" href="ch23s02.html" title="23.2.&#160;使用OpenSymphony Quartz 調度器">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="chapter" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title">
+<a name="scheduling"></a>第&#160;23&#160;章&#160;Spring中的定時調度(Scheduling)和執行緒池(Thread Pooling)</h2></div></div></div>
+<div class="toc">
+<p><b>目錄</b></p>
+<dl>
+<dt><span class="section"><a href="ch23.html#scheduling-introduction">23.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch23s02.html">23.2. 使用OpenSymphony Quartz 調度器</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch23s02.html#scheduling-quartz-jobdetail">23.2.1. 使用JobDetailBean</a></span></dt>
+<dt><span class="section"><a href="ch23s02.html#scheduling-quartz-method-invoking-job">23.2.2. 使用 <code class="classname">MethodInvokingJobDetailFactoryBean</code></a></span></dt>
+<dt><span class="section"><a href="ch23s02.html#scheduling-quartz-cron">23.2.3. 使用triggers和<code class="classname">SchedulerFactoryBean</code>來包裹任務</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch23s03.html">23.3. 使用JDK Timer支持類別</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch23s03.html#scheduling-jdk-timer-creating">23.3.1. 創建定制的timers</a></span></dt>
+<dt><span class="section"><a href="ch23s03.html#scheduling-jdk-timer-method-invoking-task">23.3.2. 使用 <code class="classname">MethodInvokingTimerTaskFactoryBean</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch23s03.html#scheduling-jdk-timer-factory-bean">23.3.3. 最後：使用<code class="classname">TimerFactoryBean</code>來設置任務</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch23s04.html">23.4. Spring<code class="interfacename">TaskExecutor</code>抽象</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch23s04.html#scheduling-task-executor-interface">23.4.1. <code class="interfacename">TaskExecutor</code>介面</a></span></dt>
+<dt><span class="section"><a href="ch23s04.html#scheduling-task-executor-types">23.4.2. <code class="interfacename">TaskExecutor</code>型別</a></span></dt>
+<dt><span class="section"><a href="ch23s04.html#scheduling-task-executor-usage">23.4.3. 使用<code class="interfacename">TaskExecutor</code></a></span></dt>
+</dl></dd>
+</dl>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="scheduling-introduction"></a>23.1.&#160;簡介</h2></div></div></div>
+<p>
+  			Spring包含了對定時調度服務的內置支持類別。當前，Spring支持從JDK1.3開始內置的<code class="classname">Timer</code>類別和Quartz Scheduler(<a href="http://www.opensymphony.com/quartz/" target="_top">http://www.opensymphony.com/quartz/</a>)。二者都可以通過<code class="interfacename">FactoryBean</code>，分別指向<code class="classname">Timer</code>或<code class="classname">Trigger</code>實例的參考進行配置。更進一步，有個對Quartz Scheduler和<code class="classname">Timer</code>都有效的工具類別可以讓你調用某個目標物件的方法（類似通常的<code class="classname">MethodInvokingFactoryBean</code>操作）。Spring 還包含有用於執行緒池調度的類別，它針對Java 1.3,1.4,5和JEE環境的差異都進行了抽象。
+ 		</p>
+</div>
+</div></body>
+</html>

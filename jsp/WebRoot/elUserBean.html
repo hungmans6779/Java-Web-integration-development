@@ -1,0 +1,38 @@
+=<!DOCTYPE html>
+<html>
+  <head>
+    <title>userBean.html</title>
+    <link rel="stylesheet" type="text/css"  href="style.css" />
+  </head>
+  
+  <body>
+    <div align="center" >
+      <form action="elUserBean.jsp" method="post" >
+        <fieldset style='width:300pt;text-align:left' >
+          <legend>請填寫Person 資訊</legend>
+          <table align="center" width="400" >
+            <tr>
+              <td>姓名</td>
+              <td><input type="text" name="name" value="Kevin" style="width:200px" /></td>
+            </tr>
+            <tr>
+              <td>年齡</td>
+              <td><input type="text" name="age" value="33" style="width:200px" /></td>
+            </tr>
+            <tr>
+              <td>性別</td>
+              <td>
+                <input type="radio" name="sex" value="Male" checked />Male
+                <input type="radio" name="sex" value="Female" />Female
+              </td>
+            </tr>
+            <tr>
+              <td></td>
+              <td><input type="submit" name="search" value="傳送 Person 資訊" class="button" /></td>
+            </tr>                        
+          </table>
+        </fieldset>
+      </form>
+    </div>
+  </body>
+</html>

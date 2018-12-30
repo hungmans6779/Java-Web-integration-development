@@ -1,0 +1,81 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>第&#160;1&#160;章&#160;簡介</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="prev" href="pr01.html" title="前言">
+<link rel="next" href="ch02.html" title="第&#160;2&#160;章&#160;Spring 2.0和 2.5的新特性">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="chapter" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title">
+<a name="introduction"></a>第&#160;1&#160;章&#160;簡介</h2></div></div></div>
+<div class="toc">
+<p><b>目錄</b></p>
+<dl>
+<dt><span class="section"><a href="ch01.html#introduction-overview">1.1. 概覽</a></span></dt>
+<dd><dl><dt><span class="section"><a href="ch01.html#overview-usagescenarios">1.1.1. 使用場景</a></span></dt></dl></dd>
+</dl>
+</div>
+<div class="sidebar">
+<a name="background-ioc"></a><p class="title"><b>背景</b></p>
+<p>早在2004年初，Martin Fowler在他的站點上問讀者：當談論控制反轉時：
+		「<span class="quote"><span class="emphasis"><em>問題在於，它們轉變的是什麼方面的控制？</em></span></span>」。
+		Fowler建議重命名該原則（或至少給它一個更加明確的名稱），並開始使用 <em class="firstterm">依賴注入</em>這個術語。
+		並且，在他的文章中進一步解釋了控制反轉（<acronym class="acronym">IoC</acronym>）和依賴注入（<acronym class="acronym">DI</acronym>）的原則思想。</p>
+<p>如果您想對控制反轉和依賴注入有更深入的理解，請參閱上述文章：<a href="http://martinfowler.com/articles/injection.html" target="_top">http://martinfowler.com/articles/injection.html</a>。</p>
+</div>
+<p>Java應用（從applets的小範圍到全套n層伺服端企業應用）是一種典型的依賴型應用，它就是由一些互相適當地協作的物件構成的。因此，我們說這些物件間存在<span class="emphasis"><em>依賴關係</em></span>。</p>
+<p>Java語言和java平臺在架構應用與建立應用方面，提供著豐富的功能。從非常基礎的基本資料型別和Class（即定義新類別）組成的程序塊，到建立具有豐富的特性的應用伺服器和web框架都有著很多的方法。一方面，可以通過抽象的顯著特性讓基礎的程序塊組成在一起成為一個連貫的整體。這樣，建構一個應用（或者多個應用）的工作就可以交給架構師或者開發人員去做。因此，我們就可以清晰的知道哪些業務需要哪些Classes和物件組成，哪些設計模式可以應用在哪些業務上面。
+		例如：<em class="firstterm">Factory</em>、<em class="firstterm">Abstract Factory</em>、<em class="firstterm">Builder</em>、<em class="firstterm">Decorator</em> 和 <em class="firstterm">Service Locator</em> 這些模式（列舉的只是少數）在軟體開發行業被普遍認可和肯定（或許這就是為什麼這些模式被定型的原因）。
+		這固然是件好事，不過這些模式只是一個有名字的，有說明的，知道最好用在什麼地方的，解決應用中什麼問題的最佳實踐而已。
+		在本章節的最後，用「<span class="quote">... <span class="emphasis"><em>說明</em></span> ...</span>」給出了模式說明。
+		通常，模式書籍與wikis通常都列出了你可以獲得的最佳實踐，不過，希望你思考之後，在你自己的應用中 <span class="emphasis"><em>實作自己的模式</em></span>。</p>
+<p>Spring的IoC控制元件主要專注於如何利用classes、物件和服務去組成一個企業級應用，通過規範的方式，將各種不同的控制元件整合成一個完整的應用。Spring中使用了很多被實踐證明的最佳實踐和正規的設計模式，並且進行了編碼實作。如果你是一個，構架師或者開發人員完全可以取出它們整合到你自己的應用之中。這對於那些使用了Spring Framework的組織和機構來說，在spring基礎上實作應用不僅可以建構優秀的，可維護的應用並對Spring的設計進行驗證，<em class="firstterm">確實是一件好事情</em>。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="introduction-overview"></a>1.1.&#160;概覽</h2></div></div></div>
+<p>Spring框架包含許多特性，並被很好地組織在下圖所示的六個模組中。本節將依次介紹每個模組。</p>
+<div class="mediaobject" align="center">
+<img src="images/spring-overview.png" align="middle"><div class="caption"><p>Spring框架概觀</p></div>
+</div>
+<p><span class="emphasis"><em>Core</em></span> 封裝套件是框架的最基礎部分，提供IoC和依賴注入特性。這裡的基礎概念是<code class="classname">BeanFactory</code>，它提供對Factory模式的經典實作來消除對程序性單例模式的需要，並真正地允許你從程序邏輯中分離出依賴關係和配置。</p>
+<p><a href="ch03s08.html" title="3.8.&#160;The ApplicationContext"><span class="emphasis"><em>Context(上下文)</em></span></a> 封裝包構築於<a href="ch03.html#beans-introduction" title="3.1.&#160;簡介"><span class="emphasis"><em>Core</em></span></a>封裝套件的堅固基礎上:它提供了用一種框架樣式的方式來存取物件，有些像JNDI註冊表。Context封裝包繼承了beans套件的功能，還增加了國際化（I18N）（用於規範resource bundle）,事件傳播，資源裝載，以及透明創建上下文，例如通過servlet容器。</p>
+<p><a href="ch10.html#dao-introduction" title="10.1.&#160;簡介"><span class="emphasis"><em>DAO</em></span></a> 提供了JDBC的抽象層，它可消除冗長的JDBC編碼和解析資料庫廠商特有的錯誤程式碼。
+		並且，<a href="ch11.html#jdbc-introduction" title="11.1.&#160;簡介">JDBC</a> 封裝包還提供了一種比程式性更好的宣告性事務管理方法，不僅僅是實作了特定介面，而且對<span class="emphasis"><em>所有的POJOs（plain old Java objects）</em></span>都適用。
+		</p>
+<p><a href="ch12.html#orm-introduction" title="12.1.&#160;簡介"><span class="emphasis"><em>ORM</em></span></a> 封裝包提供了常用的「物件/關係」映射APIs的整合層。
+		其中包括<a href="ch12s06.html" title="12.6.&#160;JPA">JPA</a>、<a href="ch12s03.html" title="12.3.&#160;JDO">JDO</a>、<a href="ch12s02.html" title="12.2.&#160;Hibernate">Hibernate</a> 和 <a href="ch12s05.html" title="12.5.&#160;iBATIS SQL Maps">iBatis</a> 。利用ORM封裝包，可以混合使用所有Spring提供的特性進行「物件/關係」映射，如前邊提到的簡單宣告性事務管理。</p>
+<p>Spring的 <a href="ch06.html#aop-introduction" title="6.1.&#160;簡介"><span class="emphasis"><em>AOP</em></span></a> 封裝包提供了符合 <span class="emphasis"><em>AOP Alliance</em></span>規範的導向方面的程式（aspect-oriented programming）實作，讓你可以定義，例如方法攔截器（method-interceptors）和切點（pointcuts），從邏輯上講，從而減弱程式碼的功能耦合，清晰的被分離開。而且，利用source-level的元資料功能，還可以將各種行為資訊合併到你的程式碼中，這有點像.Net的attribute的概念。</p>
+<p>Spring中的 <span class="emphasis"><em>Web</em></span> 套件提供了基礎的針對Web開發的整合特性，例如多方檔案上傳，利用Servlet listeners進行IoC容器初始化和針對Web的application context。當與WebWork或Struts一起使用Spring時，這個包使Spring可與其他框架結合。</p>
+<p>Spring中的 <a href="ch13.html#mvc-introduction" title="13.1.&#160;概觀"><span class="emphasis"><em>MVC</em></span></a> 封裝包提供了Web應用的Model-View-Controller（MVC）實作。Spring的MVC框架並不是僅僅提供一種傳統的實作，它提供了一種 <span class="emphasis"><em>清晰的</em></span> 分離模型，在領域模型程式碼和web form之間。並且，還可以借助Spring框架的其他特性。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="overview-usagescenarios"></a>1.1.1.&#160;使用場景</h3></div></div></div>
+<p>借助搭積木方式來解釋一下各種情景下使用Spring的情況，從簡單的Applet一直到完整的使用Spring的事務管理功能和Web框架的企業應用。</p>
+<div class="mediaobject" align="center">
+<img src="images/full.gif" align="middle"><div class="caption"><p>典型的完整Spring Web應用</p></div>
+</div>
+<p>通過用Spring的 <a href="ch09s05.html" title="9.5.&#160;宣告式事務管理">宣告事務管理特性</a>，Web應用可以做到完全事務性，就像使用EJB提供的那種容器管理的事務一樣。
+			所有自定義的商業邏輯可以通過簡單的POJO來實作，並利用Spring的IoC容器進行管理。對於其他的服務，比如發送email和不依賴web層的校驗資訊，還可以讓你自己決定在哪裡執行校驗規則。
+			Spring本身的ORM支持可以和JPA、Hibernate、JDO以及iBatis整合起來，例如使用Hibernate，你可復用已經存在的映射檔案與標準的Hibernate <code class="interfacename">SessionFactory</code> 配置。用控制器去無縫整合web層和領域模型，消除對 <code class="classname">ActionForms</code> 的依賴，或者避免了其他class為領域模型轉換HTTP參數的需要。</p>
+<div class="mediaobject" align="center">
+<img src="images/thirdparty-web.gif" align="middle"><div class="caption"><p>使用了第三方框架的Spring中間層</p></div>
+</div>
+<p>有的時候，現有情況不允許你徹底地從一種框架切換到另一種框架。然而，Spring卻 <span class="emphasis"><em>不需要</em></span> 強制你使用它的全部，Spring不是一種 <span class="emphasis"><em>全有全無</em></span> 的解決方案。
+			如果，現有的應用使用了WebWork、Struts、Tapestry或其他的UI框架作為前端程序，完全可以只與Spring的事務特性進行整合。
+			只需要使用 <code class="classname">ApplicationContext</code> 來掛接你的商業邏輯和通過 <code class="classname">WebApplicationContext</code> 來整合你的web層前端程序。</p>
+<div class="mediaobject" align="center">
+<img src="images/remoting.gif" align="middle"><div class="caption"><p>遠端使用場景</p></div>
+</div>
+<p>當你需要通過WebService來存取你的現有程式碼時，你可使用Spring提供的 <code class="literal">Hessian-</code>、<code class="literal">Burlap-</code>、<code class="literal">Rmi-</code> 為前綴的介面或者 <code class="classname">JaxRpcProxyFactory</code> 這個代理類別。你會發現，遠端存取現有應用程序不再那麼困難了。</p>
+<div class="mediaobject" align="center">
+<img src="images/ejb.gif" align="middle"><div class="caption"><p>EJBs-包裹現有的POJOs</p></div>
+</div>
+<p>Spring還為EJB提供了 <a href="ch18.html" title="第&#160;18&#160;章&#160;Enterprise Java Beans (EJB) 整合">資料存取和抽象層</a>，讓你可以復用已存在的POJO並將他們包裹在無狀態SessionBean中，以便在可能需要宣告式安全（EJB中的安全管理，譯者注）的非安全的Web應用中使用。</p>
+</div>
+</div>
+</div></body>
+</html>

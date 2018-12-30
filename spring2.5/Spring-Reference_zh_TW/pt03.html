@@ -1,0 +1,224 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>部分&#160;III.&#160;The Web</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="prev" href="ch12s08.html" title="12.8.&#160;JpaDialect">
+<link rel="next" href="ch13.html" title="第&#160;13&#160;章&#160;Web MVC framework Web框架">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="part" lang="zh-cn">
+<div class="titlepage"><div><div><h1 class="title">
+<a name="spring-web"></a>部分&#160;III.&#160;The Web</h1></div></div></div>
+<div class="partintro" lang="zh-cn">
+<div></div>
+<p>
+				參考手冊這部分涵括了Sprint Framework對表現層（特別是基於web的表現層）的支持。
+			</p>
+<p>
+				在這章的前兩節介紹了Spring Framework自己的web框架，<a href="ch13.html" title="第&#160;13&#160;章&#160;Web MVC framework Web框架">Spring Web MVC</a>，
+				這部分中剩下的一些章節介紹了Spring Framework與其他web實作的整合技術，
+				例如 <a href="ch15s04.html" title="15.4.&#160;Struts">Struts</a> 和 <a href="ch15s03.html" title="15.3.&#160;JavaServer Faces">JSF</a>（作為範例，僅列出兩個）。
+			</p>
+<p>
+				這部分以Spring的MVC <a href="ch16.html" title="第&#160;16&#160;章&#160;Portlet MVC框架">Portlet框架</a> 作為結束。
+			</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><a href="ch13.html" title="第&#160;13&#160;章&#160;Web MVC framework Web框架">第&#160;13&#160;章 <i>Web MVC framework Web框架</i></a></p></li>
+<li><p><a href="ch14.html" title="第&#160;14&#160;章&#160;整合視圖技術">第&#160;14&#160;章 <i>整合視圖技術</i></a></p></li>
+<li><p><a href="ch15.html" title="第&#160;15&#160;章&#160;整合其它Web框架">第&#160;15&#160;章 <i>整合其它Web框架</i></a></p></li>
+<li><p><a href="ch16.html" title="第&#160;16&#160;章&#160;Portlet MVC框架">第&#160;16&#160;章 <i>Portlet MVC框架</i></a></p></li>
+</ul></div>
+<div class="toc">
+<p><b>目錄</b></p>
+<dl>
+<dt><span class="chapter"><a href="ch13.html">13. Web MVC framework Web框架</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13.html#mvc-introduction">13.1. 概觀</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13.html#mvc-introduction-pluggability">13.1.1. 與其他MVC實作框架的整合</a></span></dt>
+<dt><span class="section"><a href="ch13.html#mvc-features">13.1.2. Spring Web MVC框架的特點</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s02.html">13.2. <code class="classname">DispatcherServlet</code></a></span></dt>
+<dt><span class="section"><a href="ch13s03.html">13.3. 控制器</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13s03.html#mvc-controller-abstractcontroller">13.3.1. <code class="classname">AbstractController</code> 和 <code class="classname">WebContentGenerator</code></a></span></dt>
+<dt><span class="section"><a href="ch13s03.html#mvc-controller-othersimplecontrollers">13.3.2. 其它的簡單控制器</a></span></dt>
+<dt><span class="section"><a href="ch13s03.html#mvc-controller-multiaction">13.3.3. <code class="classname">MultiActionController</code></a></span></dt>
+<dt><span class="section"><a href="ch13s03.html#mvc-controller-command">13.3.4. 命令控制器</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s04.html">13.4. 處理器映射（handler mapping）</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13s04.html#mvc-handlermapping-beanname">13.4.1. <code class="classname">BeanNameUrlHandlerMapping</code></a></span></dt>
+<dt><span class="section"><a href="ch13s04.html#mvc-handlermapping-urlhandlermapping">13.4.2. <code class="classname">SimpleUrlHandlerMapping</code></a></span></dt>
+<dt><span class="section"><a href="ch13s04.html#mvc-handlermapping-interceptor">13.4.3. 攔截器（<code class="interfacename">HandlerInterceptor</code>）</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s05.html">13.5. 視圖與視圖解析</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13s05.html#mvc-viewresolver-resolver">13.5.1. 視圖解析器（<code class="interfacename">ViewResolver</code>）</a></span></dt>
+<dt><span class="section"><a href="ch13s05.html#mvc-viewresolver-chaining">13.5.2. 視圖解析鏈</a></span></dt>
+<dt><span class="section"><a href="ch13s05.html#mvc-redirecting">13.5.3. 重定向（Rediret）到另一個視圖</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s06.html">13.6. 本地化解析器</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13s06.html#mvc-localeresolver-acceptheader">13.6.1. <code class="classname">AcceptHeaderLocaleResolver</code></a></span></dt>
+<dt><span class="section"><a href="ch13s06.html#mvc-localeresolver-cookie">13.6.2. <code class="classname">CookieLocaleResolver</code></a></span></dt>
+<dt><span class="section"><a href="ch13s06.html#mvc-localeresolver-session">13.6.3. <code class="classname">SessionLocaleResolver</code></a></span></dt>
+<dt><span class="section"><a href="ch13s06.html#mvc-localeresolver-interceptor">13.6.4. <code class="classname">LocaleChangeInterceptor</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s07.html">13.7. 使用主題</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13s07.html#mvc-themeresolver-introduction">13.7.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch13s07.html#mvc-themeresolver-defining">13.7.2. 如何定義主題</a></span></dt>
+<dt><span class="section"><a href="ch13s07.html#mvc-themeresolver-resolving">13.7.3. 主題解析器</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s08.html">13.8. Spring對分段檔案上傳（multipart file upload）的支持</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13s08.html#mvc-multipart-introduction">13.8.1. 介紹</a></span></dt>
+<dt><span class="section"><a href="ch13s08.html#mvc-multipart-resolver">13.8.2. 使用<code class="interfacename">MultipartResolver</code></a></span></dt>
+<dt><span class="section"><a href="ch13s08.html#mvc-multipart-forms">13.8.3. 在表單中處理分段檔案上傳</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s09.html">13.9. 使用Spring的表單標籤資源庫</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-configuration">13.9.1. 配置</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-formtag">13.9.2. <code class="literal">form</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-inputtag">13.9.3. <code class="literal">input</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-checkboxtag">13.9.4. <code class="literal">checkbox</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-checkboxestag">13.9.5. <code class="literal">checkboxes</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-radiobuttontag">13.9.6. <code class="literal">radiobutton</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-radiobuttonstag">13.9.7. <code class="literal">radiobuttons</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-passwordtag">13.9.8. <code class="literal">password</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-selecttag">13.9.9. <code class="literal">select</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-optiontag">13.9.10. <code class="literal">option</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-optionstag">13.9.11. <code class="literal">options</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-textAreatag">13.9.12. <code class="literal">textarea</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-hiddeninputtag">13.9.13. <code class="literal">hidden</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-errorstag">13.9.14. <code class="literal">errors</code>標籤</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s10.html">13.10. 處理異常</a></span></dt>
+<dt><span class="section"><a href="ch13s11.html">13.11. 慣例優先原則（convention over configuration）</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13s11.html#mvc-coc-ccnhm">13.11.1. 對控制器的支持：<code class="classname">ControllerClassNameHandlerMapping</code></a></span></dt>
+<dt><span class="section"><a href="ch13s11.html#mvc-coc-modelmap">13.11.2. 對模型的支持：<code class="classname">ModelMap</code>（<code class="classname">ModelAndView</code>）</a></span></dt>
+<dt><span class="section"><a href="ch13s11.html#mvc-coc-r2vnt">13.11.3. 對視圖的支持：<code class="interfacename">RequestToViewNameTranslator</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s12.html">13.12. 基於註釋的控制器配置</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13s12.html#mvc-ann-setup">13.12.1. 建立dispatcher實作註釋支持</a></span></dt>
+<dt><span class="section"><a href="ch13s12.html#mvc-ann-controller">13.12.2. 使用<code class="interfacename">@Controller</code>定義一個控制器</a></span></dt>
+<dt><span class="section"><a href="ch13s12.html#mvc-ann-requestmapping">13.12.3. 使用<code class="interfacename">@RequestMapping</code>映射請求</a></span></dt>
+<dt><span class="section"><a href="ch13s12.html#mvc-ann-requestparam">13.12.4. 使用<code class="classname">@RequestParam</code>綁定請求參數到方法參數</a></span></dt>
+<dt><span class="section"><a href="ch13s12.html#mvc-ann-modelattrib">13.12.5. 使用<code class="classname">@ModelAttribute</code>提供一個從模型到資料的連接</a></span></dt>
+<dt><span class="section"><a href="ch13s12.html#mvc-ann-sessionattrib">13.12.6. 使用<code class="classname">@SessionAttributes</code>指定存儲在Session中的屬性</a></span></dt>
+<dt><span class="section"><a href="ch13s12.html#mvc-ann-webdatabinder">13.12.7. 自定義<code class="classname">WebDataBinder</code>初始化</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s13.html">13.13. 更多資源</a></span></dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch14.html">14. 整合視圖技術</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch14.html#view-introduction">14.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch14s02.html">14.2. JSP和JSTL</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch14s02.html#view-jsp-resolver">14.2.1. 視圖解析器</a></span></dt>
+<dt><span class="section"><a href="ch14s02.html#view-jsp-jstl">14.2.2. 
+				'Plain-old' JSPs versus JSTL 'Plain-old' JSP與JSTL
+			</a></span></dt>
+<dt><span class="section"><a href="ch14s02.html#view-jsp-tags">14.2.3. 說明簡化開發的額外的標籤</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch14s03.html">14.3. Tiles</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch14s03.html#view-tiles-dependencies">14.3.1. 需要的資源</a></span></dt>
+<dt><span class="section"><a href="ch14s03.html#view-tiles-integrate">14.3.2. 如何整合Tiles</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch14s04.html">14.4. Velocity和FreeMarker</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch14s04.html#view-velocity-dependencies">14.4.1. 需要的資源</a></span></dt>
+<dt><span class="section"><a href="ch14s04.html#view-velocity-contextconfig">14.4.2. Context 配置</a></span></dt>
+<dt><span class="section"><a href="ch14s04.html#view-velocity-createtemplates">14.4.3. 創建模板</a></span></dt>
+<dt><span class="section"><a href="ch14s04.html#view-velocity-advancedconfig">14.4.4. 高層級配置</a></span></dt>
+<dt><span class="section"><a href="ch14s04.html#view-velocity-forms">14.4.5. 綁定支持和表單處理</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch14s05.html">14.5. XSLT</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch14s05.html#view-xslt-firstwords">14.5.1. 寫在段首</a></span></dt>
+<dt><span class="section"><a href="ch14s05.html#view-xslt-summary">14.5.2. 小結</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch14s06.html">14.6. 文檔視圖（PDF/Excel）</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch14s06.html#view-document-intro">14.6.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch14s06.html#view-document-config">14.6.2. 配置和安裝</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch14s07.html">14.7. JasperReports</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch14s07.html#view-jasper-reports-dependencies">14.7.1. 依賴的資源</a></span></dt>
+<dt><span class="section"><a href="ch14s07.html#view-jasper-reports-configuration">14.7.2. 配置</a></span></dt>
+<dt><span class="section"><a href="ch14s07.html#view-jasper-reports-model">14.7.3. 
+				建構<code class="literal">ModelAndView</code>
+			</a></span></dt>
+<dt><span class="section"><a href="ch14s07.html#view-jasper-reports-subreports">14.7.4. 使用子報表</a></span></dt>
+<dt><span class="section"><a href="ch14s07.html#view-jasper-reports-exporter-parameters">14.7.5. 配置Exporter的參數</a></span></dt>
+</dl></dd>
+</dl></dd>
+<dt><span class="chapter"><a href="ch15.html">15. 整合其它Web框架</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch15.html#intro">15.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch15s02.html">15.2. 通用配置</a></span></dt>
+<dt><span class="section"><a href="ch15s03.html">15.3. JavaServer Faces</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch15s03.html#jsf-delegatingvariableresolver">15.3.1. DelegatingVariableResolver</a></span></dt>
+<dt><span class="section"><a href="ch15s03.html#jsf-facescontextutils">15.3.2. FacesContextUtils</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch15s04.html">15.4. Struts</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch15s04.html#struts-contextloaderplugin">15.4.1. ContextLoaderPlugin</a></span></dt>
+<dt><span class="section"><a href="ch15s04.html#struts-actionsupport">15.4.2. ActionSupport Classes</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch15s05.html">15.5. Tapestry</a></span></dt>
+<dd><dl><dt><span class="section"><a href="ch15s05.html#view-tapestry-di">15.5.1. 注入 Spring 托管的 beans</a></span></dt></dl></dd>
+<dt><span class="section"><a href="ch15s06.html">15.6. WebWork</a></span></dt>
+<dt><span class="section"><a href="ch15s07.html">15.7. 更多資源</a></span></dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch16.html">16. Portlet MVC框架</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch16.html#portlet-introduction">16.1. 介紹</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch16.html#portlet-introduction-controller">16.1.1. 控制器 - MVC中的C</a></span></dt>
+<dt><span class="section"><a href="ch16.html#portlet-introduction-view">16.1.2. 視圖 - MVC中的V</a></span></dt>
+<dt><span class="section"><a href="ch16.html#portlet-introduction-scope">16.1.3. Web作用範圍的Bean</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch16s02.html">16.2. 
+			<code class="classname">DispatcherPortlet</code>
+		</a></span></dt>
+<dt><span class="section"><a href="ch16s03.html">16.3. <code class="classname">ViewRendererServlet</code></a></span></dt>
+<dt><span class="section"><a href="ch16s04.html">16.4. 控制器</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch16s04.html#portlet-controller-abstractcontroller">16.4.1. <code class="classname">AbstractController</code> 和 <code class="classname">PortletContentGenerator</code></a></span></dt>
+<dt><span class="section"><a href="ch16s04.html#portlet-controller-simple">16.4.2. 其它簡單的控制器</a></span></dt>
+<dt><span class="section"><a href="ch16s04.html#portlet-controller-command">16.4.3. Command控制器</a></span></dt>
+<dt><span class="section"><a href="ch16s04.html#portlet-controller-wrapping">16.4.4. <code class="classname">PortletWrappingController</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch16s05.html">16.5. 處理器映射</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch16s05.html#portlet-handlermapping-portletmode">16.5.1. <code class="classname">PortletModeHandlerMapping</code></a></span></dt>
+<dt><span class="section"><a href="ch16s05.html#portlet-handlermapping-parameter">16.5.2. <code class="classname">ParameterHandlerMapping</code></a></span></dt>
+<dt><span class="section"><a href="ch16s05.html#portlet-handlermapping-portletmodeparameter">16.5.3. <code class="classname">PortletModeParameterHandlerMapping</code></a></span></dt>
+<dt><span class="section"><a href="ch16s05.html#portlet-handlermapping-interceptor">16.5.4. 增加 <code class="interfacename">HandlerInterceptor</code>s</a></span></dt>
+<dt><span class="section"><a href="ch16s05.html#portlet-handlermapping-interceptoradapter">16.5.5. <code class="classname">HandlerInterceptorAdapter</code></a></span></dt>
+<dt><span class="section"><a href="ch16s05.html#portlet-handlermapping-parameterinterceptor">16.5.6. <code class="classname">ParameterMappingInterceptor</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch16s06.html">16.6. 視圖和它們的解析</a></span></dt>
+<dt><span class="section"><a href="ch16s07.html">16.7. Multipart檔案上傳支持</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch16s07.html#portlet-multipart-resolver">16.7.1. 使用 <code class="interfacename">PortletMultipartResolver</code></a></span></dt>
+<dt><span class="section"><a href="ch16s07.html#portlet-multipart-forms">16.7.2. 處理表單裡的檔案上傳</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch16s08.html">16.8. 異常處理</a></span></dt>
+<dt><span class="section"><a href="ch16s09.html">16.9. Portlet應用的部署</a></span></dt>
+</dl></dd>
+</dl>
+</div>
+</div>
+</div></body>
+</html>

@@ -1,0 +1,557 @@
+
+
+
+************************************************************************************************************************************
+   【第十六章】Struts 2.x 概述 (WebWorkFrameWork)     
+   
+    起源於 WebWorkFrameWork，發佈於2002年3月。
+ 2005年12月，WebWork 項目與 Struts 項目宣佈合併，並推出了Struts2，其核心是 WebWork2。
+   
+    從一個新的視角實現 MVC，拋棄了request,response。 
+   
+    官網：http://struts.apache.org/2.x/
+   
+    特性：支援主題、整合 DOJOFramework、內建 Ajax 等。
+     
+    Struts2 採用即時部署外掛的方式註冊外掛，即如果向 Struts 中增加外掛，直接把 jar 檔案放到lib 中即可，
+    而不需要設定任何檔案。 
+  
+  
+   
+     ※注意：如果項目沒有用到 Plaxus、Sitegraph、Spring，增加時需要將下面的幾個外掛刪掉。否則佈署後會出現例外。
+       (1)struts2-plexus-plugin-2.0.11.jar;
+       (2)struts-sitegraph-plugin-2.0.11.jar;
+       (3)struts2-jsf-plugin-2.0.11.1.jar;
+       (4)struts2-spring-plugin-2.0.11.jar 
+       
+   
+   
+   
+    Struts2 設定檔的預設位置 /WEB-INF/classes/struts.xml。可以將 struts.xml 放到 MyEclipse 項目的 src 資料夾下。
+   
+   
+   
+   《登入功能 Action》	 
+    // Action:com.helloweenvsfei.struts2.action.LoginAction
+    http://3w.eztravel.com.tw:8080/struts2.1/loginPerson.action
+
+
+
+   【Struts2.x 工作流程】
+    1. 存取JSP頁面 /struts2.1/form/login.jsp。
+    2. 送出表單後資料送出給 /struts2/loginPerson.action。
+    3. Struts2 截獲所有請求，包含 *.action 的請求。
+    4. 查找 struts.xml,loginPerson.acction 對應的 LoginAction。
+    5. 產生一個 LoginAction 實例，將送出的資料設置到該實例中。
+    6. 呼叫 LoginAction 實例的 execute() 主方法。
+    7. 跳轉到 JSP 中顯示結果，丟棄該 LoginAction 實例。
+    
+   
+   
+   
+
+      
+   《登入功能 Action》：不繼承任何類別 Action，會透過反射來呼叫 execute() 	 
+    // Action:com.helloweenvsfei.struts2.action.LoginAction1
+    http://3w.eztravel.com.tw:8080/struts2.1/loginPerson1.action
+        
+        
+          ※ login() 及 logout() 並不是預設可執行方法。可將其設定到 struts.xml 中，或者透過特定的 URL
+      (例如： loginPerson1!login.action 、 loginPerson1!logout.action 等)直接執行這些非預定方法(action!method.action 的URL 形式存取)
+      
+    http://3w.eztravel.com.tw:8080/struts2.1/loginPerson1!login.action
+    http://3w.eztravel.com.tw:8080/struts2.1/loginPerson1!logout.action
+    
+        
+    http://3w.eztravel.com.tw:8080/struts2.1/loginPerson1_login.action
+    http://3w.eztravel.com.tw:8080/struts2.1/loginPerson1_logout.action
+
+
+
+
+
+
+
+   《登入功能 Action》：透過 Action，直接用萬用字元設定
+    // Action:com.helloweenvsfei.struts2.action.LoginAction2 	  
+    http://3w.eztravel.com.tw:8080/struts2.1/loginPerson2.action
+    http://3w.eztravel.com.tw:8080/struts2.1/logoutPerson2.action
+    
+   
+   
+   
+   
+   
+   
+   
+   
+
+
+   
+   
+  @ Struts 2 的零設定
+          零設定(zero configuration) 的意思是不使用任何設定檔佈署 Struts 2 應用，如 struts.xml、struts.properties、validation.xml 等。
+         零設定並不是真的"零設定"，只是沒有傳統的設定檔  struts.xml 了，
+         但是仍然需使用 @ Annotation 設定。
+    @Annotation 翻譯為  @註釋、@標記。
+    
+
+
+   《Annotation Action 範例》 
+   ZERO 零設定 @Action
+   http://3w.eztravel.com.tw:8080/struts2.1/useAnnotationNamespace/annotationAction.action
+   http://3w.eztravel.com.tw:8080/struts2.1/useAnnotationNamespace/annotationAction!login.action
+   http://3w.eztravel.com.tw:8080/struts2.1/useAnnotationNamespace/annotationAction!add.action
+   http://3w.eztravel.com.tw:8080/struts2.1/useAnnotationNamespace/annotationAction!redirect.action
+    
+     《Annotation Action 範例》 
+   ZERO 零設定使用 web.xml struts2 的設定參數 <param-name>actionPackages</param-name>
+       零設定，只會載入有@註釋的 Action ，不會載入沒有設定@註釋的 Action
+   http://3w.eztravel.com.tw:8080/struts2.1/useAnnotationNamespace/annotated1.action
+   http://3w.eztravel.com.tw:8080/struts2.1/useAnnotationNamespace/annotated1!login.action
+   http://3w.eztravel.com.tw:8080/struts2.1/useAnnotationNamespace/annotated1!add.action
+   http://3w.eztravel.com.tw:8080/struts2.1/useAnnotationNamespace/annotated1!redirect.action 
+
+
+
+
+
+
+   《Action 中使用POJO》 
+    http://3w.eztravel.com.tw:8080/struts2.1/initAddBook.action
+
+
+    
+************************************************************************************************************************************
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+************************************************************************************************************************************
+   【第十七章】Struts 2.x 高級應用   
+ 
+    轉換器需要設定到 /j2src/ (/WEB-INF/classes)的目錄下  xwork-conversion.properties。
+    
+       
+   《Action 設定轉換器》：
+   
+    (1)使用  xwork-conversion.properties 的設定檔  
+       http://3w.eztravel.com.tw:8080/struts2.1/convertor.action
+       
+    (2)轉換器設定在此 Action 中，只作 用於目前的 Action 中
+       http://3w.eztravel.com.tw:8080/struts2.1/convertor1.action
+     
+     
+     
+    《ServletActionContext 取得 request,response 物件 》：
+    Struts2 利用 ThreadLocal 來維護目前執行的request、response 等資料。
+          利用 ServletActionContext 的靜態方法 取得 request 及 reponse 物件
+     http://3w.eztravel.com.tw:8080/struts2.1/loginPerson3.action
+     http://3w.eztravel.com.tw:8080/struts2.1/loginPerson3!login.action
+     http://3w.eztravel.com.tw:8080/struts2.1/loginPerson3!logout.action
+
+
+
+    
+   《 Aware 介面》:感知
+    Struts 在產生實體一個 Action 實例時，如果發現它實現了相應的 Aware 介面，會把相應的資源透過 Aware 介面方法注射進去。
+           這種方式也可以叫注射方式(IoC 方式)。
+    Servlet API 中常用物件 applicatoin、request、response、Session 對應的 Aware 介面分別為 ServletContextAware、ServletResponseAware、ServletResponseAware及SessionAware。
+    
+    http://3w.eztravel.com.tw:8080/struts2.1/servletAware.action
+
+
+
+
+
+
+    ※使用 Validator 驗證資料
+    使用XML設定時，需要在Action 類別所在的package 內增加一個XML檔案，
+    檔案名格式為 Action類別名 - validation.xml 或者 Action 類別名-Action別名-validation.xml。
+    如果Action 內有多個方法，一般使用後者。
+    
+   《Action 中使用伺服器驗證》：依據 BookAction-addBook-validation.xml 的設定檢核欄位資訊 
+    http://3w.eztravel.com.tw:8080/struts2/initAddBook.action
+    
+    
+    
+    【Struts2 常用的驗證器】
+    《校驗器》：                 
+    required：                  檢查被驗證域是否為null。
+    requiredstring：            檢查被驗證String是否為null或空，可選參數trim，在驗證前對之字串執行trim操作。
+    stringlength：              檢查被驗證String 的長度範圍，可選參數trim、minLength、maxLength。
+    int/double：                檢查輸入是否為int/double，並且可判斷數值範圍，可選參數為min、max;minInclusive、maxInclusive、minExclusive、maxExclusive。
+    date：                      檢查date的範圍，可選參數為min、max。
+    email：                     檢查輸入是否為E-mail格式。
+    url：                       檢查輸入是否為url格式。
+    conversion：                檢查是否將出現資料轉換錯誤。
+    expression/fieldexpression：檢查某個布林運算式的值是否為true，後者綁定至某個欄位上，參數為expression。
+    visitor：                   使用預定義的vaidators 進行驗證，參數為context。
+    regex：                     檢查是否能比對到正則運算式，參數為regex。
+   
+   
+   
+   
+    
+    
+   《Action 中使用用戶端驗證》： 
+    http://3w.eztravel.com.tw:8080/struts2.1/initAddBook1.action
+
+************************************************************************************************************************************
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+************************************************************************************************************************************
+   【第十八章】Struts 2.x 標籤       
+
+    <%@ taglib uri="/struts-tags" prefix="struts" %>
+
+    Struts2 標籤函式庫主要使用 OGNL 語言，除此之外還可以使用Groovy 與 Velcity 等。
+    Groovy：是一種動態的指令碼語言，類似於Rython、Ruby和 Smarttalk。
+    Velcity：是 Apache 的一個子專案，是一種模版引擎。
+
+    Struts2 2.0.11 版起，Struts2 標籤函式庫不再支援 EL 運算式。推薦使用功能更為強大的 OGNL 語言。
+    
+    Struts2 的標籤都統一包含在 struts-tags.tld 檔案中(位於 struts2-core-xxx.jar 的 META-INF 資料夾下)，
+           都使用統一的字首。其函式庫大致分為控制標籤、資料標籤、表單UI標、非表單UI表單等。
+    
+    
+    OGNL(Object-Graph Navigation Lanaguage)：是一種操作物件屬性開放原始碼的運算式語言。
+           優點：
+    1.能夠存取物件的方法，例如：list.size();
+    2.能夠存取靜態屬性與靜態方法，方法是在類別名前、方法前加上@。如@java.lang.Math@PI,
+      @java.lang.String@format('foo %s','bar');
+    3.支援給予值操作和運算式串聯；如給予值#value=5;
+    4.存取OGNL上下文(OGNL context) 和 ActionContext(所有的Servlet 資源);
+    5.操作集合物件。
+    
+    OGNL 語言類似於EL，主要使用點. 作為操作符。例如要存取 perosn.getCountry().getName() 可以寫成 person.country.name。
+           在存取POJO屬性上，OGNL與EL運算式是完全一樣的。
+    OGNL主要有3個符號：#、% 與 $。  
+    
+    
+    【#】 宣告OGNL運算式
+    主要用途：
+    1.能夠存取OGNL上下文與 ActionContext 資源，相當於ActionContext.getContext()。
+      常用的
+          屬性         作用                                                   範例
+      #parameters：    代表 request 傳送的所有參數                            #parameters.id 傳回的是String[]類型，相當於JSP中的request.getParametersValues("id")。一般使用 #parameters.id[0]。
+      #request：       代表 request 裡的所有屬性                              #request.account 相當於JSP中的 request.getAttribute("account");
+      #session：       代表 session 裡的所有屬性                              #session.account 相當於JSP中的 session.getAttribute("account");
+      #application：   代表 ServletContext 裡的所有屬性                       #application.account 相當於JSP中的 application.getAttribute("account");
+      #attr：          代表 request 或 session 或 application 的所有屬性      #attr.account 相當於EL 運算式中的 ${account}，依次查 request、session、application 的屬性，找到為止。
+    
+    2. 用於過濾或篩選集合，例如 book.{?#this.price<20}，表示所有的price<20 的書。
+    3. 建構 Map，如 #{'foo1':'bar','foo2':'bar2'}。
+    
+    
+     《"#" 宣告 OGNL 運算式》： 
+    http://3w.eztravel.com.tw:8080/struts2.1/ognl.action?id=SCJP&id=SCWCD&id=LPIC1&id=ECSS&id=CEH
+    
+
+   【%】 顯示宣告OGNL運算式
+    % 用於表示某字串為一個 OGNL 運算式。某些標籤既能接受字串，又能接受OGNL 運算式。
+    這時候，,標有 % 的被當做OGNL 運算式被執行，沒有標有 % 的被當做普通字串。
+    
+    
+   【$】 在資源檔中參考OGNL運算式
+    $ 主要用於在資源國際化檔案中或者struts.xml 中參考OGNL 運算式。  
+    
+     http://3w.eztravel.com.tw:8080/struts2.1/addPhoto.action?id=kevin
+      
+
+    
+   ※【控制標籤】：用於控制流程，如判斷、檢查等。
+   
+   《if、elseif、else 標籤控制流程》： 
+    http://3w.eztravel.com.tw:8080/struts2.1/tags/ifTag.action
+   
+   《append 標籤連接多個 List》： 
+    http://3w.eztravel.com.tw:8080/struts2.1/tags/appendTag.action
+   
+   《generator 標籤將字元轉化為List》：
+    http://3w.eztravel.com.tw:8080/struts2.1/form/tags/controlTag/generatorTag.jsp
+   
+   《iterator 標籤檢查集合》：
+    http://3w.eztravel.com.tw:8080/struts2.1/tags/iteratorTag.action
+   
+   《merge 標籤連接多個 List》： 
+    http://3w.eztravel.com.tw:8080/struts2.1/tags/mergeTag.action
+  
+   
+   《subset 標籤過濾集合元素》： 
+    http://3w.eztravel.com.tw:8080/struts2.1/tags/subsetTag.action
+    
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   ※【資料標籤】：包含JavaBean 相關標籤、資源國際化標籤等。
+   
+   《action 標籤包含action頁面》： 
+    http://3w.eztravel.com.tw:8080/struts2.1/tags/actionTag.action?account=kevin999
+   
+   
+   《bean 標籤參考JavaBean》： 
+    http://3w.eztravel.com.tw:8080/struts2.1/form/tags/dataTag/beanTag.jsp
+   
+   
+   《date 標籤輸出日期》： 
+    http://3w.eztravel.com.tw:8080/struts2.1/form/tags/dataTag/dateTag.jsp
+   
+   
+   《i18n、text 標籤宣告資源國際化》： 這兩個標籤用於資源國際化。i18n 標籤指定資源檔、 text 標籤指定資源索引。
+                                       如果沒有使用i18n ，則 使用 strurts 的資源檔。
+    http://3w.eztravel.com.tw:8080/struts2.1/form/tags/dataTag/textTag.jsp
+
+  
+   《include 標籤包含JSP頁面》： 用於包含一個JSP頁面，將JSP 的執行結果包含到本頁面內，相當於JSP 行為裡的<jsp:include />。
+    http://3w.eztravel.com.tw:8080/struts2.1/form/tags/dataTag/includeTag.jsp
+   
+
+   《param 標籤傳遞參數》。
+    http://3w.eztravel.com.tw:8080/struts2.1/form/tags/dataTag/paramTag.jsp
+    
+   《set 標籤設定變數值》。
+    http://3w.eztravel.com.tw:8080/struts2.1/form/tags/dataTag/setTag.jsp?account=kevin&account=hungmans6779
+   
+   
+   《property 標籤輸出變數值》。
+    http://3w.eztravel.com.tw:8080/struts2.1/tags/propertyTag.action?account=kevin&account=hungmans6779&id=123
+     
+
+    
+   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+    ※【表單UI標籤】：是 Struts2 標籤函式庫的核心，用於輸入資料、傳送資料。Struts2 標籤函式庫不僅包括正常的 HTML 控制項，
+                      如輸入框、文字域、檔案域等 ，還整合了額外的常用控制項，例如日期時間控制項、聯動下拉清單、自動填充下拉式功能表等。
+                      這些常用控制項是整合了DojoFramework，是利用JavaScript 實現的。
+    
+    struts core 是 2.1.2 以上版本的，要在工程中加入struts2-dojo-plugin.jar 
+    加入 <%@ taglib uri="/struts-dojo-tags"  prefix="sx" %> 
+    把 <struts:head theme="ajax" /> 改成 <sx:head /> 
+
+   
+   《form 標籤輸出表單》   
+    http://3w.eztravel.com.tw:8080/struts2.1/tags/formTag.action
+
+   《textfieldw、textarea、file、checkbox、radio 標籤》
+    http://3w.eztravel.com.tw:8080/struts2.1/form/tags/UITag/inputTag.jsp
+    
+   《select、autocomplete 標籤下拉清單》
+    http://3w.eztravel.com.tw:8080/struts2.1/tags/autoCompleteTag.action
+        
+   《autocomplete 動態資料標籤》
+    http://3w.eztravel.com.tw:8080/struts2.1/form/tags/UITag/autocompleteAjaxTag.jsp       
+
+   《checkboxlist 標籤多選框組》
+    http://3w.eztravel.com.tw:8080/struts2.1/tags/checkboxlistTag.action
+    
+   《combobox 標籤複合框》
+    http://3w.eztravel.com.tw:8080/struts2.1/tags/comoboboxTag.action
+
+   《datetimepicker 標籤日期選擇器》
+    http://3w.eztravel.com.tw:8080/struts2.1/form/tags/UITag/datetimepickerTag.jsp
+    
+   《doubleselect 標籤聯動選動框》
+    http://3w.eztravel.com.tw:8080/struts2.1/tags/doubleselectTag.action    
+
+   《optiontransferselect 標籤》
+    http://3w.eztravel.com.tw:8080/struts2.1/tags/optiontransferselectTag.action
+
+   《optgroup 標籤選項群組》
+    http://3w.eztravel.com.tw:8080/struts2.1/tags/optiongroupTag.action
+    
+   
+   
+   
+   
+   
+   
+   
+   
+   ※【非表單UI標籤】：只用於顯示一些資訊，而不會向 Action 傳送資料。非表單UI標籤中有一部份 DOJO 提供的Ajax控制項，
+                       例如數、標籤頁等。          
+    
+
+   《debug 標籤 輸出偵錯資訊 》
+    http://3w.eztravel.com.tw:8080/struts2.1/form/tags/NonUITag/debugTag.jsp
+    
+    
+    
+   《actionerror、actionmessage 及 fielderror 標籤》
+    http://3w.eztravel.com.tw:8080/struts2.1/tags/errorTag.action  
+    
+    執行 error()  
+    http://3w.eztravel.com.tw:8080/struts2.1/tags/errorTag!error.action  
+    
+    執行 message()
+    http://3w.eztravel.com.tw:8080/struts2.1/tags/errorTag!message.action
+    
+    執行 fieldMessage()
+    http://3w.eztravel.com.tw:8080/struts2.1/tags/errorTag!fieldError.action 
+        
+      
+       
+   《div、submit 、a 標籤》
+    新聞資訊
+    http://3w.eztravel.com.tw:8080/struts2.1/form/tags/NonUITag/divTag.jsp
+   
+    ※新聞主要呈現及查詢頁面
+    http://3w.eztravel.com.tw:8080/struts2.1/divTagNews.action 
+   
+
+   《script 無更新實現登入、註銷 標籤》
+    http://3w.eztravel.com.tw:8080/struts2.1/tags/divLoginTag.action
+
+
+   《tabbedPanel 標籤頁》
+    http://3w.eztravel.com.tw:8080/struts2.1/tags/tabbedPanelTag.action
+
+
+   《tree 標籤》：輸出樹
+    http://3w.eztravel.com.tw:8080/struts2.1/form/tags/NonUITag/treeTag.jsp   
+    
+    
+   《tree標籤》:使用tree 顯示檔案結構(特別方式)
+    http://3w.eztravel.com.tw:8080/struts2.1/tags/treeFile.action
+    
+    
+   《tree標籤》:使用tree 動態載入資料(試不出來)
+    http://3w.eztravel.com.tw:8080/struts2.1/tags/treeFileAjax.action     
+      
+
+           
+************************************************************************************************************************************
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+************************************************************************************************************************************
+   【第十九章】Struts 2.x 攔截器與檔案上傳       
+
+    Struts2 也提供面對切面程式設定(AOP Aspect Oriented Programming)的機制。攔截器便是一種成熟的AOP實現。
+    在上傳檔案的處理上，Struts 2 直接上傳的檔案封裝為Java 中的 File 物件。
+    AOP 提供一種機制使開發者能把相對獨立的程式碼抽象出來，設定到 Action 前後執行。
+    多個攔截器也組成了攔截器鏈。Struts 2 中稱攔截器鏈為攔截器堆疊。攔截器堆疊是按順序設定的多個攔截器，
+    在執行 Action 前後被依次呼叫。   
+    Struts2 內建了許多現成的攔截器，Struts2 的某些功能如數據轉換、資料驗證等也是基於攔截器實現的。
+    這些攔截器設定在 struts2-core-2.0.1.jar 中的 struts-default.xml 檔案中。如需要這些功能，直接使用即可。
+      
+       
+   《timer 計時攔截器》
+    http://3w.eztravel.com.tw:8080/struts2.1/timerInterceptor.action
+   
+   
+   《token 標籤》：防重複傳送攔截器
+    http://3w.eztravel.com.tw:8080/struts2.1/tokenInputInterceptor.action
+    
+    
+   《execAndWait 執行等待攔截器》
+    http://3w.eztravel.com.tw:8080/struts2.1/waitInterceptor.action
+    
+    
+   《自訂的許可權驗證攔截器》
+    http://3w.eztravel.com.tw:8080/struts2.1/authenticationInterceptor.action
+
+
+   《上傳檔案》
+    http://3w.eztravel.com.tw:8080/struts2.1/upload.action
+    
+************************************************************************************************************************************
+
+
+

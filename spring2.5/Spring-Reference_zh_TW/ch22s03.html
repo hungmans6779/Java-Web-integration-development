@@ -1,0 +1,194 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>22.3.&#160;使用MimeMessageHelper</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch22.html" title="第&#160;22&#160;章&#160;Spring郵件抽象層">
+<link rel="prev" href="ch22s02.html" title="22.2.&#160;使用Spring郵件抽象">
+<link rel="next" href="ch23.html" title="第&#160;23&#160;章&#160;Spring中的定時調度(Scheduling)和執行緒池(Thread Pooling)">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="mail-javamail-mime"></a>22.3.&#160;使用<code class="classname">MimeMessageHelper</code></h2></div></div></div>
+<p>
+  		<code class="classname">org.springframework.mail.javamail.MimeMessageHelper</code>是處理JavaMail郵件時比較順手元件之一。它可以讓你擺脫繁複的JavaMail API。
+  		通過使用<code class="classname">MimeMessageHelper</code>，創建一個<code class="classname">MimeMessage</code>實例將非常容易：
+  	</p>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation">// of course you would use DI in any real-world cases</span></em>
+JavaMailSenderImpl sender = new JavaMailSenderImpl();
+sender.setHost("mail.host.com");
+
+MimeMessage message = sender.createMimeMessage();
+MimeMessageHelper helper = new MimeMessageHelper(message);
+helper.setTo("test@host.com");
+helper.setText("Thank you for ordering!");
+
+sender.send(message);</pre>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mail-javamail-mime-attachments"></a>22.3.1.&#160;發送附件和嵌入式資源(inline resources)</h3></div></div></div>
+<p>Multipart email允許添加附件和內嵌資源(inline resources)。內嵌資源可能是你在信件中希望使用的圖像或樣式表，但是又不想把它們作為附件。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="mail-javamail-mime-attachments-attachment"></a>22.3.1.1.&#160;附件</h4></div></div></div>
+<p>下面的例子將展示如何使用<code class="classname">MimeMessageHelper</code>來發送一封email，使用一個簡單的JPEG圖片作為附件：</p>
+<pre class="programlisting">JavaMailSenderImpl sender = new JavaMailSenderImpl();
+sender.setHost("mail.host.com");
+
+MimeMessage message = sender.createMimeMessage();
+
+<em class="lineannotation"><span class="lineannotation">// use the true flag to indicate you need a multipart message</span></em>
+MimeMessageHelper helper = new MimeMessageHelper(message, true);
+helper.setTo("test@host.com");
+
+helper.setText("Check out this image!");
+
+<em class="lineannotation"><span class="lineannotation">// let's attach the infamous windows Sample file (this time copied to c:/)</span></em>
+FileSystemResource file = new FileSystemResource(new File("c:/Sample.jpg"));
+helper.addAttachment("CoolImage.jpg", file);
+
+sender.send(message);</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="mail-javamail-mime-attachments-inline"></a>22.3.1.2.&#160;內嵌資源</h4></div></div></div>
+<p>下面的例子將展示如何使用<code class="classname">MimeMessageHelper</code>來發送一封含有內嵌資源的email：</p>
+<pre class="programlisting">JavaMailSenderImpl sender = new JavaMailSenderImpl();
+sender.setHost("mail.host.com");
+
+MimeMessage message = sender.createMimeMessage();
+
+<em class="lineannotation"><span class="lineannotation">// use the true flag to indicate you need a multipart message</span></em>
+MimeMessageHelper helper = new MimeMessageHelper(message, true);
+helper.setTo("test@host.com");
+
+<em class="lineannotation"><span class="lineannotation">// use the true flag to indicate the text included is HTML</span></em>
+helper.setText("&lt;html&gt;&lt;body&gt;&lt;img src='cid:identifier1234'&gt;&lt;/body&gt;&lt;/html&gt;", true);
+
+<em class="lineannotation"><span class="lineannotation">// let's include the infamous windows Sample file (this time copied to c:/)</span></em>
+FileSystemResource res = new FileSystemResource(new File("c:/Sample.jpg"));
+helper.addInline("identifier1234", res);
+
+sender.send(message);</pre>
+<div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">警告</h3>
+<p>如你所見，嵌入式資源使用<code class="literal">Content-ID</code>(上例中是<code class="literal">identifier1234</code>)來插入到mime信件中去。你加入文本和資源的順序是<span class="bold"><strong>非常</strong></span>重要的。首先，你加入文本，隨後是資源。如果順序弄反了，它將無法正常運作！</p>
+</div>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mail-templates"></a>22.3.2.&#160;使用模板來創建郵件內容</h3></div></div></div>
+<p>在之前的程式碼範例中，所有郵件的內容都是顯式定義的，並通過調用<code class="methodname">message.setText(..)</code>來設置郵件內容。 
+			這種做法針對簡單的情況或在上述的例子中沒什麼問題，因為在這裡只是為了向你展示基礎API。</p>
+<p>而在你自己的企業級應用程序中, 基於如下的原因，你不會以上述方式創建你的郵件內容：</p>
+<p>
+				</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>使用Java程式碼來創建基於HTML的郵件內容不僅容易犯錯，同時也是一件單調乏味的事情</p></li>
+<li><p>這樣做，你將無法將顯示邏輯和商業邏輯很明確的區分開</p></li>
+<li><p>一旦需要修改郵件內容的顯式格式和內容，你需要重新編寫Java程式碼，重新編譯，重新部署……</p></li>
+</ul></div>
+<p>
+			</p>
+<p>一般來說解決這些問題的典型的方式是使用FreeMarker或者Velocity這樣的模板語言來定義郵件內容的顯式結構。
+			這樣，你的任務就是在你的程式碼中，只要創建在郵件模板中需要展示的資料，並發送郵件即可。通過使用Spring對FreeMarker和Velocity的支持類別，
+			你的郵件內容將變得簡單，這同時也是一個最佳實踐。下面是一個使用Velocity來創建郵件內容的例子：
+			</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="mail-templates-example"></a>22.3.2.1.&#160;一個基於Velocity的範例</h4></div></div></div>
+<p>使用<a href="http://velocity.apache.org" target="_top">Velocity</a>來創建你的郵件模板，你需要把Velocity加入到classpath中。
+				同時要根據應用的需要為郵件內容創建一個或者多個Velocity模板。下面的Velocity模板是這個例子中所使用的基於HTML的模板。
+				這只是一個普通的文本，你可以通過各種其他的編輯器來編輯該文本，而無需瞭解Java方面的知識。</p>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation"># in the <code class="literal">com/foo/package</code></span></em>
+&lt;html&gt;
+&lt;body&gt;
+&lt;h3&gt;Hi ${user.userName}, welcome to the Chipping Sodbury On-the-Hill message boards!&lt;/h3&gt;
+
+&lt;div&gt;
+   Your email address is &lt;a href="mailto:${user.emailAddress}"&gt;${user.emailAddress}&lt;/a&gt;.
+&lt;/div&gt;
+&lt;/body&gt;
+
+&lt;/html&gt;</pre>
+<p>下面提供了一些簡單的程式碼與Spring XML配置，它們使用了上述Velocity模板來創建郵件內容並發送郵件。</p>
+<pre class="programlisting">package com.foo;
+
+import org.apache.velocity.app.VelocityEngine;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.mail.javamail.MimeMessagePreparator;
+import org.springframework.ui.velocity.VelocityEngineUtils;
+
+import javax.mail.internet.MimeMessage;
+import java.util.HashMap;
+import java.util.Map;
+
+public class SimpleRegistrationService implements RegistrationService {
+
+   private JavaMailSender mailSender;
+   private VelocityEngine velocityEngine;
+
+   public void setMailSender(JavaMailSender mailSender) {
+      this.mailSender = mailSender;
+   }
+
+   public void setVelocityEngine(VelocityEngine velocityEngine) {
+      this.velocityEngine = velocityEngine;
+   }
+
+   public void register(User user) {
+
+      <em class="lineannotation"><span class="lineannotation">// Do the registration logic...</span></em>
+
+      sendConfirmationEmail(user);
+   }
+
+   private void sendConfirmationEmail(final User user) {
+      MimeMessagePreparator preparator = new MimeMessagePreparator() {
+         public void prepare(MimeMessage mimeMessage) throws Exception {
+            MimeMessageHelper message = new MimeMessageHelper(mimeMessage);
+            message.setTo(user.getEmailAddress());
+            message.setFrom("webmaster@csonth.gov.uk"); <em class="lineannotation"><span class="lineannotation">// could be parameterized...</span></em>
+            Map model = new HashMap();
+            model.put("user", user);
+            String text = VelocityEngineUtils.mergeTemplateIntoString(
+               velocityEngine, "com/dns/registration-confirmation.vm", model);
+            message.setText(text, true);
+         }
+      };
+      this.mailSender.send(preparator);
+   }
+}</pre>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.springframework.org/schema/beans
+   http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"&gt;
+
+   &lt;bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl"&gt;
+      &lt;property name="host" value="mail.csonth.gov.uk"/&gt;
+   &lt;/bean&gt;
+
+   &lt;bean id="registrationService" class="com.foo.SimpleRegistrationService"&gt;
+      &lt;property name="mailSender" ref="mailSender"/&gt;
+      &lt;property name="velocityEngine" ref="velocityEngine"/&gt;
+   &lt;/bean&gt;
+   
+   &lt;bean id="velocityEngine" class="org.springframework.ui.velocity.VelocityEngineFactoryBean"&gt;
+      &lt;property name="velocityProperties"&gt;
+         &lt;value&gt;
+            resource.loader=class
+            class.resource.loader.class=org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader
+         &lt;/value&gt;
+      &lt;/property&gt;
+   &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+</div>
+</div>
+</div></body>
+</html>

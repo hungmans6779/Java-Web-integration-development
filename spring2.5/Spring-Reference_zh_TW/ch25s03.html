@@ -1,0 +1,101 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>25.3.&#160;註釋</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch25.html" title="第&#160;25&#160;章&#160;註釋和源程式碼級的元資料支持">
+<link rel="prev" href="ch25s02.html" title="25.2.&#160;Spring的元資料支持">
+<link rel="next" href="ch25s04.html" title="25.4.&#160;Jakarta Commons Attributes整合">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="metadata-annotations"></a>25.3.&#160;註釋</h2></div></div></div>
+<p>Spring有很多自定義的Java 5+註釋。 </p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="metadata-annotations-required"></a>25.3.1.&#160;@<code class="interfacename">Required</code></h3></div></div></div>
+<p><code class="literal">org.springframework.beans.factory.annotation</code>包
+					中的@<code class="interfacename">Required</code>註釋能用來<span class="emphasis"><em>標記</em></span>
+					屬性，將其標示為<span class="emphasis"><em>'需要設置'</em></span>(例如，一個類別中的被註釋的(setter)
+					方法必須配置一個用來依賴注入的值)，否則容器會在運行時拋出一個<code class="classname">Exception</code>。 </p>
+<p>演示這個註釋用法的最好辦法是給出像下面這樣的範例： </p>
+<pre class="programlisting">public class SimpleMovieLister {
+
+    <em class="lineannotation"><span class="lineannotation">// the <code class="classname">SimpleMovieLister</code> has a dependency on the <code class="interfacename">MovieFinder</code></span></em>
+    private MovieFinder movieFinder;
+
+    <em class="lineannotation"><span class="lineannotation">// a setter method so that the Spring container can 'inject' a <code class="interfacename">MovieFinder</code></span></em>
+    @Required
+    public void setMovieFinder(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+    
+    <em class="lineannotation"><span class="lineannotation">// business logic that actually 'uses' the injected <code class="interfacename">MovieFinder</code> is omitted...</span></em>
+}</pre>
+<p>希望上面的類別定義看起來還算簡單。你必須為所有<code class="classname">SimpleMovieLister</code>類別的<code class="interfacename">BeanDefinitions</code>
+			提供一個值。 </p>
+<p>讓我們看一個<span class="bold"><strong>不</strong></span>能通過驗證的XML配置範例。 </p>
+<pre class="programlisting">&lt;bean id="movieLister" class="x.y.SimpleMovieLister"&gt;
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- whoops, no MovieFinder is set (and this property is @<code class="interfacename">Required</code>) --&gt;</span></em>
+&lt;/bean&gt;</pre>
+<p>運行時Spring容器會產生下面的訊息(追蹤堆棧的剩下部分被刪除了)。 </p>
+<pre class="programlisting">Exception in thread "main" java.lang.IllegalArgumentException:
+    Property 'movieFinder' is required for bean 'movieLister'.</pre>
+<p>最後還需要一點(小的)Spring配置來<span class="emphasis"><em>'開啟'</em></span>這個行為。
+			簡單註釋類別的<span class="emphasis"><em>'setter'</em></span>屬性不足以實作這個行為。
+			你還需要一個瞭解@<code class="interfacename">Required</code>註釋並能適當地處理它的元件。 </p>
+<p>這個元件就是<code class="classname">RequiredAnnotationBeanPostProcessor</code>類別。
+					這是一個由特殊的<code class="interfacename">BeanPostProcessor</code>實作，
+					能感知@<code class="interfacename">Required</code>並提供<span class="emphasis"><em>'要求屬性未被設置時提示'</em></span>的邏輯。
+					它<span class="emphasis"><em>很</em></span>容易配置；只要簡單地把下列bean定義放入你的Spring XML配置中。 
+			</p>
+<pre class="programlisting">&lt;bean class="org.springframework.beans.factory.annotation.RequiredAnnotationBeanPostProcessor"/&gt;</pre>
+<p>最後，你還能配置一個<code class="classname">RequiredAnnotationBeanPostProcessor</code>類別的實例來尋找
+			<span class="emphasis"><em>其他</em></span><code class="interfacename">Annotation</code>型別。
+			如果你有自己的@<code class="interfacename">Required</code>樣式的註釋這會是件很棒的事。
+			簡單地把它插入一個<code class="classname">RequiredAnnotationBeanPostProcessor</code>的定義中就可以了。 </p>
+<p>看個例子，讓我們假設你(或你的組織/團隊)已經定義了一個叫做@<code class="interfacename">Mandatory</code>的屬性。
+			你能用如下方法讓一個<code class="classname">RequiredAnnotationBeanPostProcessor</code>實例感知@<code class="interfacename">Mandatory</code>： </p>
+<pre class="programlisting">&lt;bean class="org.springframework.beans.factory.annotation.RequiredAnnotationBeanPostProcessor"&gt;
+    &lt;property name="requiredAnnotationType" value="your.company.package.Mandatory"/&gt;
+&lt;/bean&gt;</pre>
+<p>這是@<code class="interfacename">Mandatory</code>註釋的源程式碼。
+			請確保你的自定義註釋型別本身針對目標(target)和運行時保持策略(runtime retention policy)使用了合適的註釋。</p>
+<pre class="programlisting">package your.company.package;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface Mandatory {
+}</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="metadata-annotations-other"></a>25.3.2.&#160;Spring中的其它@Annotations</h3></div></div></div>
+<p>註釋也被用於Spring中的其他地方。那些註釋在它們各自的章節或與它們相關的章節中予以說明。 </p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>
+						<a href="ch09s05.html#transaction-declarative-annotations" title="9.5.6.&#160;使用 @Transactional">第&#160;9.5.6&#160;節 「使用 <code class="interfacename">@Transactional</code>」</a>
+					</p></li>
+<li><p>
+						<a href="ch06s08.html#aop-atconfigurable" title="6.8.1.&#160;在Spring中使用AspectJ進行domain object的依賴注入">第&#160;6.8.1&#160;節 「在Spring中使用AspectJ進行domain object的依賴注入」</a>
+					</p></li>
+<li><p>
+						<a href="ch06s02.html" title="6.2.&#160;@AspectJ支持">第&#160;6.2&#160;節 「@AspectJ支持」</a>
+					</p></li>
+<li><p>
+						<a href="ch03s11.html" title="3.11.&#160;基於註釋（Annotation-based）的配置">第&#160;3.11&#160;節 「基於註釋（Annotation-based）的配置」</a>
+					</p></li>
+<li><p>
+						<a href="ch03s12.html" title="3.12.&#160;對受管元件的Classpath掃瞄">第&#160;3.12&#160;節 「對受管元件的Classpath掃瞄」</a>
+					</p></li>
+</ul></div>
+</div>
+</div></body>
+</html>

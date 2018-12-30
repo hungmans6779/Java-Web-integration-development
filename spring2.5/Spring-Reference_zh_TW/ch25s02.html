@@ -1,0 +1,57 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>25.2.&#160;Spring的元資料支持</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch25.html" title="第&#160;25&#160;章&#160;註釋和源程式碼級的元資料支持">
+<link rel="prev" href="ch25.html" title="第&#160;25&#160;章&#160;註釋和源程式碼級的元資料支持">
+<link rel="next" href="ch25s03.html" title="25.3.&#160;註釋">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="metadata-spring"></a>25.2.&#160;Spring的元資料支持</h2></div></div></div>
+<p>為了與Spring提供的其他重要概念的抽象相一致，Spring為元資料實作提供了一個門面(facade)，
+		它是以<code class="interfacename">org.springframework.metadata.Attributes</code>介面的形式來實作。
+		這個門面因以下幾個原因而顯得很有價值： </p>
+<div class="itemizedlist"><ul type="disc">
+<li>
+<p>儘管Java 5提供了語言級的元資料支持，但提供這樣一個抽象仍具價值： </p>
+<div class="itemizedlist"><ul type="circle">
+<li><p>Java 5的元資料是靜態的。它是在編譯時與一個類別關聯，而且在部署環境下是不可改變的
+							(註釋的狀態可以通過反射在運行時改變，但這並不是一個很好的實踐)。 這裡會需要多層次的元資料，
+							以支持在部署時重載某些屬性的值 - 舉例來說，在一個XML檔案中定義用於覆寫的屬性。 
+						</p></li>
+<li><p>Java 5的元資料是通過Java反射API返回的。這使得在測試時無法模擬元資料。 Spring提供了一個簡單的介面來允許這種模擬。</p></li>
+<li><p>
+							在未來至少兩年內仍有在1.3和1.4應用程序中支持元資料的需要。Spring著眼於提供<span class="emphasis"><em>現在</em></span>可以工作的解決方案；
+							在這個重要領域中強迫使用Java 5並不是一個明智之舉。 
+						</p></li>
+</ul></div>
+</li>
+<li><p>當前的元資料API，例如Commons Attributes(在Spring 1.0-1.2中使用)很難測試。Spring提供了一個簡單的易於模擬的元資料介面。 </p></li>
+</ul></div>
+<p>Spring的<code class="interfacename">Attributes</code>介面是這個樣子的： </p>
+<pre class="programlisting">public interface Attributes {
+
+    Collection getAttributes(Class targetClass);
+
+    Collection getAttributes(Class targetClass, Class filter);
+
+    Collection getAttributes(Method targetMethod);
+
+    Collection getAttributes(Method targetMethod, Class filter);
+
+    Collection getAttributes(Field targetField);
+
+    Collection getAttributes(Field targetField, Class filter);
+}</pre>
+<p>這是個極其普通的介面。JSR-175提供了比這更多的功能，比如定義在方法參數上的屬性。</p>
+<p>要注意到該介面像.NET一樣提供了<code class="classname">Object</code>屬性。這使得它區別於一些僅提供<code class="classname">String</code>屬性的元資料屬性系統，
+		比如Nanning Aspects。支持<code class="classname">Object</code>屬性有一個顯著的優點。它使屬性能參與到類別層次中，
+		還可以使屬性能夠靈活的根據它們的配置參數起作用。 </p>
+<p>對於大多數屬性提供者來說，屬性類別的配置是通過建構方法參數或JavaBean的屬性完成的。Commons Attributes同時支持這兩種方式。 </p>
+<p>同所有的Spring抽象API一樣，<code class="interfacename">Attributes</code>是一個介面。這使得在單元測試中模擬屬性的實作變得容易起來。 </p>
+</div></body>
+</html>

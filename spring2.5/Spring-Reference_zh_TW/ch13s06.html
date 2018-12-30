@@ -1,0 +1,123 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>13.6.&#160;本地化解析器</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch13.html" title="第&#160;13&#160;章&#160;Web MVC framework Web框架">
+<link rel="prev" href="ch13s05.html" title="13.5.&#160;視圖與視圖解析">
+<link rel="next" href="ch13s07.html" title="13.7.&#160;使用主題">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="mvc-localeresolver"></a>13.6.&#160;本地化解析器</h2></div></div></div>
+<p>Spring架構的絕大部分都支持國際化，Spring的web MVC框架也不例外。
+      <code class="classname">DispatcherServlet</code> 允許使用客戶端本地化資訊自動解析訊息。
+      這個工作由<code class="interfacename">LocaleResolver</code>物件完成。
+      </p>
+<p>當收到請求時，<code class="classname">DispatcherServlet</code>尋找一個本地化解析器，如果找到，就使用它設置本地化資訊。
+      通過<code class="literal">RequestContext.getLocale()</code>方法，總可以獲取由本地化解析器解析的客戶端的本地化資訊。
+      </p>
+<p>除自動的本地化解析以外，還可以將一個攔截器置於處理器映射中（參考 <a href="ch13s04.html#mvc-handlermapping-interceptor" title="13.4.3.&#160;攔截器（HandlerInterceptor）">第&#160;13.4.3&#160;節 「攔截器（<code class="interfacename">HandlerInterceptor</code>）」</a>），
+      以便在某種環境下可以改變本地化資訊，例如，可以基於請求中的參數變更本地化資訊。
+      </p>
+<p>本地化解析器和攔截器都定義在<code class="literal">org.springframework.web.servlet.i18n</code>包中，
+      可以在應用的上下文中配置它們。下文介紹了一些Spring提供的本地化解析器。
+      </p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-localeresolver-acceptheader"></a>13.6.1.&#160;<code class="classname">AcceptHeaderLocaleResolver</code></h3></div></div></div>
+<p>這個本地化解析器檢查請求中客戶端瀏覽器發送的<code class="literal">accept-language</code>頭資訊，
+        通常這個HTTP Header包含客戶端作業系統的本地化資訊。
+	  </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-localeresolver-cookie"></a>13.6.2.&#160;<code class="classname">CookieLocaleResolver</code></h3></div></div></div>
+<p>這個本地化解析器檢查客戶端中的<code class="classname">Cookie</code>是否包含本地化資訊。
+        如果有的話，就使用。當配置這個解析器的時候，可以指定cookie名，以及cookie的最長生存期（Max Age）。 
+        下面這個例子定義了一個<code class="classname">CookieLocaleResolver</code>。
+        </p>
+<pre class="programlisting">&lt;bean id="localeResolver" class="org.springframework.web.servlet.i18n.CookieLocaleResolver"&gt;
+
+    &lt;property name="cookieName" value="clientlanguage"/&gt;
+    
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- in seconds. If set to <code class="literal">-1</code>, the cookie is not persisted (deleted when browser shuts down) --&gt;</span></em>
+    &lt;property name="cookieMaxAge" value="100000"&gt;
+
+&lt;/bean&gt;</pre>
+<div class="table">
+<a name="mvc-cookie-locale-resolver-props-tbl"></a><p class="title"><b>表&#160;13.5.&#160;<code class="classname">CookieLocaleResolver</code>的屬性</b></p>
+<div class="table-contents"><table summary="CookieLocaleResolver的屬性" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>屬性</th>
+<th>缺省值</th>
+<th>描述</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>cookieName</td>
+<td>classname + LOCALE</td>
+<td>cookie的名字</td>
+</tr>
+<tr>
+<td>cookieMaxAge</td>
+<td>Integer.MAX_INT</td>
+<td>
+              cookie在客戶端存在的最長時間。如果該值是-1，這個cookie只被保留在記憶體中，當客戶關閉瀏覽器時，這個cookie就不存在了</td>
+</tr>
+<tr>
+<td>cookiePath</td>
+<td>/</td>
+<td>
+              通過這個參數，可以將該cookie的作用限制在一部分特定的。
+              具體地說，只有該目錄(cookiePath)及其子目錄下的頁面可以使用這個cookie</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break">
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-localeresolver-session"></a>13.6.3.&#160;<code class="classname">SessionLocaleResolver</code></h3></div></div></div>
+<p><code class="classname">SessionLocaleResolver</code>允許從使用者請求相關的session中獲取本地化資訊。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-localeresolver-interceptor"></a>13.6.4.&#160;<code class="classname">LocaleChangeInterceptor</code></h3></div></div></div>
+<p>可以使用<code class="classname">LocaleChangeInterceptor</code>修改本地化資訊。
+        這個攔截器需要被添加到處理器映射中（參考<a href="ch13s04.html" title="13.4.&#160;處理器映射（handler mapping）">第&#160;13.4&#160;節 「處理器映射（handler mapping）」</a>）。
+        它可以偵測請求中某個特定的參數，然後調用上下文中的LocaleResolver中的 setLocale()方法，相應地修改本地化資訊。
+	  </p>
+<pre class="programlisting">&lt;bean id="localeChangeInterceptor"
+      class="org.springframework.web.servlet.i18n.LocaleChangeInterceptor"&gt;
+    &lt;property name="paramName" value="siteLanguage"/&gt;
+&lt;/bean&gt;
+
+&lt;bean id="localeResolver"
+      class="org.springframework.web.servlet.i18n.CookieLocaleResolver"/&gt;
+
+&lt;bean id="urlMapping"
+      class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping"&gt;
+    &lt;property name="interceptors"&gt;
+        &lt;list&gt;
+            &lt;ref bean="localeChangeInterceptor"/&gt;
+        &lt;/list&gt;
+    &lt;/property&gt;
+    &lt;property name="mappings"&gt;
+        &lt;value&gt;/**/*.view=someController&lt;/value&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;</pre>
+<p>在上面這個例子中，所有對<code class="literal">*.view</code>資源的請求，只要包含參數<code class="literal">siteLanguage</code>，
+        都會改變本地化資訊。比如下面這個請求<code class="literal">http://www.sf.net/home.view?siteLanguage=nl</code>會將網站語言修改為荷蘭語。
+        </p>
+</div>
+</div></body>
+</html>

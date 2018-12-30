@@ -1,0 +1,27 @@
+第32章 Spring 的 MVC 模組
+
+
+《新增 Cat 物件》
+http://3w.eztravel.com.tw:8080/spring2.5_MVC/cat.mvc?action=add&name=kevin1
+http://3w.eztravel.com.tw:8080/spring2.5_MVC/cat.mvc?action=add&name=kevin2
+http://3w.eztravel.com.tw:8080/spring2.5_MVC/cat.mvc?action=add&name=kevin3
+http://3w.eztravel.com.tw:8080/spring2.5_MVC/cat.mvc?action=add&name=kevin4
+
+《顯示 Cat 物件》
+http://3w.eztravel.com.tw:8080/spring2.5_MVC/cat.mvc?action=list
+ 
+ 
+ 
+
+【多業務分發器】
+
+《新增 Cat 物件》
+http://3w.eztravel.com.tw:8080/spring2.5_MVC/catMulti.mvc?action=add&name=kevin1
+http://3w.eztravel.com.tw:8080/spring2.5_MVC/catMulti.mvc?action=add&name=kevin2
+http://3w.eztravel.com.tw:8080/spring2.5_MVC/catMulti.mvc?action=add&name=kevin3
+http://3w.eztravel.com.tw:8080/spring2.5_MVC/catMulti.mvc?action=add&name=kevin4
+
+
+《顯示 Cat 物件》
+http://3w.eztravel.com.tw:8080/spring2.5_MVC/catMulti.mvc?action=list
+ 

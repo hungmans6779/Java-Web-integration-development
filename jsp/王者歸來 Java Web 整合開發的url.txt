@@ -1,0 +1,2052 @@
+http://tw.news.yahoo.com/article/url/d/a/110630/11/2u86z.html
+
+
+************************************************************************************************************************************
+【第二章】搭建Java Web 開發環境
+
+http://3w.eztravel.com.tw:8080/firstWeb/servlet/HelloServlet?name=kevin
+
+
+http://3w.eztravel.com.tw:8080/firstWeb/servlet/WebTest01
+************************************************************************************************************************************
+
+
+
+************************************************************************************************************************************
+【第三章】深入Servlet 技術
+
+1.firstWeb
+   http://3w.eztravel.com.tw:8080/firstWeb/index.jsp
+   
+2.firstWeb-01
+   http://3w.eztravel.com.tw:8080/firstWeb-01/index.jsp
+   
+3.servletTest01
+  (1)doGet and doPost
+   http://3w.eztravel.com.tw:8080/servletTest01/servlet/FirstServlet
+   
+  (2)查看request.getXXXX 相關訊息
+   http://3w.eztravel.com.tw:8080/servletTest01/servlet/RequestServlet?key=1&key=2   
+     
+  (3)驗證圖片 
+   http://3w.eztravel.com.tw:8080/servletTest01/identity.html
+   http://3w.eztravel.com.tw:8080/servletTest01/servlet/IdentityServlet                
+  
+  (4)謮取WEB-INF(保護目錄)下的檔案
+   http://3w.eztravel.com.tw:8080/servletTest01/servlet/InitParamServlet
+  
+  (5)<context-param>
+   http://3w.eztravel.com.tw:8080/servletTest01/servlet/ContextParamServlet
+   
+  (6)資源注射(@Resource) AND JNDI
+   http://3w.eztravel.com.tw:8080/servletTest01/servlet/InjectionServlet
+   http://3w.eztravel.com.tw:8080/servletTest01/servlet/InjectionServlet01 (有問題)
+   
+  (7)yahoo 搜尋引擎
+   http://3w.eztravel.com.tw:8080/servletTest01/search.html
+   
+  (8)method='post' 應用
+   http://3w.eztravel.com.tw:8080/servletTest01/postPersonalInformation.html
+  
+  (9)檔案上傳
+   (a.)範例一：
+   http://3w.eztravel.com.tw:8080/servletTest01/upload.html
+   (b.)範例二：有bar
+   http://3w.eztravel.com.tw:8080/servletTest01/progressUpload.jsp
+  
+  (10)Servlet 生命週期
+   http://3w.eztravel.com.tw:8080/servletTest01/servlet/LifeCycleServlet
+   http://3w.eztravel.com.tw:8080/servletTest01/servlet/LifeCycleServlet01
+    
+  (11)forward 轉向
+   http://3w.eztravel.com.tw:8080/servletTest01/servlet/ForwardServlet?destination=file
+  
+  (12)Redirect 重新導向
+   http://3w.eztravel.com.tw:8080/servletTest01/servlet/RedirectServlet
+   http://3w.eztravel.com.tw:8080/servletTest01/servlet/RedirectServlet1
+  
+  (13)ThreadSafetyServlet 執行緒安全
+   http://3w.eztravel.com.tw:8080/servletTest01/servlet/ThreadSafetyServlet?name=KEVIN
+   http://3w.eztravel.com.tw:8080/servletTest01/servlet/ThreadSafetyServlet?name=hungman
+************************************************************************************************************************************  
+  
+  
+  
+  
+ 
+************************************************************************************************************************************  
+  【第四章】深入JSP技術
+   http://3w.eztravel.com.tw:8080/jsp/greeting.jsp
+   
+   http://3w.eztravel.com.tw:8080/jsp/while.jsp
+   
+   <%@ page trimDirectiveWhitespaces="true" %>
+   http://3w.eztravel.com.tw:8080/jsp/trimTest1.jsp   
+   
+   http://3w.eztravel.com.tw:8080/jsp/taglib.jsp
+   
+   http://3w.eztravel.com.tw:8080/jsp/userBean.html
+  
+   http://3w.eztravel.com.tw:8080/jsp/counter.jsp
+   
+   http://3w.eztravel.com.tw:8080/jsp/plugin.jsp (Applet)
+  
+   http://3w.eztravel.com.tw:8080/jsp/forward.jsp 
+   
+   http://3w.eztravel.com.tw:8080/jsp/directive.jsp 
+  
+   http://3w.eztravel.com.tw:8080/jsp/exception.jsp
+  
+   http://3w.eztravel.com.tw:8080/jsp/elUserBean.html
+  
+   http://3w.eztravel.com.tw:8080/jsp/elTest01.jsp?userName=kevin&age=33
+   http://3w.eztravel.com.tw:8080/jsp/elTest05.jsp?a=kevin&a=33
+   
+   request.setAttribute("xxx","bbb");
+   http://3w.eztravel.com.tw:8080/jsp/elTest02.jsp
+   
+   getHeader("xxx")
+   http://3w.eztravel.com.tw:8080/jsp/elTest03.jsp
+   
+   <context-param>
+   http://3w.eztravel.com.tw:8080/jsp/elTest04.jsp
+   
+   cookie
+   http://3w.eztravel.com.tw:8080/jsp/elTest06.jsp
+   
+   http://3w.eztravel.com.tw:8080/jsp/elTest07.jsp
+************************************************************************************************************************************    
+  
+
+  
+************************************************************************************************************************************  
+  【第五章】階段追蹤
+   http://3w.eztravel.com.tw:8080/session/cookie.jsp  
+   http://3w.eztravel.com.tw:8080/session/encoding.jsp
+
+   BASE64Encoder 及 BASE64Decoder
+   http://3w.eztravel.com.tw:8080/session/base64.jsp   
+  
+   http://3w.eztravel.com.tw:8080/session/setCookie.jsp
+   
+   http://3w.eztravel.com.tw:8080/session/javascript.jsp
+
+   MD5 加密演算
+   http://3w.eztravel.com.tw:8080/session/loginCookie.jsp
+  
+   http://3w.eztravel.com.tw:8080/session/session.jsp
+    
+   URL 定義重新導向
+   http://3w.eztravel.com.tw:8080/session/encodeURL.jsp
+************************************************************************************************************************************
+  
+  
+  
+************************************************************************************************************************************  
+  【第六章】篩檢程式Filter
+   
+   http://3w.eztravel.com.tw:8080/Filter/MyFilter.jsp
+   
+   防盜連圖片Filter
+   http://3w.eztravel.com.tw:8080/Filter/ImageRedirectFilter.jsp
+   http://3w.eztravel.com.tw:8080/Filter/images/winter.jpg
+   
+   字元編碼 Filter 
+   http://3w.eztravel.com.tw:8080/Filter/characterEncoding.jsp   
+   
+   記錄檔記錄 Filter 
+   http://3w.eztravel.com.tw:8080/Filter/logFilter.jsp    
+   
+   例外補捉 Filter 
+   http://3w.eztravel.com.tw:8080/Filter/ExceptionHandler.jsp
+   
+   許可權驗證 Filter 
+   http://3w.eztravel.com.tw:8080/Filter/list.do?action=list
+   http://3w.eztravel.com.tw:8080/Filter/list.do?action=add    (需登入後才有辦法)
+
+   內容替換 Filter 
+   http://3w.eztravel.com.tw:8080/Filter/OutputReplaceFilter.jsp
+   
+   GZIP壓縮 Filter 
+   http://3w.eztravel.com.tw:8080/Filter1/gzip.jsp
+
+   影像浮水印 Filter 
+   http://3w.eztravel.com.tw:8080/Filter1/winter.jpg
+   http://3w.eztravel.com.tw:8080/Filter1/sunset.jpg
+   
+   快取記憶體 Filter  
+   http://3w.eztravel.com.tw:8080/Filter1/cache.jsp
+
+   XSLT 轉換 Filter  
+   http://3w.eztravel.com.tw:8080/Filter1/msn/demo.xml
+   http://3w.eztravel.com.tw:8080/Filter1/msn/you8329629941778.xml
+
+   檔案上傳Filter
+   http://3w.eztravel.com.tw:8080/Filter1/upload.jsp
+************************************************************************************************************************************ 
+ 
+ 
+ 
+ 
+************************************************************************************************************************************
+  【第七章】監聽器Listener
+   http://3w.eztravel.com.tw:8080/listener/active.jsp
+
+   單點登入
+   http://3w.eztravel.com.tw:8080/listener/singleton.jsp?action=login&account=kevin
+
+   顯示線上使用者
+   http://3w.eztravel.com.tw:8080/listener/online.jsp
+************************************************************************************************************************************
+
+
+
+
+************************************************************************************************************************************
+  【第八章】JSTL標籤函式庫
+   
+   JSTL 五種自訂標籤
+   <%@ taglib uri="http://java.sun.com/jsp/jstl/core"      prefix="c"   %>
+   <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt"       prefix="fmt" %>
+   <%@ taglib uri="http://java.sun.com/jsp/jstl/function"  prefix="fn"  %>
+   <%@ taglib uri="http://java.sun.com/jsp/jstl/sql"       prefix="sql" %>
+   <%@ taglib uri="http://java.sun.com/jsp/jstl/xml"       prefix="x"   %>
+   
+   
+   
+   
+   <c:out>
+   http://3w.eztravel.com.tw:8080/jstl/out.jsp
+   http://3w.eztravel.com.tw:8080/jstl/out.jsp?action=This is a string from JSTL
+
+   <c:if>
+   http://3w.eztravel.com.tw:8080/jstl/if.jsp?action=add
+   http://3w.eztravel.com.tw:8080/jstl/if.jsp?action=edit
+   
+   <c:choose> <c:when> <c:otherwise> 標籤
+   http://3w.eztravel.com.tw:8080/jstl/choose.jsp?action1=true
+   http://3w.eztravel.com.tw:8080/jstl/choose.jsp?action1=true&action2=1
+   http://3w.eztravel.com.tw:8080/jstl/choose.jsp?action1=true&action2=2
+   http://3w.eztravel.com.tw:8080/jstl/choose.jsp?action1=true&action2=3
+   http://3w.eztravel.com.tw:8080/jstl/choose.jsp?action1=true&action2=4
+   
+   <c:forEach> 
+   http://3w.eztravel.com.tw:8080/jstl/forEach.jsp
+   
+   <c:forEach> List的使用
+   http://3w.eztravel.com.tw:8080/jstl/forEachWithList.jsp
+   http://3w.eztravel.com.tw:8080/jstl/servlet/forEachWithList (Servlet 呼叫)
+   http://3w.eztravel.com.tw:8080/jstl/forEachWithList1.jsp
+   
+   <c:forEach> Map 的使用
+   http://3w.eztravel.com.tw:8080/jstl/forEachWithMap.jsp
+
+   <c:forTokens>
+   http://3w.eztravel.com.tw:8080/jstl/forTokens.jsp
+
+   <c:set>
+   http://3w.eztravel.com.tw:8080/jstl/set.jsp?name=kevin
+   
+   <c:remove> 
+   http://3w.eztravel.com.tw:8080/jstl/remove.jsp
+   
+   <c:catch> 捕捉例外
+   http://3w.eztravel.com.tw:8080/jstl/catch.jsp
+   
+   <c:import> 匯入網路資源
+   http://3w.eztravel.com.tw:8080/jstl/import.jsp
+   
+   <c:url>
+   http://3w.eztravel.com.tw:8080/jstl/url.jsp
+   
+   <c:redirect>
+   http://3w.eztravel.com.tw:8080/jstl/redirect.jsp
+   
+   <c:param>
+   http://3w.eztravel.com.tw:8080/jstl/param.jsp  
+   
+   
+   <fmt:requestEncoding> 設定寫程式
+   http://3w.eztravel.com.tw:8080/jstl/requestEncoding.jsp 
+   
+   <fmt:setLocale> 顯示所有地區的資料格式
+   http://3w.eztravel.com.tw:8080/jstl/setLocale.jsp    
+   
+   <fmt:timeZone> 顯示全球時間
+   http://3w.eztravel.com.tw:8080/jstl/timeZone.jsp      Asia/Taipei
+   
+   <fmt:setTimeZone> 設定時區
+   http://3w.eztravel.com.tw:8080/jstl/setTimeZone.jsp    
+   
+   <fmt:bundle> <fmt:message> <fmt:param> 資源國際化
+   http://3w.eztravel.com.tw:8080/jstl/bundle.jsp    
+   http://3w.eztravel.com.tw:8080/jstl/bundle1.jsp    
+   
+   <fmt:setBundle> 
+   http://3w.eztravel.com.tw:8080/jstl/setBundle.jsp
+   
+   <fmt:formatNumber> 顯示不同地區的各種資料格式
+   http://3w.eztravel.com.tw:8080/jstl/formatNumber.jsp
+   
+   <fmt:parseNumber> 解析數字
+   http://3w.eztravel.com.tw:8080/jstl/parseNumber.jsp
+   
+   <fmt:formatDate> 格式化日期
+   http://3w.eztravel.com.tw:8080/jstl/formatDate.jsp   
+   
+   <fmt:parseDate> 解析日期
+   http://3w.eztravel.com.tw:8080/jstl/parseDate.jsp      
+   
+
+   fn:contains() 顯示使用者瀏覽器、作業系統
+   fn:containsIgnoreCase()
+   http://3w.eztravel.com.tw:8080/jstl/contains.jsp    
+   
+   fn:endsWith()、fn:startsWith()
+   http://3w.eztravel.com.tw:8080/jstl/endsWith.jsp
+   
+   fn:escapeXml()
+   http://3w.eztravel.com.tw:8080/jstl/escapeXml.jsp
+   
+   fn:indexOf()
+   http://3w.eztravel.com.tw:8080/jstl/indexOf.jsp
+   
+   fn:split() 切割字元
+   http://3w.eztravel.com.tw:8080/jstl/split.jsp   
+   
+   fn:join() 聯合字元
+   http://3w.eztravel.com.tw:8080/jstl/join.jsp   
+   
+   fn:length()
+   http://3w.eztravel.com.tw:8080/jstl/length.jsp  
+    
+   <sql:setDataSource> 設定資料來源
+   http://3w.eztravel.com.tw:8080/jstl/setDataSource.jsp  
+   http://3w.eztravel.com.tw:8080/jstl/setDataSource1.jsp   《JNDI 的方式》
+   
+   <sql:query> 查詢資料表
+   http://3w.eztravel.com.tw:8080/jstl/query.jsp
+   http://3w.eztravel.com.tw:8080/jstl/query1.jsp           《JNDI 的方式》
+   
+      (1)建立mySQL 資料庫 jstl
+         CREATE DATABASE `jstl` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+ 
+      (2)建立mySQL 資料表 tb_corporation
+         CREATE TABLE jstl.tb_corporation(
+              ID           INT(4) UNSIGNED ZEROFILL DEFAULT '0000' NOT NULL,
+              Name         CHAR(20)                 DEFAULT ''     NOT NULL,
+              Description  CHAR(20)                 DEFAULT ''     NOT NULL,
+              PRIMARY KEY(ID)
+         );
+
+      (3)新增 mySQL 資料表 tb_corporation 的資料
+         INSERT INTO jstl.tb_corporation VALUES
+         (1,'Microsoft','微軟'),(2,'IBM','國際商用機器');
+
+      (4)查詢資料表 tb_corporation
+          select * from jstl.tb_corporation;
+
+
+   <sql:query> 查詢資料表 - 分頁顯示
+   http://3w.eztravel.com.tw:8080/jstl/queryPagination.jsp
+   http://3w.eztravel.com.tw:8080/jstl/queryPagination1.jsp      《JNDI 的方式》
+ 
+ 
+   <sql:query> 查詢資料表 - 結果集的動態檢查
+   (1)http://3w.eztravel.com.tw:8080/jstl/queryReflect.jsp
+      填入sql的語法：show tables;
+   (2)http://3w.eztravel.com.tw:8080/jstl/queryReflect1.jsp      《JNDI 的方式》
+      填入sql的語法： select * from mysql.help_topic;
+   
+   
+   <sql:update> 更新資料表
+   http://3w.eztravel.com.tw:8080/jstl/update.jsp
+   http://3w.eztravel.com.tw:8080/jstl/update1.jsp            《JNDI 的方式》
+   
+   <sql:param><sql:dateParam> 設定日期參數
+   http://3w.eztravel.com.tw:8080/jstl/dateParam.jsp
+   
+   <sql:transaction> 交易管理
+   http://3w.eztravel.com.tw:8080/jstl/transaction.jsp
+   
+   
+   <x:out> 輸出指定元素 
+   http://3w.eztravel.com.tw:8080/jstl/x_out.jsp
+   
+   <x:parse> 獲得新浪 RSS 新聞
+   http://3w.eztravel.com.tw:8080/jstl/parse.jsp
+   
+   <x:forEach> 檢查新浪 RSS新聞 
+   http://3w.eztravel.com.tw:8080/jstl/x_forEach.jsp
+
+   <x:if>
+   http://3w.eztravel.com.tw:8080/jstl/x_if.jsp
+   
+   <x:choose ><x:when><x:otherwise>
+   http://3w.eztravel.com.tw:8080/jstl/x_choose.jsp
+   
+   <x:set>
+   http://3w.eztravel.com.tw:8080/jstl/x_set.jsp   
+   
+   <x:transform> 轉化XML為HTML
+   http://3w.eztravel.com.tw:8080/jstl/x_transform.jsp    
+   http://3w.eztravel.com.tw:8080/jstl/x_transform1.jsp 
+   http://3w.eztravel.com.tw:8080/jstl/x_transform2.jsp
+************************************************************************************************************************************   
+   
+   
+   
+   
+   
+   
+   
+************************************************************************************************************************************   
+  【第九章】自訂標籤
+   Tag
+   http://3w.eztravel.com.tw:8080/taglib/copyright.jsp
+   
+   
+   TagSupport
+   http://3w.eztravel.com.tw:8080/taglib/copyright2.jsp
+   http://3w.eztravel.com.tw:8080/taglib/hello.jsp          《帶屬性》
+   http://3w.eztravel.com.tw:8080/taglib/AddTag.jsp         《帶多個參數》
+   
+  《帶標籤體的自訂標籤》
+   BodyTagSupport
+   http://3w.eztravel.com.tw:8080/taglib/toLowerCase.jsp
+   http://3w.eztravel.com.tw:8080/taglib/loop.jsp
+   
+  《帶動態屬性的自訂標籤》
+   DynamicAttributes
+   http://3w.eztravel.com.tw:8080/taglib/dynamic.jsp
+   taglib.tld <dynamic-attributes>true</dynamic-attributes> 出現
+   MyEclipse 9.1 ERROR:Editor model does not support child element dynamic-attributes of tag
+   
+   
+  《嵌套的自訂標籤》
+   http://3w.eztravel.com.tw:8080/taglib/table.jsp
+   
+   SimpleTag 介面
+   http://3w.eztravel.com.tw:8080/taglib/multi.jsp
+   http://3w.eztravel.com.tw:8080/taglib/toUpperCase.jsp    《帶標籤體》
+   
+   http://3w.eztravel.com.tw:8080/taglib/multiAttribute.jsp 《帶多個標籤體》
+   taglib.tld <fragment>true</fragment>
+   MyEclipse 9.1 ERROR:Editor model does not support child element dynamic-attributes of tag
+   
+   
+  《撰寫自訂方法》   
+   http://3w.eztravel.com.tw:8080/taglib/function.jsp
+************************************************************************************************************************************
+
+
+
+
+
+
+   
+   
+   
+************************************************************************************************************************************   
+   【第十章】資源國際化  
+    (1)i18n:資源國際化(Internationalization)
+    (2)i10n:資源當地語系化(Localization)
+    
+    轉換程式 native2ascii.exe 在 JAVA_HOME\bin 目錄下
+    c:\native2ascii -encoding UTF-8 xx.txt xx.properties
+   
+    顯示所有的Locale程式碼
+    http://3w.eztravel.com.tw:8080/i18n/locales.jsp 
+   
+    http://3w.eztravel.com.tw:8080/i18n/resource.jsp
+   
+    帶參數的資源
+    http://3w.eztravel.com.tw:8080/i18n/param.jsp
+   
+    顯示所有的Locale的數字格式
+    http://3w.eztravel.com.tw:8080/i18n/setLocale.jsp
+   
+    顯示全球時間
+    http://3w.eztravel.com.tw:8080/i18n/timeZone.jsp
+    
+************************************************************************************************************************************
+   
+   
+   
+   
+   
+   
+   
+   
+************************************************************************************************************************************   
+   【第十一章】資料庫概述
+   
+   
+************************************************************************************************************************************
+   
+   
+   
+   
+************************************************************************************************************************************        
+   【第十二章】JDBC 詳解     
+
+
+************************************************************************************************************************************
+  
+  
+  
+  
+  
+************************************************************************************************************************************  
+   【第十三章】XML 概述     
+
+
+************************************************************************************************************************************
+
+
+  
+  
+  
+  
+  
+    
+
+
+************************************************************************************************************************************
+   【第十四章】Struts 1.x 概述 (MVC FrameWork)
+   
+    官網：http://struts.apache.org/
+       
+       
+    MVC:架構清晰、階層分明、程式碼耦合率、重用性好的特性。
+    
+    (1)Model(模型層)  ：專注於業務邏輯(即資料的儲存、處理等)。
+    (2)View(檢視層)   ：專注於資料在瀏覽器端的展示。
+    (3)Contron(控制層)：連接 Model 層與 View 層。
+    
+    
+    ActionForm：具有自動轉化資料、整合資料驗證的功能。
+    Action：扮演著Servlet 的角色，但它本身沒有繼承Servlet 介面，因此不是Servlet。
+            準確地說，它是 Struts 入口 ActionServlet 的一部份，
+            ActionServlet 透過使用反射呼叫 Action 的 execute() 方法執行業務程式碼。
+    
+    
+    ★★★ 極重要的觀念 ★★★
+    一、Action Bean：
+       (1)Struts 1.x：是執行緒不安全的;Action 中的屬性最好標記為final，禁止對其進行寫操作，避免執行緒不安全問題;
+       (2)Struts 2.x：Action 已被設計為執行緒安全的了，每個請求都會產生一個Action實例，請求完畢後，Action 實例即銷毀。
+    二、Form Bean  ：是執行緒安全的;代表JSP表單，每次請求都會產生一個新的Form Bean，
+                     不會出現多個執行緒共有一個Form Bean的情況。Form Bean 中可任意地定義讀取屬性;
+    
+    
+    【結論】：
+    (1)FormBean 負責資料轉化及驗證;
+    (2)JSP 負責資料展示;
+    (3)Action 專注於業務邏輯;
+
+
+    ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆    
+   《第一個 Struts 1.X 實例》
+    http://3w.eztravel.com.tw:8080/struts/test.do
+   
+    【Struts 1.x 工作流程】
+    1. 存取 /struts/form/hello.jsp;
+    2. 送出表單後資料送出到 /struts/hello.do;
+    3. Struts 截獲 *.do 的請求;
+    4. 查找 struts-config.xml,hello.do 對應 HelloForm 與 HelloAction;
+    5. 將表單封裝為 HelloForm 並反射呼叫用 HelloAction 的 execute();
+    6. forward 到 /form/helloSuccess.jsp
+
+    ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆		  
+		
+		※POJO 極重要的觀念※
+		【POJO】(Plain Old Java Object): 具有業務邏輯處理的規則的Java對象（regular java objects）
+		參閱：http://supermand9362787.wordpress.com/
+		Java對象不是JavaBean、EntityBeans（EJB的一種）。
+		POJO一個正規的Java對象（不是JavaBean，EntityBean等），也不擔當任何的特殊的角色，也不實現任何Java框架指定的接口。
+		 
+		POJO應該不是我們開始認為的JavaBean，當然更不是EJB，它不應該依賴於框架即繼承或實現某些框架類或接口。
+		例如：Struts1中的Action和ActionForm當然不屬於POJO了，
+		而在Struts2中的Action由於可以不繼承任何的接口，所以在這種情況下Action是POJO，
+		但是Struts2中的Action也可以繼承ActionSupport類就不再屬於POJO了。
+		POJO裡面是可以包含業務邏輯處理和持久化邏輯，也可以包含類似與JavaBean屬性和對屬性訪問的set和get方法的。
+    最後，我們總結一下給一個定義
+    POJO是一個簡單的、正規Java對象，它包含業務邏輯處理或持久化邏輯等，
+    但不是JavaBean、EntityBean等，不具有任何特殊角色和不繼承或不實現任何其它Java框架的類別或接口。
+		 
+		http://dev.firnow.com/course/3_program/java/javashl/200845/108451.html
+		 
+		 
+	 《FormBean 使用POJO 實體類別》	  
+		http://3w.eztravel.com.tw:8080/struts/useBean.do
+		  
+
+    ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆
+ 	 《FormBean 使用POJO 實體類別》:資料庫存取範例	  
+		http://3w.eztravel.com.tw:8080/struts/person.do
+		
+		
+		(1)建立mySQL 資料庫 struts
+		   create database struts character set utf8;
+
+    (2)使用資料庫struts
+       use struts;
+
+    (3)建立mySQL 資料表 tb_person
+       create table tb_person (
+	        id integer auto_increment, 
+	        account varchar(255), 
+	        name varchar(255), 
+	        birthday date, 
+	        create_date timestamp, 
+	        secret bit, 
+	        primary key (id)
+	     ); 
+
+     (4)建立mySQL 資料表 tb_hobby
+       create table tb_hobby (
+	        person_id integer, 
+	        hobby varchar(255), 
+	        primary key(person_id, hobby)
+       );
+    ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆
+
+		
+************************************************************************************************************************************
+ 
+
+
+  
+
+
+************************************************************************************************************************************
+   【第十五章】Struts 1.x 高級應用     
+
+    <%@ taglib uri="http://jakarta.apache.org/struts/tags-html"     prefix="html"   %>
+    <%@ taglib uri="http://jakarta.apache.org/struts/tags-bean"     prefix="bean"   %>
+    <%@ taglib uri="http://jakarta.apache.org/struts/tags-logic"    prefix="logic"  %>
+    <%@ taglib uri="http://jakarta.apache.org/struts/tags-nested"   prefix="nested" %>
+    <%@ taglib uri="http://jakarta.apache.org/struts/tags-tiles"    prefix="tiles"  %>
+
+   
+ 	 1.《html 標籤函式庫》：用於產生 html 程式碼。  
+		  http://3w.eztravel.com.tw:8080/struts/tag.do
+  
+  
+   2.《bean 標籤函式庫》：用於操作 POJO、Cookie、Header 以及Struts 物件等。
+      http://3w.eztravel.com.tw:8080/struts/form/beanTag.jsp?action=kevin
+  
+  
+   3.《logic 標籤函式庫》：由於 bean 標籤經常拋出例外，因此常與 logic 標籤一起使用。
+      例.<logic:present><logic:notPresent> 標籤能夠判斷物件是否存在。
+      指定 Cookie 屬性時判斷 Cookie，指定header 屬性時判斷 header ，指定parameter 時判斷 parameter。
+      http://3w.eztravel.com.tw:8080/struts/form/logicTag.jsp
+         
+  
+   4.《nested 標籤函式庫》：使用 nested 標籤能夠使Struts 把資料直接設置到業務元件 POJO 而不是FormBean。
+      http://3w.eztravel.com.tw:8080/struts/nested.do
+   
+   
+   5.《tiles 標籤函式庫》：原本是一個獨立的軟體產品，後來被融入Apache Struts 中。
+                           tiles Apache 官方網站為：http://tiles.apache.org/
+                           tiles 在處理網頁佈局以及佈局的再使用性、可維護性上做得非常好，
+                           能將頁面或者部份頁面元件化。
+                           開發Struts 專案時，結合使用tiles，在處理JSP檔案樣式上會得心應手，簡單明瞭。
+       
+    (1)使用範本 template1.jsp                  
+       http://3w.eztravel.com.tw:8080/struts/case1.jsp
+
+    (2)使用範本 template2.jsp 
+       http://3w.eztravel.com.tw:8080/struts/case2.jsp
+
+
+	 《DispatchAction 範例》	  
+		http://3w.eztravel.com.tw:8080/struts/dispatch.do?action=add
+		http://3w.eztravel.com.tw:8080/struts/dispatch.do?action=list
+		http://3w.eztravel.com.tw:8080/struts/dispatch.do?action=view
+		
+	
+	 《DispatchAction 範例》	  
+		http://3w.eztravel.com.tw:8080/struts/upload.do
+	
+	
+	 《Validator 自動驗證資料》	  
+		http://3w.eztravel.com.tw:8080/struts/validatorTest.do
+	
+	
+	 《動態屬性 Form Bean》	
+	  http://3w.eztravel.com.tw:8080/struts/dynaTest.do
+	
+************************************************************************************************************************************
+
+
+
+
+
+
+************************************************************************************************************************************
+   【第十六章】Struts 2.x 概述 (WebWorkFrameWork)     
+   
+    起源於 WebWorkFrameWork，發佈於2002年3月。
+    2005年12月，WebWork 項目與 Struts 項目宣佈合併，並推出了Struts2，其核心是 WebWork2。
+   
+    從一個新的視角實現MVC，拋棄了request,response。 
+   
+    官網：http://struts.apache.org/2.x/
+   
+    特性：支援主題、整合DOJOFramework、內建Ajax等。
+     
+        Struts2 採用即時部署外掛的方式註冊外掛，即如果向Struts 中增加外掛，直接把 jar 檔案放到lib 中即可，
+    而不需要設定任何檔案。 
+   
+    Struts2設定檔的預設位置 /WEB-INF/classes/struts.xml。可以將 struts.xml 放到 MyEclipse 項目的 src 資料夾下。
+   
+
+   【Struts2.x 工作流程】
+    1. 存取JSP頁面 /struts2/login.jsp。
+    2. 送出表單後資料送出給 /struts2/loginPerson.action。
+    3. Struts2 截獲所有請求，包含 *.action 的請求。
+    4. 查找 struts.xml,loginPerson.acction 對應的 LoginAction。
+    5. 產生一個 LoginAction 實例，將送出的資料設置到該實例中。
+    6. 呼叫 LoginAction 實例的 execute() 主方法。
+    7. 跳轉到 JSP 中顯示結果，丟棄該 LoginAction 實例。
+    
+   
+    如果項目內沒有用到Plaxus、Sitegraph、Spring，則須將下面的jar 刪除，否則佈署會出現例外  
+    1.struts2-plexus-plugin-2.0.14.jar
+    2.struts2-sitegraph-plugin-2.0.14.jar
+    3.struts2-jsf-plugin-2.0.14.jar
+    4.struts2-spring-plugin-2.0.14.jar
+   
+   
+   《登入功能 Action》	  
+    http://3w.eztravel.com.tw:8080/struts2/login.jsp
+    http://3w.eztravel.com.tw:8080/struts2/loginPerson.action
+
+      
+   《登入功能 Action》：不繼承任何類別 Action，會透過反射來呼叫 execute() 	  
+    http://3w.eztravel.com.tw:8080/struts2/login1.jsp
+    http://3w.eztravel.com.tw:8080/struts2/loginPerson1.action
+    http://3w.eztravel.com.tw:8080/struts2/loginPerson1!login.action
+    http://3w.eztravel.com.tw:8080/struts2/loginPerson1!logout.action
+   
+   
+   《登入功能 Action》：透過 Action，直接用萬用字元設定 	  
+    http://3w.eztravel.com.tw:8080/struts2/login2.jsp
+    http://3w.eztravel.com.tw:8080/struts2/loginPerson2.action
+    http://3w.eztravel.com.tw:8080/struts2/logoutPerson2.action
+    
+   
+   
+   
+    @ Struts 2 的零設定
+    零設定(zero configuration) 的意思是不使用任何設定檔佈署 Struts 2 應用，
+    如 struts.xml、struts.properties、validation.xml等。
+    零設定並不是真的"零設定"，只是沒有傳統的設定檔 struts.xml了，
+    但是仍然需使用 @ Annotation 設定。
+    @Annotation 翻譯為 @註釋、@標記。
+    
+   《Annotation Action 範例一》 
+    http://3w.eztravel.com.tw:8080/struts2_1/User/login.action
+
+   《Annotation Action 範例二》 
+    http://3w.eztravel.com.tw:8080/struts2_1/test/annotationLogin.action
+    http://3w.eztravel.com.tw:8080/struts2_1/test/annotation!login.action
+    http://3w.eztravel.com.tw:8080/struts2_1/test/annotation!add.action
+    
+
+
+   《Action 中使用POJO》 
+    http://3w.eztravel.com.tw:8080/struts2/initAddBook.action
+    
+************************************************************************************************************************************
+
+
+
+
+
+
+************************************************************************************************************************************
+   【第十七章】Struts 2.x 高級應用   
+ 
+    轉換器需要設定到 /j2src/ (/WEB-INF/classes)的目錄下  xwork-conversion.properties。
+    
+    
+   《Action 設定轉換器》：使用  xwork-conversion.properties 的設定檔  
+    http://3w.eztravel.com.tw:8080/struts2/convertor.action
+
+    
+   《Action 設定轉換器》： 轉換器設定在此Action 中，只作 用於目前的 Action 中
+    http://3w.eztravel.com.tw:8080/struts2/convertor1.action
+
+
+    Struts2 利用 ThreadLoca 來維護目前執行的request、response 等資料。
+   《Action 設定轉換器》： 利用 ServletActionContext 的靜態方法 取得 request 及 reponse 物件
+    http://3w.eztravel.com.tw:8080/struts2/loginPerson3.action
+
+    
+    Aware 介面:感知
+    Struts 在產生實體一個Action實例時，如果發現它實現了相應的Aware 介面，會把相應的資源透過Aware介面方法注射進去。
+    這種方式也可以叫注射方式(IoC 方式)。
+    Servlet API 中常用物件 applicatoin、request、response、Session 
+    對應的Aware 介面分別為 ServletContextAware、ServletResponseAware、ServletResponseAware及SessionAware。
+    
+    http://3w.eztravel.com.tw:8080/struts2/servletAware.action
+
+
+
+    ※使用 Validator 驗證資料
+    使用XML設定時，需要在Action 類別所在的package 內增加一個XML檔案，
+    檔案名格式為 Action類別名 - validation.xml 或者 Action 類別名-Action別名-validation.xml。
+    如果Action 內有多個方法，一般使用後者。
+    
+   《Action 中使用伺服器驗證》：依據 BookAction-addBook-validation.xml 的設定檢核欄位資訊 
+    http://3w.eztravel.com.tw:8080/struts2/initAddBook.action
+    
+    
+    
+    【Struts2 常用的驗證器】
+    《校驗器》：                 
+    required：                  檢查被驗證域是否為null。
+    requiredstring：            檢查被驗證String是否為null或空，可選參數trim，在驗證前對之字串執行trim操作。
+    stringlength：              檢查被驗證String 的長度範圍，可選參數trim、minLength、maxLength。
+    int/double：                檢查輸入是否為int/double，並且可判斷數值範圍，可選參數為min、max;minInclusive、maxInclusive、minExclusive、maxExclusive。
+    date：                      檢查date的範圍，可選參數為min、max。
+    email：                     檢查輸入是否為E-mail格式。
+    url：                       檢查輸入是否為url格式。
+    conversion：                檢查是否將出現資料轉換錯誤。
+    expression/fieldexpression：檢查某個布林運算式的值是否為true，後者綁定至某個欄位上，參數為expression。
+    visitor：                   使用預定義的vaidators 進行驗證，參數為context。
+    regex：                     檢查是否能比對到正則運算式，參數為regex。
+    
+    
+   《Action 中使用用戶端驗證》： 
+    http://3w.eztravel.com.tw:8080/struts2/initAddBook1.action
+
+************************************************************************************************************************************
+
+
+
+ 
+
+
+************************************************************************************************************************************
+   【第十八章】Struts 2.x 標籤       
+
+    <%@ taglib uri="/struts-tags" prefix="struts" %>
+
+    Struts2 標籤函式庫主要使用OGNL 語言，除此之外還可以使用Groovy 與 Velcity 等。
+    Groovy：是一種動態的指令碼語言，類似於Rython、Ruby和 Smarttalk。
+    Velcity：是 Apache 的一個子專案，是一種模版引擎。
+
+    Struts2 2.0.11 版起，Struts2 標籤函式庫不再支援 EL 運算式。推薦使用功能更為強大的 OGNL 語言。
+    
+    Struts2 的標籤都統一包含在 struts-tags.tld 檔案中(位於 struts2-core-xxx.jar 的 META-INF 資料夾下)，
+    都使用統一的字首。其函式庫大致分為控制標籤、資料標籤、表單UI標、非表單UI表單等。
+    
+    
+    OGNL(Object-Graph Navigation Lanaguage)：是一種操作物件屬性開放原始碼的運算式語言。
+    優點：
+    1.能夠存取物件的方法，例如：list.size();
+    2.能夠存取靜態屬性與靜態方法，方法是在類別名前、方法前加上@。如@java.lang.Math@PI,
+      @java.lang.String@format('foo %s','bar');
+    3.支援給予值操作和運算式串聯；如給予值#value=5;
+    4.存取OGNL上下文(OGNL context) 和 ActionContext(所有的Servlet 資源);
+    5.操作集合物件。
+    
+    OGNL 語言類似於EL，主要使用點. 作為操作符。例如要存取 perosn.getCountry().getName() 可以寫成 person.country.name。
+    在存取POJO屬性上，OGNL與EL運算式是完全一樣的。
+    OGNL主要有3個符號：#、% 與 $。  
+    
+    
+    【#】 宣告OGNL運算式
+    主要用途：
+    1.能夠存取OGNL上下文與 ActionContext 資源，相當於ActionContext.getContext()。
+      常用的
+          屬性         作用                                                   範例
+      #parameters：    代表 request 傳送的所有參數                            #parameters.id 傳回的是String[]類型，相當於JSP中的request.getParametersValues("id")。一般使用 #parameters.id[0]。
+      #request：       代表 request 裡的所有屬性                              #request.account 相當於JSP中的 request.getAttribute("account");
+      #session：       代表 session 裡的所有屬性                              #session.account 相當於JSP中的 session.getAttribute("account");
+      #application：   代表 ServletContext 裡的所有屬性                       #application.account 相當於JSP中的 application.getAttribute("account");
+      #attr：          代表 request 或 session 或 application 的所有屬性      #attr.account 相當於EL 運算式中的 ${account}，依次查 request、session、application 的屬性，找到為止。
+    
+    2. 用於過濾或篩選集合，例如 book.{?#this.price<20}，表示所有的price<20 的書。
+    3. 建構 Map，如 #{'foo1':'bar','foo2':'bar2'}。
+    
+    
+   《"#" 宣告 OGNL 運算式》： 
+    http://3w.eztravel.com.tw:8080/struts2/ognl.action?id=SCJP&id=SCWCD
+    
+
+   【%】 顯示宣告OGNL運算式
+    % 用於表示某字串為一個 OGNL 運算式。某些標籤既能接受字串，又能接受OGNL 運算式。
+    這時候，,標有 % 的被當做OGNL 運算式被執行，沒有標有 % 的被當做普通字串。
+    
+    
+   【$】 在資源檔中參考OGNL運算式
+    $ 主要用於在資源國際化檔案中或者struts.xml 中參考OGNL 運算式。  
+    
+    
+    
+    
+    
+    
+   ※【控制標籤】：用於控制流程，如判斷、檢查等。
+   
+   《if、elseif、else 標籤控制流程》： 
+    http://3w.eztravel.com.tw:8080/struts2/ifTag.action
+   
+   《append 標籤連接多個 List》： 
+    http://3w.eztravel.com.tw:8080/struts2/appendTag.action
+   
+   《generator 標籤將字元轉化為List》：
+    http://3w.eztravel.com.tw:8080/struts2/generatorTag.jsp
+   
+   
+   《merge 標籤連接多個 List》： 
+    http://3w.eztravel.com.tw:8080/struts2/mergeTag.action
+   
+   《subset 標籤過濾集合元素》： 
+    http://3w.eztravel.com.tw:8080/struts2/subsetTag.action
+    
+   
+   
+   
+   
+   
+   
+   ※【資料標籤】：包含JavaBean 相關標籤、資源國際化標籤等。
+   
+   《action 標籤包含action頁面》： 
+    http://3w.eztravel.com.tw:8080/struts2/actionTag.action
+    http://3w.eztravel.com.tw:8080/struts2/actionTag.action?account=kevin
+   
+   
+   《bean 標籤參考JavaBean》： 
+    http://3w.eztravel.com.tw:8080/struts2/beanTag.jsp
+   
+   
+   《date 標籤輸出日期》： 
+    http://3w.eztravel.com.tw:8080/struts2/dateTag.jsp
+   
+   
+   《i18n、text 標籤宣告資源國際化》： 這兩個標籤用於資源國際化。i18n 標籤指定資源檔、 text 標籤指定資源索引。
+                                       如果沒有使用i18n ，則 使用 strurts 的資源檔。
+    http://3w.eztravel.com.tw:8080/struts2/textTag.jsp
+
+
+  
+   《include 標籤包含JSP頁面》： 用於包含一個JSP頁面，將JSP 的執行結果包含到本頁面內，相當於JSP 行為裡的<jsp:include />。
+    http://3w.eztravel.com.tw:8080/struts2/includeTag.jsp
+   
+
+   《param 標籤傳遞參數》。
+    http://3w.eztravel.com.tw:8080/struts2/paramTag.jsp
+   
+   
+   《set 及 property 標籤輸出變數值》。
+    http://3w.eztravel.com.tw:8080/struts2/propertyTag.jsp?account=kevin&account=hungmans6779
+    
+   
+   
+   
+   
+   
+   
+   ※【表單UI標籤】：是Struts2 標籤函式庫的核心，用於輸入資料、傳送資料。Struts2 標籤函式庫不僅包括正常的HTML控制項，
+                     如輸入框、文字域、檔案域等 ，還整合了額外的常用控制項，例如日期時間控制項、聯動下拉清單、
+                     自動填充下拉式功能表等。
+                     這些常用控制項是整合了DojoFramework，是利用JavaScript 實現的。
+    
+    struts core 是 2.1.2以上版本的，要在工程中加入struts2-dojo-plugin.jar 
+    加入 <%@ taglib uri="/struts-dojo-tags"  prefix="sx" %> 
+    把 <struts:head theme="ajax" /> 改成 <sx:head /> 
+
+   
+   《form 標籤輸出表單》
+    http://3w.eztravel.com.tw:8080/struts2/formTag.jsp
+   
+   《textfieldw、textarea、file、checkbox、radio 標籤》
+    http://3w.eztravel.com.tw:8080/struts2/inputTag.jsp
+
+   《select、autocomplete 標籤下拉清單》
+    http://3w.eztravel.com.tw:8080/struts2/autocompleteTag.jsp
+    
+   《autocomplete 動態資料標籤》
+    http://3w.eztravel.com.tw:8080/struts2/autocompleteAjaxTag.jsp        
+
+   《checkboxlist 標籤多選框組》
+    http://3w.eztravel.com.tw:8080/struts2/checkboxlistTag.action
+    
+   《combobox 標籤複合框》
+    http://3w.eztravel.com.tw:8080/struts2/comboboxTag.jsp
+
+   《datetimepicker 標籤日期選擇器》
+    http://3w.eztravel.com.tw:8080/struts2/datetimepickerTag.jsp
+    
+   《doubleselect 標籤聯動選動框》
+    http://3w.eztravel.com.tw:8080/struts2/doubleselectTag.jsp      
+
+   《optiontransferselect 標籤》
+    http://3w.eztravel.com.tw:8080/struts2/optiontransferselectTag.jsp
+   
+   《optgroup 標籤選項群組》
+    http://3w.eztravel.com.tw:8080/struts2/optgroupTag.jsp
+    
+   
+   
+   
+   
+   
+   
+   
+   
+   ※【非表單UI標籤】：只用於顯示一些資訊，而不會向 Action 傳送資料。非表單UI標籤中有一部份 DOJO 提供的Ajax控制項，
+                       例如數、標籤頁等。          
+    
+
+   《debug 標籤 輸出偵錯資訊 》
+    http://3w.eztravel.com.tw:8080/struts2/debugTag.jsp
+    
+   《actionerror、actionmessage 及 fielderror 標籤》
+    http://3w.eztravel.com.tw:8080/struts2/error.action    
+    http://3w.eztravel.com.tw:8080/struts2/error!error.action  
+    http://3w.eztravel.com.tw:8080/struts2/error!message.action 
+    http://3w.eztravel.com.tw:8080/struts2/error!fieldError.action 
+        
+       
+   《div、submit 、a 標籤》
+    http://3w.eztravel.com.tw:8080/struts2/div.jsp
+    
+   《無更新實現登入、註銷 標籤》
+    http://3w.eztravel.com.tw:8080/struts2/divLogin.action
+
+   《tabbedPanel 標籤頁》
+    http://3w.eztravel.com.tw:8080/struts2/tabbedPanelTag.jsp
+    
+   《tree 標籤》：輸出樹
+    http://3w.eztravel.com.tw:8080/struts2/treeTag.jsp       
+
+   《tree標籤》:使用tree 顯示檔案結構(特別方式)
+    http://3w.eztravel.com.tw:8080/struts2/treeFile.jsp
+    
+   《tree標籤》:使用tree 動態載入資料(試不出來)
+    http://3w.eztravel.com.tw:8080/struts2/treeFileAjax.jsp     
+      
+           
+************************************************************************************************************************************
+
+
+
+
+
+
+************************************************************************************************************************************
+   【第十九章】Struts 2.x 攔截器與檔案上傳       
+
+    Struts2 也提供面對切面程式設定(AOP Aspect Oriented Programming)的機制。攔截器便是一種成熟的AOP實現。
+    在上傳檔案的處理上，Struts 2 直接上傳的檔案封裝為Java 中的 File 物件。
+    AOP 提供一種機制使開發者能把相對獨立的程式碼抽象出來，設定到 Action 前後執行。
+    多個攔截器也組成了攔截器鏈。Struts 2 中稱攔截器鏈為攔截器堆疊。攔截器堆疊是按順序設定的多個攔截器，
+    在執行 Action 前後被依次呼叫。   
+    Struts2 內建了許多現成的攔截器，Struts2 的某些功能如數據轉換、資料驗證等也是基於攔截器實現的。
+    這些攔截器設定在 struts2-core-2.0.1.jar 中的 struts-default.xml 檔案中。如需要這些功能，直接使用即可。
+      
+       
+   《timer 計時攔截器》
+    http://3w.eztravel.com.tw:8080/struts2/timer.action
+   
+   《token 標籤》：防重複傳送攔截器
+    http://3w.eztravel.com.tw:8080/struts2/tokenInput.jsp
+
+   《execAndWait 執行等待攔截器》
+    http://3w.eztravel.com.tw:8080/struts2/wait.action
+    
+   《自訂的許可權驗證攔截器》
+    http://3w.eztravel.com.tw:8080/struts2/authentication.action
+
+   《上傳檔案》
+    http://3w.eztravel.com.tw:8080/struts2/upload.action
+    
+************************************************************************************************************************************
+
+
+
+
+
+
+************************************************************************************************************************************
+   【第二十章】Hibernate 入門     
+  
+    官網：http://www.hibernate.org/
+
+        Hibernate 是一種 ORM(Object-Relative Database-Mapping) Framework ，與各種資料庫、SQL 敘述打交道，是資料持久化的一種解決方案。
+    在 Java 物件與關聯式資料庫之間建立某種映射，以實現直接存取 Java 物件(一般為POJO)。
+    ORM Framework 是不同於 MVC 的另一種思想 Framework ，使用範圍也與 MVC 截然不同。
+    類似功能的 Framework 還有 SUN 的 JDO、Oracle 公司的 TopLink 、Apache 的 iBatis 與 OpenJPA 等。
+
+    DAO 層：插入資料時，無非就是把 POJO 拆分成各種屬性然後拼裝為SQL敘述，儲存進資料庫；
+            讀取資料時，無非就是用 SQL 把 POJO 的各種屬性從資料庫讀出來，然後拼裝為 POJO 物件傳回。
+
+    而且 POJO 與資料表、POJO 屬性與資料表的列，都存在著某種固定的映射關係。如果能夠用程式自動產生SQL敘述就好了。
+
+    ORM 就是做這種工作的Framework。它透過設定檔或者使用Java 註釋把Java 物件映射到資料庫上，自動產生SQL敘述並執行。
+
+    Hibernate 能直接操作 POJO ，並且是一種輕量級的 Framework，不相依於任何容器，無論是 Tomcat、JBoss、Resin、WebLogic 及 WebSphere 下都可以使用。
+    Java 官方也提供了ORM 思想的 EJB、EJB2 等 Framework ，但由於都是重量級Framework ，設定複雜、對容器相依性較大，商業上不是很成功。
+    Sun 後來推出了JPA(Java Persistence API) 規範，無論使用上還是設計上都接近於 Hibernate。Hibernate 的成功影響了JPA。
+    
+    Hibernate 充當了DAO 層，根據 POJO 與實體類別的映射設定自動產生相應的SQL敘述。從控制台輸出可以看到 Hibernate 產生的 SQL敘述。
+  
+
+    建立資料庫 hibernate ，使用UTF-8 寫程式。
+    create database hibernate character set utf8;
+     
+   
+    Hibernate DateBase 設定：
+    Connection URL： jdbc:mysql://localhost:3306/hibernate?characterEncoding=UTF-8
+    Driver Class： com.mysql.jdbc.Driver
+    
+    ※ 極重要
+    修改 Hibernate 工具類：  HibernateSessionFactory 
+    載入 @ 註釋設定的實體類別要使用 AnnotationConfiguration 載入 Hibernate。
+    載入用 xml 設定的實體類別要使用 Configuration 載入 Hibernate。
+    
+    ※ Hibernate 能夠判斷實體類別的類型，決定操作哪個資料表。
+
+    Hibernate 是一種 ORM Framework，它負責把Java 物件儲存進資料庫，或者把資料庫查詢結果組織成Java 物件。
+    使用 Hibernate 後，開發者不再需要與 Connection、Statement、ResultSet 等 JDBC API 接觸，
+    Hibernate 會自動完成並隱藏 JDBC 的細節。
+    
+   
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/servlet/catServlet
+    http://3w.eztravel.com.tw:8080/hibernate/servlet/catServlet?action=view&id=1
+        
+************************************************************************************************************************************
+
+
+
+
+
+
+************************************************************************************************************************************
+   【第二十一章】從巨觀上把握 Hibernate     
+
+    Hibernate 支援市面上大多數的資料庫，可以說是一種"跨資料庫"的 ORM Framework。
+    使用 Hibernate 後，不需要考慮底層使用什麼資料庫，只需設定 SQL 方言(Dialect) 即可，因此 Hibernate 本身比較複雜。
+
+    Hibernate 可以直接 Java 物件。它的底層使用 JDBC 實現。
+    程式透過可持久化物件(Persistent Object)與 Hibernate 打交道。Hibernate 會將可持久化物件分解成 JDBC 層的 SQL 敘述，
+    透過 JDBC 儲存到資料庫或者資料庫載入。使用 Hibernate 後，開發者可不用關心 JDBC ，而更關心程式的業務邏輯。
+    
+    Hibernate 支援市面上的大部份常用資料庫，例如 MySQL、MS SQL Server、DB、Oracle、Sybase、Derby、HSQL 等，
+    透過設定不同的方式 (Dialect) 產生不同的SQL 敘述。
+    可以說，Hibernate 是跨資料庫平台的。使用 Hibernate 的程式可以執行在絕大多數資料庫中，
+    而不用做任何修改。 
+    
+    
+    Hibernate 中有幾個常用的概念 SessionFactory、Session 與 Trasaction。注意這裡的 Session 不同於 Servlet 中的 HttpSession，
+    二者雖然都可了解為階段，但使用的情況不一樣。
+    
+    ● SessionFactory (org.hibernate.SessionFactory)：一個執行緒安全的 Session 工廠類別，能為不同的執行緒產生不同的Session。
+                                                     SessionFactory 維護著 Session 相關的資源，包括資料庫連接池等、快取記憶體資料等。
+
+    ● Session (org.hibernate.Session)：Session 代表使用者的一次操作。Session 的生命週期很短，
+                                       在操作開始時透過執行 SessionFactory.openSession() 生產，
+                                       在操作結束時透過執行 session.close() 關閉。Session 維護著 Session 相關的資源，
+                                       包含 Transaction ，目前資料庫連接池等。
+    
+    ● Transaction (org.hibernate.Transaction)：Transaction 代表一次交易，交易內包含若干的資料修改，交易傳送後才生效。
+                                              如果交易失敗或者回復，所有的修改都會失效。Hibernate 的交易不同於資料庫的交易。
+                                              Hibernate 可能使用各種機制保證交易性，包括 JTA (Java Transaction API，Java 交易介面)、
+                                              協力廠商交易管理、資料庫事務等。
+                                              
+                                              
+    
+    可持久化物件(Persistent Object) 就是可以儲存進資料庫的物件。根據它在程式中的位置不同，可持久化物件可以有下面幾種狀態：
+    
+    ● 臨時狀態(Transient)：物件在儲存進資料庫之前為臨時狀態。這時候資料庫中沒有該物件的資訊，該物件的Id屬性也為空。
+                           如果沒有被持久化，程式退出時臨時狀態的物件資訊將會遺失。
+    
+    ● 持久化狀態(Persistent)：物件在儲進資料庫後或者從資料庫中載入後、並且沒有脫離 Session 時為持久化狀態。這時候資料庫中有該物件的資訊，
+                              該物件的 id 為資料庫中對應記錄的主鍵值。由於還在 Session 中，持久化狀態的物件可以執行任何有關資料庫的操作，
+                              例如擭得集合屬性的值等。
+    
+    ● 分離狀態(Detached)：分離狀態是物件曾經處於持久化狀態、但是現在已經離開 Session 了。雖然分離狀態的物件有 id 值，
+                          有對應的資料庫記錄，但是已經無法執行有關資料庫的操作。例如，讀取延遲載入的集合屬性，
+                          可能會拋出 LazyInitializeException。                                                             
+    
+
+    ※【極重要】：如果實體類別是 XML 設定的，要使用Configuration 物件；
+                  如果實體類別是 Java 註釋設定的，要使用AnnotaionConiguration 物件。
+                  AnnotaionConfiguration 是 Configuration 的一個子類別。    
+    
+    
+    載入 cfg.xml 設定的程式碼：
+    SessioinFactory sessionFactory = new AnnotationConfiguration().configure("hibernate.cfg.xml").buildSessionFactory();
+
+    程式設計式設定、執行時設定
+    Hibernate 可以在程式中動態載入實體類別設定，例如：
+    
+    Configuration cfg = new Configuration().addResource("com/xxx/xxx/xxx/Cat.hbm.xml")
+                                           .addResource("com/xxx/xxx/xxx/Event.hbm.xml");
+    
+    也可以用 addClass()直接載入實體類別。一般情況下，載入實體類別是更好的方法，例如：
+    
+    Configuration cfg = new Configuration().addClass("com.xxx.xxx.xxx.Cat.class")
+                                           .addClass("com.xxx.xxx.xxx.Event.class");
+                                           
+    setProperty()方法可以設定 Hibernate 參數，例如：
+    Configuration cfg = new Configuration().addClass("com.xxx.xxx.xxx.Cat.class")
+                                           .addClass("com.xxx.xxx.xxx.Event.class")
+                                           .setProperty("hibernate.dialect","org.hibernate.dialect.MySQLDialect")
+                                           .setProperty("hibernate.connection.datasource","java:comp/env/jdbc/test")
+                                           .setProperty("hibernate.order_updates","true");
+                                            
+    可以透過 Configuration 擭得 SessionFactory，例如：
+    SessionFactory sessionFactory = cfg.buildSessionFactory();                                      
+
+    一個 SessionFactory 維護一個資料庫。如果有多個資料庫，可以建立多個 SessionFactory。
+    Hibernate 允計程式使用多個 SessionFactory 同時操作多個資料庫。
+    
+
+    獲得、斷開資料庫連接
+    Hibernate 封裝了JDBC 操作，獲得資料庫連接等於開啟一個 Session 。操作完畢需要關閉 Session。
+    以關閉資料庫連接：
+    Session session = sessionFactory.openSession();
+          .
+          .
+          .
+    session.close();
+
+
+************************************************************************************************************************************
+
+
+
+
+
+
+
+
+************************************************************************************************************************************
+   【第二十二章】Hibernate 實體映射      
+
+        實體類別與資料庫之間存在著某種映射關係，Hibernate 依據這種映射關係完成資料的存取，
+    因此映射關係設定在 Hibernate 中是最關鍵的。Hibernate 支援 XML 設定檔與 @ 註釋設定兩種方式。
+    XML 設定檔是最基礎的設定，而 @ 註釋是 Java 的官方JPA(Java Persistence API)提供的。
+
+       從Java 的角度講，實體類別就是普通的POJO。僅從 POJO 中 Hibernate 並不能得知該實體類別對應哪個資料表，
+    因此還需要以某種方式設定一下。常用的方式有 *.hbm.xml 檔案設定與@ 註釋設定兩種。
+       hbm.xml 檔案就是普通的 XML 檔案，hbm 為 Hibernate Mapping 的縮寫，這樣從檔案名上就能判斷該檔案為 Hibernate 實體類別設定檔。
+    在 JPA 出現之前，Hibernate 都使用 hbm.xml 檔案設定。JPA 出現後，推薦使用 JPA 的 @ 註釋設定，因為對於所有的 ORMFramework，
+    @ 註釋都是通用的。
+    
+      實體類別一般有id、普通屬性、集合屬性等，分別對應資料庫的主鍵、普通列、外鍵。
+    @ 註釋設定中，實體類別用 @Entity 註釋，用 @Table 指定對應的資料表， 用 @Id 設定主鍵，用 @Column 設定普通屬性，
+    用 @OneToMany 、@ManyToOne 、@OneToOne、@ManyToMany 設定實體間的關係等。
+    
+    
+    【極重要】：
+        所有的@ 註釋都是 javax.persistence.* 下的，而不是 org.hibernate.* 下。
+    javax.persistence.* 下 的註釋為 JPA 規範規定的註釋，用於標記實體類別與資料庫的映射關係，
+    org.hibernate.* 下的註釋僅用於補充，當某個功能 JPA 暫時不支援而 Hibernate 支援時使用。
+    
+       多個實體類別可以設定一個 XML 檔案中。Hibernate 推薦用一個同名的 XML 檔案設定一個實體類別，便於閱讀與維護。
+    XML 檔案一般以".hbm.xml" 結尾，便於辦認，也可以直接用 ".xml" 結尾。
+    例如：Cat 類別的設定檔可取名為 Cat.hbm.xml。
+    
+        程式碼中 DocType 指定的dtd 檔案位於 hibernate.jar 中。dtd 檔案為XML 格式驗證檔案，Hibernate 使用該 dtd 來驗證 XML 檔案格式是否正確。
+    如果 hibernate.jar 或者 classpath 中不存在該 dtd 檔案，則Hibernate 會到指定的 URL 下載該檔案。
+    
+        實體類別還需要設定到 hibernate.cfg.xml 中，以便 Hibernate 初始化實體類別與資料庫表的映射關係。如果只設定了映射關係，
+    而沒有設定到 hibernate.cfg.xml 中，Hibernate 仍然不會知道哪些類別是實體類別，因為Hibernate 無法透過檢查所有的類別來決定哪些是實體類別。
+    如果實體類別是使用  @ 註釋設定的，需要用 <mapping class="" />設定，
+    而如果是用 XML 檔案設定的，則需要用 <mapping resource="" /> 設定 XML 設定檔。
+    例如：
+    # 在 Hibernate 中宣告用 @ 註釋設定的實體類別
+    <mapping class="com.hibernate.bean.Cat" />
+
+    # 在 Hibernate 中宣告用 XML 設定的實體類別
+    <mapping resource="com/hibernate/bean/Cat.hbm.xml"  /> 
+    
+   
+   
+   
+   
+   
+   
+    【主鍵映射】
+    
+    @Id 主鍵映射：實體類別最好有主鍵列，並有對應的 getter、setter 方法，這是 Hibernate 推薦的。
+        主鍵儘量使用可以為 null 值的類型，例如 Integer、Long、String 等，而不要使用 int 、long 等。因為如果主鍵為 null，
+    則表示該實體類別還沒有到儲存到資料庫，是一個臨時狀態(Transient) ，而 int、long 等原始類型則不具備該功能。
+    
+   《範例》：  
+    
+    《@ 設定主鍵》：
+    @Id // 指定該列為主鍵。主鍵類型最好不要使用 int 等原始類型
+    @GeneratedValue(strategy=GenerationType.AUTO) // 主鍵類型 auto 為資料庫自增長類型
+    private Integer id;
+
+
+    《XML 設定主鍵》：
+    <id name="id" column="id" >
+      <generator class="native" />
+    </id>
+    
+ 
+    【主鍵產生規則】：
+    @Id設定主鍵的同時，也要用@GeneratedValue 設定主鍵產生規則。主鍵產生規則也稱為主鍵產生策略，負責維護新實體的主鍵值。
+    主鍵產生策略：
+    ■ GenerationType.AUTO：自動方式，根據底層資料庫自動選擇。如果MySQL 等支援自動增長類型的資料庫，則為自增長類型(auto_increment)。
+    
+    ■ GenerationType.TABLE:使用指定的表來決定主鍵的取值，一般結合 @TableGenerator 使用，
+      例如：
+         @Id
+         @TableGenerator(name="tb_cat_gen",allocationSize=1)
+         @GeneratedValue(strategy=GenerationType.TABLE,generator="tb_cat_gen") 
+         private Integer id;
+    
+    ■ GenerationType.SEQUENCE：使用Sequence 來決定主鍵的取值，適合Oracle、DB2 、PostgreSQL、SAP DB 等支援 Sequence 的資料庫，
+                               一般結合 @SequenceGenerator 使用。注意某些資料庫如Oracle 等沒有自增長類型，只能使用Sequence。
+      例如：
+         @Id
+         @SequenceGenerator(name="seq_cat",allocationSize = 25)
+         @GeneratedValue(strategy=GenerationType.SEQUENCE,generator="seq_cat")
+         @Column(name="id") 
+         private Integer id;
+         
+    ■ GenerationType.IDENTITY：支援 DB2、MySQL、MS SQL Server、Sybase 與 HypersonicSQL 資料庫的 identit 類型主鍵。
+     
+     
+     
+   【XML 主鍵產生規則】：
+    XML 設定中支援的主鍵產生規則：
+    ● native：取決於資料庫，相當於 GenerationType.AUTO。
+    ● identity：使用 identity 類型，相當於GenerationType.IDENTITY。
+    ● sequence：使用 sequence ，相當於 GenerationType.SEQUENCE。需要指定 sequence 的名稱，
+      例如：
+         <id name="id" type="long" column="person_id" >
+           <generator class="sequence" >  <!-- 使用sequence 主鍵 -->
+             <param name="sequence" >person_id_sequence</param>
+           </generator>
+         </id> 
+    
+    ● increment：自增長類型，由Hibernate 而不是資料庫維護，因此即使 Oracle 等不支援自增長類型的資料庫也可以使用。
+    ● hilo:hi/low 演算法，使用指定的表給主鍵給予值，相當於GenerationType.TABLE 。需要指定表名、列名等，
+      例如：
+         <id name="id" type="long" column="cat_id" >
+           <generator class="hilo" > 
+             <param name="table" >hi_value</param>
+             <param name="column" >next_value</param>
+             <param name="max_lo" >100</param>
+           </generator>
+         </id>  
+                     
+    ● seqhilo：基於 sequence 的 hilo 演算法：
+      例如：
+         <id name="id" type="long" column="cat_id" >
+           <generator class="heqhilo" >
+             <param name="sequence" >hi_value</param>
+             <param name="max_lo" >100</param>
+           </generator>
+         </id>         
+
+    ● uuid：使用128 位元的 UUID 演算法計算一個唯一的值，會使用 IP 位址及相關的電腦硬體資訊。
+            計算結果為 32位元的16進位數，對應的主鍵類型必須為 String。                
+    ● guid：使用 MySQL 或者 MS SQL Server 等資料庫提供的 GUID 值。       
+    ● assigned：預設值，不使用任何策略，在儲存進資料庫之前必須使用 setter 方法給予值。               
+    ● select：使用資料庫觸發器給予值。      
+    ● foreign：使用外鍵給予值，在一對一實體關係時，可保證關係雙方的Id 保持一致。
+   
+   
+        MySQL 資料庫與 Hibernate 都提供自增長策略，但是原理是不一樣的。如果採用MySQL 的自增長，
+    插入資料時 Hibernate 產生的 SQL敘述中將不包含 id 主鍵列資料。該主鍵的目前值、下一個值由資料庫自己維護。
+    如果使用Hibernate 的自增長，插入資料時 Hibernate 產生的SQL 敘述將包含id 主鍵列，並由 Hibernate 維護該主鍵的目前值以及下一個值。
+    
+    ※注意： 對於普通的應用來說，資料庫自增長與Hibernate 自增長在使用上沒有區別。但是如果某資料庫時被兩個 Hibernate 程式使用，
+             那麼此時使用Hibernate 自增長會出現錯誤。例如：如果目前主鍵值為10 ，那麼 Hibernate 會認為下個主鍵值為11，
+             兩個Hibernate 程式插入資料時都會將主鍵設為11，這時會因為主鍵衝突而導致其中一個寫入資料失敗！
+   
+   
+   
+   
+
+   
+    【普通屬性映射】
+     
+         普通屬性是指除了主鍵外的、Java 基本類型的屬性，例如 Integer(int)、Long(long)、Short(short)、Boolean(boolean)、Double(double)、
+     Float(float)、String、Date 等類型屬性。
+        注意Integer 類型與 int 類型是不用的，Integer 預設為null ，在資料庫中也表現為 null，而 int 預設為 0，在資料庫中也表現為 0。
+   
+     
+   《範例》：
+        
+     《@ 設定普通屬性》   
+     普通屬性使用 @Column 與 @Basic 的設定。二者都可以省略。如果省略，則全部按照預設的規則設定。
+      
+     @Column：可指定 nullable(是否允許為null)、unique(是否唯一)、insertable(是否允許插入)、undatable(是否允許更新)、length(長度)、
+              columnDefinition(列類型)、scale(整數長度)、precision(小數點精度)等。這些屬性用於產生DLL 建表敘述。如果屬性對應的列名與屬性名一致，
+              @Column 可以省略。               
+    
+     @Basic：可為普通屬性設定載入方式，預設為即時載入。如果列資料比較大，例如大文字類型或者 LOB 類型，可設定為延遲載入。optional 設定該列是否可為null。
+             如果 true ，表示該屬性是可選的，可以為null ，否則不可為 null。    
+   
+     例如：
+     @Column(name="salary",nullable=true,columnDefinition="number",insertable=true,length=255,unique=true,updatable=true,precision=2,scale=4)
+     
+     @Basic(fetch=FetchType.LAZY,optional=true)
+     private double salary;
+       
+       
+ 
+    《XML 設定普通屬性》
+         XML 中使用<property /> 標籤設定普通屬性。type 屬性指定列類型，相當於 @Column 中的 columnDefinition 。
+     例如，如果設定 type="text" 可以為String 類型屬性設定為大文字類型列。不同於 @註釋中的 @Column ，如果屬性名與列名一致，
+     column 屬性可省略，XML 設定中的<property> 必須設定，否則視為不參與持久化的列。設定為：
+     
+     <property name="salary" precision="2" scale="10" length="255" column="salary" type="string" update="true"
+               insert="true" lazy="false" unique="false" not-null="false" ></property>
+    
+    ※注意： @設定中，如果屬性沒有設定，則預設該屬性名與資料表列名相同；而XML 設定中，如果某屬性沒有設定，則認為屬性沒有對應的資料庫列，
+             不參與持久化。二者是截然不同的。    
+   
+   
+   
+   
+
+   
+    【日期屬性設定】    
+   
+         日期屬性也屬於普通屬性，普通屬性的設定規則也適用於日期屬性。日期屬性又包括只有日期沒有時間(即 java.sql.Date)、
+     沒有日期只有時間(即 java.sql.Time)、即有日期也有時間(即 java.sql.Timestamp)等3種情況、因此更多一些設定。
+         由於 java.sql.Date、java.sql.Time、java.sql.Timestamp 都是 java.util.Date 的子類別，因此日期屬性直接使用父類別 java.util.Date 就可以了，
+     Hibernate 會根據日期屬性的設定決定該類型是 java.sql.Date 、 java.sql.Time 還是 java.sql.Timestamp。
+     
+     
+   《範例》：
+        
+    《@ 設定日期屬性》        
+         日期屬性也是普通的屬性，需要用@Basic 宣告載入的方式、@Column等指定列名、二者都可以省略。另外，如果日期屬性是 java.util.Date 類型的，
+     必須使用 @Timporal 設定日期類型，取值可以為Date、Time或者Timestemp。否則Hibernate 將無法區分該類型是java.util.Date(只有年月日等日期資訊)類型
+     還是 java.sql.Time(只有時分秒等時間資訊)類型、還是 java.sql.TimeStamp(既有日期資訊、又有時間資訊)類型。
+   
+     例如：
+     @Temporal(TemporalType.TIMESTAMP) // DATE、TIME 或者 TIMESTEMP
+     @Column(name="createDate")
+     private java.util.Date createDate;
+        
+     提示：如果屬性類型是 java.util.Date 類型，需要用 @Temporal 宣告日期類型。但如果是 java.sql.Time、java.sql.Date 或者 java.sql.TimeStamp 類型的，
+           類型本身就已經很明確了，不再需要 @Temporal 宣告了。
+     
+       
+   
+    《XML 設定日期屬性》
+          XML 中用使用 <property />設定屬性，跟普通屬性一樣設定，只是type 屬性中指定日期類型即可，取值可以為 date、time、timestamp 等簡寫方式，
+     也可以為 java.sql.Date 、java.sql.Time 、java.sql.Timestamp 等全寫方式。
+          同樣，如果Java 中屬性類型為 java.util.Date 類型，必須指定是 java.sql.Date(只有年月日等日期資訊)類型
+     還是 java.sql.Time(只有時分秒等時間資訊)類型、還是 java.sql.TimeStamp(即有日期資訊又有時間資訊)類型。
+   
+     例如：
+     <property name="createDate" type="timestamp" ></property>
+    
+   
+   
+   
+   
+
+   
+    【臨時屬性映射】    
+         實體類別可能有一些臨時屬性，在JPA中被稱為 Transient 屬性。這些屬性用於方便計算等其他用途，而不是儲存資料到資料庫中。
+     這些屬性必須被標記為 Transient，以便 Hibernate 把它們區別對待。否則 Hibernate 會試圖往資料庫寫該屬性，可能會因對應的列不存在而拋出例外。
+         在 Java 標記中，臨時屬性必須使用 @Transient 標記，即可以設定在臨時屬性上，也可以設定在對應的 getter 、setter 方法上。
+         
+     例如：
+     @Transient
+     public int getNameLength(){  // 臨時屬性，用於計算 name 屬性的長度
+       return name==null?0:name.length();
+     }
+     
+     提示：如果只有形如 getter、setter 的方法，但是沒有對應的屬性，Hibernate 仍然會認為該屬性存在。因此也需要用@Transient 標記。
+     
+     而在 XML 設定中，所有沒有設定到XML檔案中的屬性都被視為臨時屬性。如果某屬性漏設定了，該屬性值將不被儲存到資料庫中。
+   
+   
+   
+   
+
+   
+    【版本屬性設定】      
+         Hibernate 中有一種特殊的屬性：版本(Version)屬性。版本屬性不參與業務邏輯，只用來保證不會有兩個執行緒同時對該資料進行寫操作。
+     版本屬性是樂觀鎖定的一種實現方式。
+
+
+     樂觀鎖定與悲觀鎖定都是保證資料準確性的機制。
+     
+         為保證資料的準確性，程式必須保證在一個執行緒修改資料的時候，該資料沒有被其他執行緒修改。在傳統的資料庫程式設計中，
+     程式修改資料時先鎖定該資料行，使其他程式無法修改該行資料、修改完畢後釋放資料鎖，以此保證資料準確性。由於該機制需要鎖定資料行，
+     被鎖定的資料只能被一個執行緒使用，因此被稱為悲觀鎖定。
+     
+         樂觀鎖定使用完全不同的方式。樂觀鎖定透過Version 列儲存目前資料的版本，如果程式修改了資料，就將版本列加 1。反過來，
+     如果版本列有了變化，說明該資料被修改過了。程式儲存資料時會檢查資料的 Version 列。如果 Version 列已經發生了變化，程式會重新讀取、
+     修改並儲存資料。由於該機制不需要鎖定資料行，允許多條執行緒同時存取同一條資料，因此被稱為樂觀鎖定。
+     
+     樂觀鎖定的效率要高於悲觀鎖定，因此現代程式設定更傾向於樂觀鎖定。
+
+   《範例》：
+        
+    《@ 設定樂觀鎖定》 
+     Hibernate 支援樂觀鎖定，儲存資料時Hibernate 會自動完成檢查 Version 列、修改資料、更新 Version 列等工作。
+     Hibernate 隱藏了所有 Version 操作細節，開發者只須指定實體類別的 Version 列即可。實體類別中可用 @Version 設定版本屬性。
+     版本列一般為數字類型屬性。
+     
+     例如：
+     @Version
+     private int version;
+
+
+    《XML 設定樂觀鎖定》
+     XML 中使用<version /> 設定樂觀鎖定，name 屬性設定版本列。注意 <version /> 版本列要設定在 <id />主鍵後， <property />普通屬性前面。
+     例如：
+     <version name="version" ></version>
+     
+     XML 設定版本屬性要比 @設定靈活，版本屬性即可以為 int、long 等資料類型、也可以為 Timestamp 時間戳記等類型，設定使用 type 設定類型，
+     例如：
+     <version type="timestamp" column="version" />
+     
+     或者直接用 <timestemp />設定日期版本，與上面的設定是等值的：
+     <timestamp column="version" />
+    
+    
+************************************************************************************************************************************
+
+
+
+
+
+
+
+
+************************************************************************************************************************************
+   【第二十三章】Hibernate 實體關係映射      
+
+     
+    資料庫中的表是有關係的，兩個表之間可以透過外鍵關聯。如果把表抽象為實體類別，這些關係可以抽象為實體類別之間的一對多、多對一、
+    一對一、多對多等關係。Hibernate 能處理這些複雜的關係，前提是要正確地設定這些關係。 
+         
+     
+     
+        
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/  
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/    
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/  
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/    
+        
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/  
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/    
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/  
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/
+    
+   《標籤》
+    http://3w.eztravel.com.tw:8080/hibernate/    
+
+
+************************************************************************************************************************************
+
+
+
+
+
+
+
+
+************************************************************************************************************************************
+   【第二十四章】Hibernate 查詢語言HQL     
+
+
+************************************************************************************************************************************
+
+
+
+
+
+
+
+
+************************************************************************************************************************************
+   【第二十五章】Hibernate 高級查詢      
+
+
+************************************************************************************************************************************
+
+
+
+
+
+
+
+
+************************************************************************************************************************************
+   【第二十六章】Spring 概述     
+
+
+************************************************************************************************************************************
+
+
+
+
+
+
+
+
+************************************************************************************************************************************
+   【第二十七章】Spring 的 Core 模組     
+
+
+************************************************************************************************************************************
+
+
+
+
+
+
+
+
+************************************************************************************************************************************
+   【第二十八章】Spring 的 AOP 模組      
+
+
+************************************************************************************************************************************
+
+
+
+
+
+
+
+
+************************************************************************************************************************************
+   【第二十九章】Spring 的 DAO 模組     
+
+
+************************************************************************************************************************************
+
+
+
+
+
+
+
+
+************************************************************************************************************************************
+   【第三十章】 Spring 的 ORM 模組    
+
+
+************************************************************************************************************************************
+
+
+
+
+
+
+
+
+************************************************************************************************************************************
+   【第三十一章】Spring 的 Web 模組     
+
+
+************************************************************************************************************************************
+
+
+
+
+
+
+
+
+************************************************************************************************************************************
+   【第三十二章】Spring 的 MVC 模組     
+
+
+************************************************************************************************************************************
+
+
+
+
+
+
+
+
+************************************************************************************************************************************
+   【第三十三章】Spring 的開發模組(SSH、SSJ)     
+
+
+************************************************************************************************************************************
+
+
+
+
+
+
+
+
+************************************************************************************************************************************
+   【第三十四章】EJB 3 概述     
+      
+  
+************************************************************************************************************************************  
+
+
+
+
+
+
+
+
+************************************************************************************************************************************  
+   【第三十五章】JPA 規範   
+   
+
+************************************************************************************************************************************
+
+
+
+
+
+
+
+
+************************************************************************************************************************************   
+   【第三十六章】Web Service Framework XFire
+    
+    XFire 官網：http://xfire.codehaus.org/
+    
+    XFire1.2.6 支援的主要特性包括：
+    ● 支援多個重要的Web Service 標準，包括 SOAP、WSDL、WS-I Basic Profile、WSAddressing、WS-Security 等。
+    ● 高性能的SOAP堆疊實現。  
+    ● 可選的綁定(binding)方式，如 XMLBean、JAXB 1.1、JAXB 2.0 和 Castor 等。
+    ● 支援 JSR181、可以透過 JDK5 中的註釋設定 Web 服務。
+    ● 支援基於 HTTP、JMS、XMPP 等多種協定存取 Web 服務。
+    ● 支援如 Spring、Pico、Plexus、Loom 等多種容器。               
+    ● 支援用戶端和伺服器程式碼產生。 
+  
+    CXF 官網：http://cxf.apache.org/
+   《提示》：CXF 在 XFire 在1.2.6版本以後與另外一個項目Celtix 合併，整合成為apache 在 CXF項目，
+             CXF 由於此專案正在開發之中，尚不完善.....   
+            
+    Web 服務用戶端
+    當Web服務發佈後，在用戶端有多種方式呼叫，這裡講述三種呼叫Web 服務方式：
+    (1)MyEclipse 用戶端;
+    (2)SDK方式的用戶端;
+    (3)根據 WSDL自動產生的用戶端;  
+   
+   
+    參考文件： http://www.scribd.com/doc/12841131/XFire
+    
+    http://3w.eztravel.com.tw:8080/xfire/services
+    
+    
+   《一般呼叫》
+    http://3w.eztravel.com.tw:8080/xfire/services/HelloWebService?wsdl  
+      
+
+
+   《Web 服務安全》SOAP Header 中進行身份驗證
+    http://3w.eztravel.com.tw:8080/xfire/services/HelloWebServiceAuth?wsdl
+  
+
+
+   《WS-Security 進行身份證驗證》
+    Apache WSS4J 是WS-Security 的開放原始碼實現
+    WSS4J 透過SOAP中WS-Seurity 相關的資訊對SOAP 封包進行驗證和簽名
+    Apache WSS4J 介紹： http://ws.apache.org/wss4j/
+
+    ○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○
+    org.codehaus.xfire.security.wss4j.WSS4JOutHandler：負責解析 WS-Security 規範的資訊
+    org.codehaus.xfire.util.dom.DOMOutHandler：負責將 DOM 轉化成 StAX
+    
+    org.codehaus.xfire.security.wss4j.WSS4JInHandler：負責解析 WS-Security 規範的資訊
+    org.codehaus.xfire.util.dom.DOMInHandler：負責將 StAX 轉化成 DOM
+    ○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○○
+    
+    http://3w.eztravel.com.tw:8080/xfire/services/HelloWebServiceUTHP?wsdl
+
+
+
+
+
+
+   《數位簽章(Signature)》
+    建立金鑰對和數位憑證的步驟:
+    (1)透過別名和密碼建立金鑰到金鑰庫(建立RSA金鑰)：
+       keytool -genKey -alias admin -keypass admin123 -keystore privatestore.jks -storepass admin123 -dname "cn=admin" -keyalg RSA
+
+    (2)根據金鑰產生證書(X509數位簽章)：
+       keytool -selfcert -alias admin -keystore privatestore.jks -storepass admin123 -keypass admin123
+    
+    (3)根據金鑰產生公開金鑰：
+       keytool -export -alias admin -file key.rsa -keystore privatestore.jks -storepass admin123
+     
+    (4)將公開金鑰匯入到公開金鑰庫：
+       keytool -import -alias admin -file key.rsa -keystore publicstore.jks -storepass admin123
+    
+    (5)建立 insecurity.properties(伺服器端)：
+       org.apache.ws.security.crypto.provider=org.apache.ws.security.components.crypto.Merlin
+       org.apache.ws.security.crypto.merlin.keystore.type=jks
+       org.apache.ws.security.crypto.merlin.keystore.password=admin123
+       org.apache.ws.security.crypto.merlin.alias.password=admin123
+       org.apache.ws.security.crypto.merlin.keystore.alias=admin 
+       org.apache.ws.security.crypto.merlin.file=META-INF/xfire/publicstore.jks
+  
+    (6)建立 outsecurity.properties(客戶端)：
+       org.apache.ws.security.crypto.provider=org.apache.ws.security.components.crypto.Merlin
+       org.apache.ws.security.crypto.merlin.keystore.type=jks
+       org.apache.ws.security.crypto.merlin.keystore.password=admin123
+       org.apache.ws.security.crypto.merlin.alias.password=admin123
+       org.apache.ws.security.crypto.merlin.keystore.alias=admin 
+       org.apache.ws.security.crypto.merlin.file=META-INF/xfire/privatestore.jks
+
+     (7)把檔案 privatestore.jks、publicstore.jks、insecurity.properties、outsecurity.properties 
+        全部複製到 /META-INF/xfire/ 目錄下
+
+
+     http://3w.eztravel.com.tw:8080/xfire/services/HelloWebServiceSign?wsdl
+
+
+
+
+
+   《加密(Encryption)》 - 尚無法執行
+    http://3w.eztravel.com.tw:8080/xfire/services/HelloWebServiceENC?wsdl
+
+
+
+
+
+
+    【官網範例】
+   《bookService》 - 尚無法執行
+    http://3w.eztravel.com.tw:8080/xfire/services/BookService?wsdl
+
+
+************************************************************************************************************************************
+
+
+ 
+ 
+ 
+ 
+ 
+
+************************************************************************************************************************************   
+   【第三十七章】版本管理工具SVN
+   
+    一、下載Subversion版本：
+        CollabNet 官網: http://www.collab.net/
+    二、Subversion
+        官方主頁:http://subversion.tigris.org/
+    三、下載Subversion 用戶端TortoiseSVN
+        TortoiseSVN 官網 :http://tortoisesvn.net/downloads.html
+
+    詳細軟體安裝及使用請參閱：
+    kevin 所製作的文件 => Subversion 安裝方式及使用說明.pdf
+************************************************************************************************************************************   
+   
+   
+   
+   
+   
+   
+   
+   
+   
+************************************************************************************************************************************   
+   【第三十八章】記錄檔工具 commons-logging 與 Log4J
+    常用的記錄檔控制有commons-langging.jar、Log4j及JDK1.4附帶的Logiging。
+    
+    概念：
+    (1)記錄檔記錄器(Logger);
+    (2)輸出地(Appender);
+    (3)記錄檔格式化(Layout);
+    	
+    Log4j 記錄檔分為下列等級：
+    (1)ALL;
+    (2)TRACE(追蹤);
+    (3)DEBUG(偵錯);
+    (4)INFO(資訊);
+    (5)WARNING(警告);
+    (6)ERROR(錯誤);
+    (7)FITAL(致命);
+    (8)OFF 等級別
+    級別依次升高。級別高的Level會遮罩級別低的資訊。
+    
+    
+    建立MySQL資料庫
+
+    CREATE DATABASE log4j CHARACTER SET utf8;
+
+    USE log4j;
+
+    CREATE TABLE tb_log (id INT AUTO_INCREMENT, date VARCHAR(255), priority VARCHAR(255), message TEXT, classname VARCHAR(255), PRIMARY KEY(id));
+
+  
+   《讀取 org.apache.log4j.xml.XMLLayout 所產出的檔案》
+    http://3w.eztravel.com.tw:8080/logging/logger.xml
+************************************************************************************************************************************      
+      
+      
+      
+      
+      
+      
+      
+   
+   
+************************************************************************************************************************************   
+   【第三十九章】報表圖型引擎JFreeChart
+    JFreeChart 官網：http://www.jfree.org/jfreechart/
+    
+    ● org.jfree.chart.JFreeChart：圖表物件，任何類型的圖表最終表現形式都是在該物件中進行一些屬性的訂製。
+                                  JFreeChart引擎本身提供了一個工廠類別用於建立不同類型的圖表物件。 
+                                  
+    ● org.jfree.data.category.XXXDataSet：資料集物件，用於提供顯示圖表所用的資料。
+                                          根據不同類型的圖表對應著很多類型的資料集物件類別。
+    
+    ● org.jfree.chart.plot.XXXPlot：圖表區域物件，基本上這個物件決定著什麼樣式的圖表，建立該物件的時候需要
+                                    Axis、Renderer以及資料集物件的支援。
+    
+    ● org.jfree.chart.axis.XXXAxis：用於處理圖表的兩個軸，縱軸和橫軸。
+    
+    ● org.jfree.chart.render.XXXRender：負責如何顯示一個圖表物件。
+    
+    ● org.jfree.chart.urls.XXXURLGenerator：用於產生Web圖表中每個專案的滑鼠按一下連結。
+    
+    ● XXXToolTipGenerator：用於產生影像的明提示，不同類型圖表對應不同類型的工具提示類。
+                           若想檢視實際的JavaDoc 可以存取 http://www.jfree.org/jfreechart/api/javadoc/index.html
+   
+    
+    
+    圓餅圖
+    http://3w.eztravel.com.tw:8080/JFreeChart/pie
+    
+    直條圖
+    http://3w.eztravel.com.tw:8080/JFreeChart/bar1
+   
+    使用XYDataset 資料集繪製直條圖
+    http://3w.eztravel.com.tw:8080/JFreeChart/bar2
+
+    折線圖
+    http://3w.eztravel.com.tw:8080/JFreeChart/line
+   
+    區域圖
+    http://3w.eztravel.com.tw:8080/JFreeChart/area
+   
+    時序圖
+    http://3w.eztravel.com.tw:8080/JFreeChart/time
+    
+    組合圖表
+    http://3w.eztravel.com.tw:8080/JFreeChart/comb
+************************************************************************************************************************************    
+    
+    
+    
+    
+    
+    
+    
+   
+************************************************************************************************************************************   
+   【第四十章】PDF元件 iText
+    iText 官網：http://www.lowagie.com/iText
+    
+    iText jar 下載： http://sourceforge.net/projects/itext/files/iText/
+    
+    iText 官網的 example： http://itextpdf.com/book/examples.php
+    
+    
+    
+   《文件ToPDF》：
+    http://3w.eztravel.com.tw:8080/iText/pdf
+    
+    
+   《HTMLToPDF》：
+    http://3w.eztravel.com.tw:8080/iText/servlet/HTMLToPDF?action=1
+    http://3w.eztravel.com.tw:8080/iText/servlet/HTMLToPDF?action=2
+    http://3w.eztravel.com.tw:8080/iText/servlet/HTMLToPDF?action=3
+    
+    
+    
+    參考資料
+    http://tomkuo139.blogspot.com/2010/03/java-itext-html-pdf.html
+    
+************************************************************************************************************************************   
+   
+   
+   
+   
+   
+   
+************************************************************************************************************************************   
+   【第四十一章】論壇系統(Spring + Struts + Hibernate)   
+   
+************************************************************************************************************************************   
+ 

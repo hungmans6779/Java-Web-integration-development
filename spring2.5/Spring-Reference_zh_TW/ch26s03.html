@@ -1,0 +1,57 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>26.3.&#160;使用SimpleJdbcTemplate和@Repository實作DAO</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch26.html" title="第&#160;26&#160;章&#160;演示案例">
+<link rel="prev" href="ch26s02.html" title="26.2.&#160;使用動態語言實作的Spring MVC控制器">
+<link rel="next" href="apa.html" title="附錄&#160;A.&#160;XML Schema-based configuration">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="showcases-java5-dao"></a>26.3.&#160;使用<code class="classname">SimpleJdbcTemplate</code>和<code class="interfacename">@Repository</code>實作DAO</h2></div></div></div>
+<p>
+		這個小案例通過Spring中的一些Java5特性，使用Hibernate和JDBC實作了DAO。這個項目<span class="emphasis"><em>非常</em></span>簡單，
+		因為其目的只是演示<code class="classname">SimpleJdbcTemplate</code>和<code class="interfacename">@Repository</code>註釋的基本用法及幾個其他DAO相關的特性，
+		沒其他內容了。
+	</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="showcases-java5-dao-the-domain"></a>26.3.1.&#160;域物件</h3></div></div></div>
+<p>
+			範例中的域物件是車的部件。有兩個類別：<code class="classname">Part</code>和<code class="classname">CarModel</code>。
+			使用<code class="interfacename">CarPartsInventory</code>可以查詢部件，更新某些部件的資源庫存以及添加新部件。
+		</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="showcases-java5-dao-the-daos"></a>26.3.2.&#160;Data Access Object</h3></div></div></div>
+<p>
+			有3個基於<code class="interfacename">CarPartsInventory</code>介面的DAO實作，採用了不同的樣式。 
+			兩個使用Hibernate，另一個用JDBC。<code class="classname">JdbcCarPartsInventoryImpl</code>用了JDBC和<code class="classname">SimpleJdbcTemplate</code>。
+			如果仔細看這個DAO，你將發現<code class="classname">SimpleJdbcTemplate</code>使用的Java5特性大大簡化了你的DAO程式碼。
+		</p>
+<p>
+			<code class="classname">TemplateHibernateCarPartsInventoryImpl</code>使用<code class="classname">HibernateTemplate</code>來查詢Part並更新資源庫存。
+			如果你已經習慣了使用Spring和Hibernate進行開發，那這裡就沒有什麼特別的東西了。
+			<code class="literal">PlainHibernateCarPartsInventoryImpl</code>並沒有使用<code class="classname">HibernateTemplate</code>。
+			它用了Hibernate3 API查詢Session和資料庫來獲取部件。當然，Hibernate3 API並不會拋出Spring <code class="exceptionname">DataAccessExceptions</code>，
+			這也是最初使用<code class="classname">HibernateTemplate</code>的原因之一。Spring 2.0添加了一個註釋，讓你仍舊可以獲得相同的行為。
+			<code class="interfacename">@Repository</code>註釋（如果仔細看<code class="classname">PlainHibernateCarPartsInventoryImpl</code>，你會發現上面有這個註釋）
+			會結合<code class="classname">PersistenceExceptionTranslatorPostProcessor</code>
+			自動將Hibernate異常轉換為Spring <code class="classname">DataAccessExceptions</code>。
+		</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="showcases-java5-dao-build"></a>26.3.3.&#160;建構</h3></div></div></div>
+<p>
+			<span class="emphasis"><em>samples/showcases/java5-dao</em></span>目錄包含了項目的源程式碼。
+			項目只包含單元測試，你可以脫離源程式碼來看這些單元測試。要建構並運行這些單元測試，需要使用Apache Ant
+			（或在你喜歡的IDE中運行範例）。在Java5 VM中運行<code class="literal">ant tests</code>（項目中使用了註釋和泛型）。
+		</p>
+</div>
+</div></body>
+</html>

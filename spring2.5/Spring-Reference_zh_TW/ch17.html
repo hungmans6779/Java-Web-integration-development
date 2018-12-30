@@ -1,0 +1,116 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>第&#160;17&#160;章&#160;使用Spring進行遠端存取與Web服務</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="pt04.html" title="部分&#160;IV.&#160;整合">
+<link rel="prev" href="pt04.html" title="部分&#160;IV.&#160;整合">
+<link rel="next" href="ch17s02.html" title="17.2.&#160;使用RMI暴露服務">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="chapter" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title">
+<a name="remoting"></a>第&#160;17&#160;章&#160;使用Spring進行遠端存取與Web服務</h2></div></div></div>
+<div class="toc">
+<p><b>目錄</b></p>
+<dl>
+<dt><span class="section"><a href="ch17.html#remoting-introduction">17.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch17s02.html">17.2. 使用RMI暴露服務</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch17s02.html#remoting-rmi-server">17.2.1. 使用<code class="classname">RmiServiceExporter</code>暴露服務</a></span></dt>
+<dt><span class="section"><a href="ch17s02.html#remoting-rmi-client">17.2.2. 在客戶端連接服務</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch17s03.html">17.3. 使用Hessian或者Burlap通過HTTP遠端調用服務</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch17s03.html#remoting-caucho-protocols-hessian">17.3.1. 為Hessian和co.配置<code class="classname">DispatcherServlet</code></a></span></dt>
+<dt><span class="section"><a href="ch17s03.html#remoting-caucho-protocols-hessian-server">17.3.2. 使用<code class="classname">HessianServiceExporter</code>暴露你的bean</a></span></dt>
+<dt><span class="section"><a href="ch17s03.html#remoting-caucho-protocols-hessian-client">17.3.3. 在客戶端連接服務</a></span></dt>
+<dt><span class="section"><a href="ch17s03.html#remoting-caucho-protocols-burlap">17.3.4. 使用Burlap</a></span></dt>
+<dt><span class="section"><a href="ch17s03.html#remoting-caucho-protocols-security">17.3.5. 對通過Hessian或Burlap暴露的服務使用HTTP Basic認證</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch17s04.html">17.4. 使用HTTP調用器暴露服務</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch17s04.html#remoting-httpinvoker-server">17.4.1. Exposing the service object</a></span></dt>
+<dt><span class="section"><a href="ch17s04.html#remoting-httpinvoker-client">17.4.2. 在客戶端連接服務</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch17s05.html">17.5. Web Services</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch17s05.html#remoting-web-services-jaxrpc-export">17.5.1. 使用JAX-RPC暴露基於servlet的web服務</a></span></dt>
+<dt><span class="section"><a href="ch17s05.html#remoting-web-services-jaxrpc-access">17.5.2. 使用JAX-RPC存取web服務</a></span></dt>
+<dt><span class="section"><a href="ch17s05.html#remoting-web-services-jaxrpc-mapping-registration">17.5.3. 註冊JAX-RPC Bean映射</a></span></dt>
+<dt><span class="section"><a href="ch17s05.html#remoting-web-services-jaxrpc-handler-registration">17.5.4. 註冊自己的JAX-RPC 處理器</a></span></dt>
+<dt><span class="section"><a href="ch17s05.html#remoting-web-services-jaxws-export-servlet">17.5.5. 使用JAX-WS暴露基於servlet的web服務</a></span></dt>
+<dt><span class="section"><a href="ch17s05.html#remoting-web-services-jaxws-export-standalone">17.5.6. 使用JAX-WS暴露單獨web服務</a></span></dt>
+<dt><span class="section"><a href="ch17s05.html#remoting-web-services-jaxws-export-ri">17.5.7. 使用Spring支持的JAX-WS RI來暴露服務</a></span></dt>
+<dt><span class="section"><a href="ch17s05.html#remoting-web-services-jaxws-access">17.5.8. 使用JAX-WS存取web服務</a></span></dt>
+<dt><span class="section"><a href="ch17s05.html#remoting-web-services-xfire">17.5.9. 使用XFire來暴露Web服務</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch17s06.html">17.6. JMS</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch17s06.html#remoting-jms-server">17.6.1. 伺服端配置</a></span></dt>
+<dt><span class="section"><a href="ch17s06.html#remoting-jms-client">17.6.2. 客戶端配置</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch17s07.html">17.7. 對遠端介面不提供自動探測實作</a></span></dt>
+<dt><span class="section"><a href="ch17s08.html">17.8. 在選擇這些技術時的一些考慮</a></span></dt>
+</dl>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="remoting-introduction"></a>17.1.&#160;簡介</h2></div></div></div>
+<p>Spring為各種遠端存取技術的整合提供了整合類別。Spring使得開發具有遠端存取功能的服務變得相當容易，而這些遠端存取服務由普通Spring POJO實作。目前，Spring支持四種遠端技術：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><span class="emphasis"><em>遠端方法調用（RMI）</em></span>。通過使用 <code class="classname">RmiProxyFactoryBean</code> 和 <code class="classname">RmiServiceExporter</code>，Spring同時支持傳統的RMI（使用<code class="interfacename">java.rmi.Remote</code>介面和<code class="exceptionname">java.rmi.RemoteException</code>）和通過RMI調用器實作的透明遠端調用（支持任何Java介面）。</p></li>
+<li><p>
+						<span class="emphasis"><em>Spring的HTTP調用器</em></span>。Spring提供了一種允許通過HTTP進行Java串行化的特殊遠端調用策略，它支持任意Java介面（就像RMI調用器）。相對應的支持類別是 <code class="classname">HttpInvokerProxyFactoryBean</code> 和 <code class="classname">HttpInvokerServiceExporter</code>。
+					</p></li>
+<li><p>
+						<span class="emphasis"><em>Hessian</em></span>。通過 <code class="classname">HessianProxyFactoryBean</code> 和 <code class="classname">HessianServiceExporter</code>，可以使用Caucho提供的基於HTTP的輕量級二進制協議來透明地暴露服務。
+					</p></li>
+<li><p>
+						<span class="emphasis"><em>Burlap</em></span>。 Burlap是Caucho基於XML用來替代Hessian的項目。Spring提供了諸如 <code class="classname">BurlapProxyFactoryBean</code> 和 <code class="classname">BurlapServiceExporter</code> 的支持類別。
+					</p></li>
+<li><p>
+						<span class="emphasis"><em>JAX RPC</em></span>。Spring通過JAX-RPC（J2EE 1.4's wweb service API）為Web services提供遠端服務支持。
+					</p></li>
+<li><p><span class="emphasis"><em>JAX-WS</em></span>. Spring通過(在Java EE 5和Java 6中引入的JAX-RPC繼承)為遠端Web Services提供支持。</p></li>
+<li><p><span class="emphasis"><em>JMS</em></span>. 通過<code class="classname">JmsInvokerServiceExporter</code>和<code class="classname">JmsInvokerProxyFactoryBean</code>使用JMS做為底層協議提供遠端服務.</p></li>
+</ul></div>
+<p>在討論Spring對遠端存取的支持時，我們將使用下面的域模型和對應的服務：</p>
+<pre class="programlisting">public class Account implements Serializable{
+
+    private String name;
+
+    public String getName();
+
+    public void setName(String name) {
+      this.name = name;
+    }
+}</pre>
+<pre class="programlisting">public interface AccountService {
+
+    public void insertAccount(Account account);
+
+    public List getAccounts(String name);
+}</pre>
+<pre class="programlisting">public interface RemoteAccountService extends Remote {
+
+    public void insertAccount(Account account) throws RemoteException;
+
+    public List getAccounts(String name) throws RemoteException;
+}</pre>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation">// 該實作目前什麼事情也不做</span></em>
+public class AccountServiceImpl implements AccountService {
+
+    public void insertAccount(Account acc) {
+        <em class="lineannotation"><span class="lineannotation">//  做一些事情……</span></em>
+    }
+  
+    public List getAccounts(String name) {
+        <em class="lineannotation"><span class="lineannotation">// 做一些事情……</span></em>
+    }
+}</pre>
+<p>我們將從使用RMI把服務暴露給遠端客戶端開始，同時探討RMI的一些缺點。然後我們將演示一個使用Hessian的例子。</p>
+</div>
+</div></body>
+</html>

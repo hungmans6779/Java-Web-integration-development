@@ -1,0 +1,59 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>25.5.&#160;元資料和Spring AOP自動代理</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch25.html" title="第&#160;25&#160;章&#160;註釋和源程式碼級的元資料支持">
+<link rel="prev" href="ch25s04.html" title="25.4.&#160;Jakarta Commons Attributes整合">
+<link rel="next" href="pt05.html" title="部分&#160;V.&#160;範例程序">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="metadata-uses"></a>25.5.&#160;元資料和Spring AOP自動代理</h2></div></div></div>
+<p>元資料屬性最有用的就是與Spring AOP聯合使用。這提供了一個類似.NET的程式模型：宣告式服務會自動提供給宣告了元資料的屬性。
+			這些元資料屬性可以被框架支持，比如宣告式事務管理，同時也能定制。 </p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="metadata-fundamentals"></a>25.5.1.&#160;基本原理</h3></div></div></div>
+<p>基於Spring AOP的自動代理功能，配置可能如下所示： </p>
+<pre class="programlisting">&lt;bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"/&gt;
+
+&lt;bean class="org.springframework.transaction.interceptor.TransactionAttributeSourceAdvisor"&gt;
+  &lt;property name="transactionInterceptor" ref="txInterceptor" /&gt;
+&lt;/bean&gt;
+
+&lt;bean id="txInterceptor" class="org.springframework.transaction.interceptor.TransactionInterceptor"&gt;
+  &lt;property name="transactionManager" ref="transactionManager" /&gt;
+  &lt;property name="transactionAttributeSource"&gt;
+    &lt;bean class="org.springframework.transaction.interceptor.AttributesTransactionAttributeSource"&gt;
+      &lt;property name="attributes" ref="attributes" /&gt;
+    &lt;/bean&gt;
+  &lt;/property&gt;
+&lt;/bean&gt;
+
+&lt;bean id="attributes" class="org.springframework.metadata.commons.CommonsAttributes" /&gt;</pre>
+<p>這裡的基本原理與AOP章節關於自動代理的討論類似。 </p>
+<p>最重要的bean定義是自動代理的creator和advisor。注意實際的bean名稱並不重要，重要的是它們的類別。 </p>
+<p>
+				<code class="classname">org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator</code>
+				的bean定義會根據匹配advisor實作來自動通知("auto-proxy")當前處理器中的所有bean實例。
+				這個類別對屬性一無所知，只是依賴於advisor匹配的切入點，而切入點瞭解這些屬性。 </p>
+<p>因此我們只需要一個能提供基於屬性的宣告式事務管理的AOP advisor。 </p>
+<p>這樣還能添加自定義的advisor實作，它們能被自動運算並應用。
+			(如果有必要，你也可以使用這樣的advisor，它的切入點還能匹配那些相同自動代理配置中除屬性以外的條件。)</p>
+<p>最後，<code class="literal">屬性</code>bean是Commons Attributes中的Attributes的實作。
+			把它替換為其它的<code class="interfacename">org.springframework.metadata.Attributes</code>介面實作，就可以從另外的源獲得屬性了。
+			</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="metadata-tx"></a>25.5.2.&#160;宣告式事務管理</h3></div></div></div>
+<p>源碼級屬性的常見應用就是提供宣告式事務管理。一旦有了前面的bean定義，你就可以定義任意多的需要宣告式事務的應用程序物件。
+				只有定義了事務屬性的類別或者方法會被賦予事務通知。你唯一要做的就是定義需要的事務屬性。 </p>
+<p>請注意你可以在類別或方法級別指定事務屬性。如果指定了類別級別的屬性，它將會被所有方法「繼承」。
+			方法級屬性則會整體覆寫任意的類別級別屬性。 </p>
+</div>
+</div></body>
+</html>

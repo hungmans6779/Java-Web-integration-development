@@ -1,0 +1,30 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>4.5.&#160;ResourceLoaderAware 介面</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch04.html" title="第&#160;4&#160;章&#160;資源">
+<link rel="prev" href="ch04s04.html" title="4.4.&#160;ResourceLoader介面">
+<link rel="next" href="ch04s06.html" title="4.6.&#160;把Resource作為屬性來配置">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="resources-resourceloaderaware"></a>4.5.&#160;<code class="interfacename">ResourceLoaderAware</code> 介面</h2></div></div></div>
+<p>
+			<code class="interfacename">ResourceLoaderAware</code>是特殊的標記介面，它希望擁有一個<code class="interfacename">ResourceLoader</code> 參考的物件。
+		</p>
+<pre class="programlisting">public interface ResourceLoaderAware {
+   void setResourceLoader(ResourceLoader resourceLoader);
+}</pre>
+<p>當實作了 <code class="interfacename">ResourceLoaderAware</code>介面的類別部署到application context(比如受Spring管理的bean)中時，它會被application context識別為 <code class="interfacename">ResourceLoaderAware</code>。
+接著application context會調用<code class="methodname">setResourceLoader(ResourceLoader)</code>方法，並把自身作為參數傳入該方法(記住，所有Spring裡的application context都實作了<code class="interfacename">ResourceLoader</code>介面)。
+		</p>
+<p>既然 <code class="interfacename">ApplicationContext</code> 就是<code class="interfacename">ResourceLoader</code>，那麼該bean就可以實作 <code class="interfacename">ApplicationContextAware</code>介面並直接使用所提供的application context來載入資源，但是通常更適合使用特定的滿足所有需要的
+			<code class="interfacename">ResourceLoader</code>實作。
+			這樣一來，程式碼只需要依賴於可以看作輔助介面的資源載入介面，而不用依賴於整個Spring <code class="interfacename">ApplicationContext</code> 介面。
+		</p>
+<p>從Spring 2.5開始, 你可以使用<code class="interfacename">ResourceLoader</code> 的自動裝配來代替實作 <code class="interfacename">ResourceLoaderAware</code> 介面。「傳統的」 <code class="literal">constructor</code>及 <code class="literal">byType</code>的自動裝配模式 (<a href="ch03s03.html#beans-factory-autowire" title="3.3.5.&#160;自動裝配（autowire）協作者">第&#160;3.3.5&#160;節 「自動裝配（autowire）協作者」</a>已有論述)現在可以分別為建構方法參數及setter方法參數提供 <code class="interfacename">ResourceLoader</code> 型別的依賴。請使用新式的基於註釋的自動裝配特性以提供更大的靈活性（包括裝配屬性及多個方法參數的能力）。在這種情況下，只要屬性、建構方法或者方法被 <code class="interfacename">@Autowired</code>註釋修飾，<code class="interfacename">ResourceLoader</code> 就會被裝配到需要<code class="interfacename">ResourceLoader</code>型別的屬性、建構方法參數或者方法參數中。請查看章節 <a href="ch03s11.html#beans-autowired-annotation" title="3.11.1.&#160;@Autowired">第&#160;3.11.1&#160;節 「<code class="interfacename">@Autowired</code>」</a>以瞭解進一步的資訊。</p>
+</div></body>
+</html>

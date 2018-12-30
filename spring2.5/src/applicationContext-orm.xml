@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd" >
+
+
+
+
+
+  <!-- 資料庫讀取設定  -->
+  <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close" >
+    <property name="driverClassName"  value="com.mysql.jdbc.Driver"                                          />
+    <property name="url"              value="jdbc:mysql://localhost:3306/spring?characterEncoding=UTF-8"     />
+    <property name="username"         value="root"                                                           />
+    <property name="password"         value="19786779"                                                       />
+  </bean>
+  
+
+
+
+  <!-- sessionFactory 實現類別  -->
+  <!--
+            如果 Hibernate 實體類別採用 XML 檔案設定的，設定 SessionFactory 需要使用  LocalSessionFactoryBean    
+    <bean id="sessionFactory"
+		class="org.springframework.orm.hibernate3.LocalSessionFactoryBean"
+		destroy-method="destroy">
+      
+      <property name="dataSource" ref="dataSource" />
+      <property name="mappingResources">
+        <list>
+          <value>classpath:/com/helloweenvsfei/orm/bean/Cat.hbm.xml</value>
+        </list>
+      </property>
+        .
+        .
+        .
+        .
+           		
+    </bean>		
+  -->		
+  
+  <!-- sessionFactory 實現類別  -->	
+  <!--  @ 註釋設定的使用類別用 AnnotationSessionFactoryBean  -->		
+  <bean id="sessionFactory"
+		class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean"
+		destroy-method="destroy">
+    <property name="dataSource" ref="dataSource" />
+    <!--         
+                該 Package 下的所有類別都會被當作實體類別載入
+      <property name="annotatePackages" value="classpath:/com/helloweenvsfei/orm/bean" ></property> 
+    -->
+    <!-- 設定實體類別 -->
+    <property name="annotatedClasses">
+      <list>
+        <value>com.helloweenvsfei.orm.bean.Cat</value> <!-- 設定Cat 類別 (使用 @註釋設定的實體類別tb_cat)   -->
+      </list>
+    </property>
+    <property name="hibernateProperties" > <!-- Hibernate 屬性  -->
+      <props>                                      
+        <prop key="hibernate.dialect" >org.hibernate.dialect.MySQLDialect</prop>   <!-- SQL 方言 -->
+        <prop key="hibernate.show_sql" >true</prop>                                <!-- 輸出SQL敘述 -->
+        <prop key="hibernate.format_sql" >true</prop>                              <!-- 格式化SQL敘述 -->
+        <prop key="hibernate.hbm2ddl.auto" >create</prop>                          <!-- 建立資料表結構 -->
+      </props>
+    </property>      
+  </bean>
+ 
+  <bean id="catDao" class="com.helloweenvsfei.orm.dao.impl.CatDaoImpl" >  <!-- Dao 物件 -->
+    <property name="sessionFactory" ref="sessionFactory" ></property>     <!-- 設定 SessionFactory -->
+  </bean>
+
+
+
+
+
+
+
+
+  <!-- 在Service 層設定交易 -->
+  <!-- 
+            增加 Service 層後，需要在Service 上加上交易。這裡使用Spring 提供的設定式交易管理。
+            先定義一個 HibernateTransactionManager 管理器，然後把管理器設定到 Service 程式碼的代理類上
+     (CatServiceImpl 不能直接加交易，需借助Spring 代 理類別)。把CatServiceImpl 設定為交易管理的物件：
+  -->
+  <!-- Hibernate 交易管理器 -->
+  <bean id="hibernateTransactionManager"
+        class="org.springframework.orm.hibernate3.HibernateTransactionManager" >
+    <property name="sessionFactory" ref="sessionFactory" />         <!-- 設定 SessionFactory  -->
+  </bean>
+  
+  <!-- 交易管理規則  -->
+  <bean id="hibernateTransactionAttributeSource"
+        class="org.springframework.transaction.interceptor.NameMatchTransactionAttributeSource" >
+    <property name="properties" >  <!--  具備交易管理規則的方法名  -->
+      <props>
+        <prop key="*">PROPAGATION_REQUIRED</prop>                   <!--  所有方法上都加交易  -->
+      </props>
+    </property>
+  </bean>
+  
+
+  <bean id="catService"
+        class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean" >   <!-- 交易工廠代理類別  -->
+        
+    <!-- 交易管理 -->    
+    <property name="transactionManager" ref="hibernateTransactionManager" ></property>  
+    
+    <!-- 被管理的物件，匿名Bean  -->
+    <property name="target" >
+      <bean class="com.helloweenvsfei.orm.dao.impl.CatServiceImpl" >
+        <property name="catDao" ref="catDao" ></property>  <!--  設定 DAO 相依  -->
+      </bean>
+    </property>     
+    
+    <!-- 設定交易管理規則  -->
+    <property name="transactionAttributeSource" ref="hibernateTransactionAttributeSource" ></property>    
+  </bean>
+  
+  
+  
+
+  
+  <bean id="cat2BeforeInterceptor"
+        class="org.springframework.aop.support.NameMatchMethodPointcutAdvisor" >
+    <property name="advice" >
+      <bean class="com.helloweenvsfei.aop.filter.MethodBeforeInterceptor" />
+    </property>          
+    <property name="mappedName" value="*" ></property>
+  </bean>
+    
+
+  <bean id="cat2AfterInterceptor" 
+        class="org.springframework.aop.support.NameMatchMethodPointcutAdvisor" >
+    <property name="advice" >
+      <bean class="com.helloweenvsfei.aop.filter.MethodAfterInterceptor" />
+    </property>    
+    <property name="mappedName" value="*" ></property>  
+  </bean>
+  
+  
+  <!-- Struts 1.x 沒有透過 spring 所提供的 ActionSupport 的方式引入 Spring  -->
+  <bean name="/cat2"
+        class="org.springframework.aop.framework.ProxyFactoryBean" >
+        
+    <!-- 攔截器 -->
+    <property name="interceptorNames" >
+      <list>
+        <value>cat2BeforeInterceptor</value>
+        <value>cat2AfterInterceptor</value>
+      </list>
+    </property>     
+     
+    <!-- 被攔截的對象 -->    
+    <property name="target" >
+      <bean class="com.helloweenvsfei.struts1.action.Cat2Action" > 
+        <property name="catService" ref="catService" />
+      </bean>
+    </property>    
+  </bean>
+
+  
+  
+  
+  <!-- Struts2 裡的 Action 對象 引入 Spring  -->
+  <bean id="catAction2" scope="prototype" class="com.helloweenvsfei.struts2.action.CatAction" >
+    <property name="catService" ref="catService" ></property>
+  </bean>
+
+
+</beans> 

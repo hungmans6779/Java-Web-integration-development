@@ -1,0 +1,3 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type='text/xsl' href='MessageLog.xsl'?>
+<Log FirstSessionID="1" LastSessionID="1"><Message Date="2011/7/20" Time="上午 03:53:12" DateTime="2011-07-19T19:53:12.248Z" SessionID="1"><From><User FriendlyName="fernandezmhickory"/></From><To><User FriendlyName="TipsyChick"/></To><Text Style="font-family:Segoe UI; color:#000000; ">Tengo un tanga puesta!!</Text></Message><Leave Date="2011/7/20" Time="上午 05:06:09" DateTime="2011-07-19T21:06:09.931Z" SessionID="1"><User FriendlyName="fernandezmhickory"/><Text Style="color:#4d4d4d; ">fernandezmhickory 離開對話。</Text></Leave></Log>

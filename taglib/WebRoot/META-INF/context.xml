@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context>
+
+  <Resource name="jdbc/jstl" 
+            type="javax.sql.DataSource"
+            driverClassName="com.mysql.jdbc.Driver"
+            maxIdle="5" maxWait="5000"
+            username="root" password="19786779"
+            url="jdbc:mysql://localhost:3306/jstl?charachterEncoding=UTF-8"
+            maxActive="10" />
+            
+</Context>

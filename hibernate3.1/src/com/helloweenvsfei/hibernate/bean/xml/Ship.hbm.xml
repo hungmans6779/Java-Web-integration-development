@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<!-- 類別所在的包名 -->    
+<hibernate-mapping package="com.helloweenvsfei.hibernate.bean.xml" >
+
+  <class name="com.helloweenvsfei.hibernate.bean.Ship" table="tb_ship" >
+    
+    
+    <!-- 
+      @Id                                                            // 主鍵設定
+      @GeneratedValue(strategy=GenerationType.AUTO)                  // 主鍵產生策略設定
+      private Integer id;                            
+    -->
+    <id name="id" column="id" >
+      <generator class="native" ></generator>
+    </id>
+   
+   
+    <!-- 
+      private String name;                                           // 艦船名稱
+    -->
+    <property name="name" />
+   
+   
+    <!-- 
+      @OneToOne(cascade={CascadeType.PERSIST,CascadeType.REFRESH}) 
+      @JoinColumn(name="captain_id",unique=true)                     // 外鍵為 captain_id(利用資料庫unique 約束保證船長是唯一的) 
+      private Sailor captain;                                        // 船長
+      
+      unique 屬性為true
+    -->
+    <!-- 
+    <one-to-one name="captain" foreign-key="captain_id" ></one-to-one>
+     -->
+    <many-to-one name="captain" cascade="persist" column="captain_id"  unique="true" />
+    
+    
+    <!--
+      @OneToMany(mappedBy="ship",cascade=CascadeType.PERSIST)        // 使用反向設定
+      private Set<Sailor> sailors = new HashSet();                   // 船員(所有的水手) 
+      
+      inverse 設定該屬性反向屬性。
+    -->
+    <set name="sailors" inverse="true" >
+      <key column="ship_id" />
+      <one-to-many class="com.helloweenvsfei.hibernate.bean.Sailor" />
+    </set>
+    
+      
+  </class>
+  
+</hibernate-mapping>  

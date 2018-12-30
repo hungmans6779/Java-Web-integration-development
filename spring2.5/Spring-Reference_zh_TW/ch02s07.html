@@ -1,0 +1,121 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>2.7.&#160;移植到Spring 2.5</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch02.html" title="第&#160;2&#160;章&#160;Spring 2.0和 2.5的新特性">
+<link rel="prev" href="ch02s06.html" title="2.6.&#160;其他">
+<link rel="next" href="ch02s08.html" title="2.8.&#160;更新的樣例應用">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="new-in-2-migrating"></a>2.7.&#160;移植到Spring 2.5</h2></div></div></div>
+<p>最後這部分包含一些細節問題，在你從Spring 1.2/2.0升級到Spring 2.5時可能遇到。</p>
+<p>從Spring 2.0.x應用程序升級到Spring 2.5只需要簡單的把Spring 2.5的jar複製到你應用程序目錄結構中的合適位置即可。我們高度建議任何運行在JDK 1.4.2或更高版本的Spring 2.0應用程序升級到Spring 2.5，特別是運行在Java 5或更高版本上的，Spring 2.5帶來了巨大的配置便利和性能提高。</p>
+<p>從Spring 1.2.x升級是否平滑取決於你在程式碼中使用了多少Spring API。Spring 2.0刪除了在Spring 1.2.x程式碼中標注為「deprecated」的絕大部分類別和方法，因此如果你使用了這些類別或者方法，你當然得使用替代的類別和方法（下面有一個列表）。
+	</p>
+<p>在配置方面，Spring 1.2.x樣式的XML配置是100%信心保證和Spring 2.5相容的。當然如果你還在使用Spring 1.2.x DTD，你沒辦法使用一些新的Spring 2.0功能(例如<a href="ch02s02.html#new-in-2-ioc-scopes" title="2.2.1.&#160;新的bean作用域">scopes</a> ， <a href="ch02s03.html#new-in-2-aop-configuration" title="2.3.1.&#160;更加簡單的AOP XML配置">easier AOP</a> 和 <a href="ch02s04.html#new-in-2-middle-tier-transaction-configuration" title="2.4.1.&#160;在XML裡更為簡單的宣告性事務配置">transaction
+    configuration</a>)，但是沒有什麼會出錯。</p>
+<p>建議的升級策略是將Spring 2.5 jar放入，以得到新版本的好處（例如bug修正，優化，等等）。然後，以一種循序漸進的方式，開始選擇使用新的Spring 2.5功能和配置。例如，你可以開始用新的Spring 2樣式來配置你的aspects，完全可以將其中的90%仍然使用老的Spring 1.2.x配置（參考1.2.x DTD）,剩下的10%使用新的Spring 2 配置（參考2.0/2.5 DTD或者XSD）。記住，將Spring 2.5類別資源庫替換後，你並不是非得升級你的XML配置不可。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="new-in-2-migrating-changes"></a>2.7.1.&#160;改變</h3></div></div></div>
+<p>如需瞭解全部變化，請參考Spring Framework 2.0發佈包頂層目錄裡的<code class="filename">'changelog.txt'</code>檔案。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="new-in-2-migrating-jdk"></a>2.7.1.1.&#160;支持的JDK版本</h4></div></div></div>
+<p>Spring 2.5對JDK 1.3已經不再支持，因為Sun官方從2006晚期已經正式將JDK 1.3淘汰。請升級到JDK 1.4.2或更高版本。</p>
+<p>如果你必須使用只支持JDK 1.3的應用伺服器，例如WebSphere 4.0或5.0，我們建議你使用Spring Framework版本2.0.7/2.8，它們仍然支持JDK 1.3。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="new-in-2-migrating-packaging"></a>2.7.1.2.&#160;Spring 2.5的Jar打包</h4></div></div></div>
+<p>在Spring 2.5中， Spring Web MVC 不再是
+        <code class="filename">'spring.jar'</code> 檔案的一部分. Spring MVC以<code class="filename">'spring-webmvc.jar'</code>
+        和<code class="filename">'spring-webmvc-portlet.jar'</code>檔案形式在發行套件的 <code class="literal">lib/modules</code> 目錄中存在。
+        另外，對Struts 1.x的支持被獨立成 <code class="filename">'spring-webmvc-struts.jar'</code>。</p>
+<p><span class="emphasis"><em>注意: 經常被使用的Spring的<code class="classname">DispatcherServlet</code>也是Spring Web MVC框架的一部分。</em></span> 因此，就算你只是為了遠端存取（例如，暴露Hessian或者 HTTP調用服務）而使用<code class="classname">DispatcherServlet</code>,你也得將<code class="filename">'spring-webmvc.jar'</code>(或者 <code class="filename">'spring-webmvc-portlet/struts.jar'</code>)放到<code class="filename">'spring.jar'</code>旁邊去。</p>
+<p>Spring 2.0的 <code class="filename">'spring-jmx.jar'</code>
+        和 <code class="filename">'spring-remoting.jar'</code>已經被轉移到 Spring 2.5的<code class="filename">'spring-context.jar'</code>
+        (針對 JMX 和非HTTP 遠端支持)，部分轉移到
+        <code class="filename">'spring-web.jar'</code>
+        (針對HTTP 遠端支持)。</p>
+<p>Spring 2.0的 <code class="filename">'spring-support.jar'</code>
+        被改名為 <code class="filename">'spring-context-support.jar'</code>,
+        更好的表達其真實含義。
+        <code class="filename">'spring-portlet.jar'</code> 被改名為 <code class="filename">'spring-webmvc-portlet.jar'</code>,表明它是Spring Web MVC framework的子模組之一。
+        類似的, <code class="filename">'spring-struts.jar'</code>
+        被改為<code class="filename">'spring-webmvc-struts.jar'</code>。
+        </p>
+<p>Spring 2.0的<code class="filename">'spring-jdo.jar'</code>,
+        <code class="filename">'spring-jpa.jar'</code>,
+        <code class="filename">'spring-hibernate3.jar'</code>,
+        <code class="filename">'spring-toplink.jar'</code>
+        和 <code class="filename">'spring-ibatis.jar'</code>
+        被合併到Spring 2.5大粒度的<code class="filename">'spring-orm.jar'</code>中。</p>
+<p>Spring 2.5的 <code class="filename">'spring-test.jar'</code>
+取代了<code class="filename">'spring-mock.jar'</code>,表達其對test context framework的強烈關注。
+        注意 <code class="filename">'spring-test.jar'</code>
+包含了上個版本 <code class="filename">'spring-mock.jar'</code>中的一切，因此如果是單元或整合測試，可以直接取代。</p>
+<p>Spring 2.5的 <code class="filename">'spring-tx.jar'</code>
+        取代了 <code class="filename">'spring-dao.jar'</code>
+        和<code class="filename">'spring-jca.jar'</code> 檔案，表達其對transaction framework的強烈關注。</p>
+<p>Spring 2.5 將其jar檔案直接作為OSGi相容的bundle。這使得在OSGi環境中使用Spring 更加方便，不再需要定制打包了。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="new-in-2-migrating-xml-configuration"></a>2.7.1.3.&#160;XML配置</h4></div></div></div>
+<p>Spring 2.0的XSD在描述Spring XML元資料格式方面比先前的DTD更豐富。
+		    舊的DTD仍然得到支持，但如果可能我們鼓勵在bean定義檔案頭部參考XSD檔案。</p>
+<p>有一點被改變了，那就是定義bean作用域的方式。如果你使用的是Spring 1.2 DTD，那麼你能繼續用<code class="literal">'singleton'</code>屬性。
+		    如果你選擇<a href="ch02s02.html#new-in-2-ioc-configuration" title="2.2.2.&#160;更簡單的XML配置">參考新的Spring 2.0 DTD</a>，它不允許使用<code class="literal">'singleton'</code>屬性，
+		    那麼可以用<code class="literal">'scope'</code>屬性來定義bean的生命週期作用域。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="new-in-2-migrating-deprecated"></a>2.7.1.4.&#160;Deprecated（淘汰）的類別和方法</h4></div></div></div>
+<p>一些以前被標記為<code class="literal">@deprecated</code>的類別和方法Spring 2.0程式碼資源庫中被完全刪除了。
+		    Spring團隊決定把2.0版本作為一個新的開始，那些被deprecated的程式碼應該被除去而不是在可預見的未來繼續在程式碼中出現。</p>
+<p>如前所述，如需瞭解全部變化，請參考Spring Framework 2.0發佈包頂層目錄裡的<code class="filename">'changelog.txt'</code>檔案。</p>
+<p>下面的類別/介面已經從Spring 2.0的程式碼中刪除了：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><code class="interfacename">ResultReader</code> : 使用<code class="interfacename">RowMapper</code>介面代替。</p></li>
+<li><p><code class="classname">BeanFactoryBootstrap</code> : 考慮使用一個<code class="interfacename">BeanFactoryLocator</code>
+                    或是自定義引導類別代替</p></li>
+</ul></div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="new-in-2-migrating-ojb"></a>2.7.1.5.&#160;Apache OJB</h4></div></div></div>
+<p>Spring 2.0開始，請注意Spring主程式碼中的Apache OJB支持被<span class="emphasis"><em>完全刪除</em></span>了；
+		    但仍然可以在<a href="https://springmodules.dev.java.net/" target="_top">Spring Modules項目</a>中找到Apache OJB的整合資源庫。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="new-in-2-migrating-ibatis"></a>2.7.1.6.&#160;iBATIS</h4></div></div></div>
+<p>請注意iBATIS SQL Maps 1.3支持被完全去除了。如果你還在使用iBATIS SQL Maps 1.3，
+		    請升級到iBATIS SQL Maps 2.0/2.1。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="new-in-2-migrating-hibernate"></a>2.7.1.7.&#160;Hibernate</h4></div></div></div>
+<p>Spring 2.5中，對 Hibernate 2.1 和 Hibernate 3.0
+        的支持已經去除。請升級到Hibernate 3.1或更高版本。</p>
+<p>如果你需要繼續使用Hibernate 2.1或3.0，我們建議你繼續使用Spring 2.0.7/2.0.8，這些版本仍然支持Hibernate的那些版本。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="new-in-2-migrating-jdo"></a>2.7.1.8.&#160;JDO</h4></div></div></div>
+<p>Spring 2.5中，對JDO 1.0 的支持被去除。請升級到JDO 2.0或更高版本。</p>
+<p>如果你需要繼續使用JDO 1.0，我們建議你繼續使用spring 2.0.7/2.0.8，這些版本仍然支持JDO 1.0。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="new-in-2-migrating-UrlFilenameViewController"></a>2.7.1.9.&#160;<code class="classname">UrlFilenameViewController</code></h4></div></div></div>
+<p>從Spring 2.0起，<code class="classname">UrlFilenameViewController</code>所決定的view名字現在考慮了request中的巢狀路徑。這是對原始 <code class="classname">UrlFilenameViewController</code>約定的重大修改，意味著如果你從Spring 1.x升級到Spring 2.x，並且你在使用這個類別，你<span class="emphasis"><em>可能</em></span>必須小小的修改你的Spring Web MVC配置。請參考<code class="classname">UrlFilenameViewController</code> 的類別Javadoc，來查看新的view name determination的約定的範例。</p>
+</div>
+</div>
+</div></body>
+</html>

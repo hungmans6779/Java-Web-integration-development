@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE form-validation PUBLIC
+          "-//Apache Software Foundation//DTD Commons Validator Rules Configuration 1.1.3//EN"
+          "http://jakarta.apache.org/commons/dtds/validator_1_1_3.dtd">
+<form-validation>
+  <formset>
+  
+    <form name="validatorForm" >
+      <!-- 姓名 -->
+      <field property="name" depends="required" >
+        <msg name="required" key="validator.error.name" />
+      </field>
+     
+      <!-- 年齡 -->
+      <field property="age" depends="required,integer,intRange" >
+        <arg position="0" name="intRange" key="${var:min}" resource="false" />
+        <arg position="1" name="intRange" key="${var:max}" resource="false" />
+        <var>
+          <var-name>min</var-name>     <!-- 最小值 -->
+          <var-value>0</var-value>
+        </var>
+        <var>
+          <var-name>max</var-name>     <!-- 最大值 -->
+          <var-value>100</var-value>
+        </var>
+        <msg name="required" key="validator.error.age"         />  <!-- 非空 -->
+        <msg name="integer"  key="validator.error.ageInteger"  />  <!-- 整數 -->
+        <msg name="intRange" key="validator.error.ageRange"    />  <!-- 範圍 -->
+      </field>
+      
+      <!-- 電子郵件  -->
+      <field property="email" depends="required,email" >
+        <arg position="0" key="email" />
+        <msg name="required" key="validator.error.email"         />   <!-- 非空 -->
+        <msg name="email"    key="validator.error.emailFormat"   />   <!-- 電子郵件不合法  -->
+      </field>
+    </form>
+    
+    
+  </formset>
+  
+</form-validation>        

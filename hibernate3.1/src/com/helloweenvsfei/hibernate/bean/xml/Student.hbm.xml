@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+       
+<hibernate-mapping package="com.helloweenvsfei.hibernate.bean.xml" >
+  
+  <class name="com.helloweenvsfei.hibernate.bean.Student" table="tb_student" >
+  
+    <id name="id" column="id" >
+      <generator class="native" />
+    </id>
+    
+    <!-- 姓名  -->
+    <property name="name" ></property>
+    
+    <!-- 性別 -->
+    <property name="sex" ></property>
+    
+    <!--  
+                班級屬性
+	  @ManyToOne(fetch = FetchType.EAGER, cascade = { CascadeType.PERSIST })
+	  @JoinColumn(name = "class_id")  // 外鍵的屬性。(這裡把控制權交給了多方，也可以交給一方。當一方控制時，一方的設定同單邊的一對多關聯性設定完全相同。)
+    -->
+    <many-to-one name="clazz" lazy="false" column="class_id" ></many-to-one>
+    
+    
+  </class>
+ 
+</hibernate-mapping>

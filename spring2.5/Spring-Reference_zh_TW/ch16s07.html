@@ -1,0 +1,237 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>16.7.&#160;Multipart檔案上傳支持</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch16.html" title="第&#160;16&#160;章&#160;Portlet MVC框架">
+<link rel="prev" href="ch16s06.html" title="16.6.&#160;視圖和它們的解析">
+<link rel="next" href="ch16s08.html" title="16.8.&#160;異常處理">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="portlet-multipart"></a>16.7.&#160;Multipart檔案上傳支持</h2></div></div></div>
+<p>Spring Portlet MVC和Web MVC一樣，也支持multipart來處理portlet中的檔案上傳。
+		外掛程式式的<code class="interfacename">PortletMultipartResolver</code>提供了對multipart的支持，
+		它在<code class="literal">org.springframework.web.portlet.multipart</code>包裡。
+		Spring提供了<code class="interfacename">PortletMultipartResolver</code>來和
+		<a href="http://jakarta.apache.org/commons/fileupload" target="_top">Commons FileUpload</a>
+		一起使用。餘下的篇幅會介紹檔案上傳的支持。</p>
+<p>缺省情況下，Spring Portlet是不會處理multipart的，如果開發人員需要處理multipart，
+		就必須在web應用的context裡添加一個multipart解析器，然後，
+		<code class="classname">DispatcherPortlet</code>會在每個請求裡檢查是否帶有multipart。
+		如果沒找到，請求會繼續，如果找到了multipart，在context中宣告的
+		<code class="interfacename">PortletMultipartResolver</code>會被調用。接著，
+		在請求裡的multipart屬性會和其它的屬性一樣被處理。</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>
+			任何已配置的<code class="interfacename">PortletMultipartResolver</code>bean<span class="emphasis"><em>必須</em></span>
+			使用下列id（或名稱）："<code class="literal">PortletMultipartResolver</code>" 。
+			如果你已經定義了你的<code class="interfacename">PortletMultipartResolver</code>為任何其他名稱，
+			哪麼<code class="classname">DispatcherPortlet</code>將找不到你的
+			<code class="interfacename">PortletMultipartResolver</code>，並因此沒有multipart的支持。
+			</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="portlet-multipart-resolver"></a>16.7.1.&#160;使用 <code class="interfacename">PortletMultipartResolver</code></h3></div></div></div>
+<p>下面的例子介紹了 
+			<code class="classname">CommonsPortletMultipartResolver</code>的使用：</p>
+<pre class="programlisting">&lt;bean id="portletMultipartResolver"
+    class="org.springframework.web.portlet.multipart.CommonsPortletMultipartResolver"&gt;
+
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- 一個屬性；以byte為單位的最大檔案長度 --&gt;</span></em>
+    &lt;property name="maxUploadSize" value="100000"/&gt;
+&lt;/bean&gt;</pre>
+<p>當然為了使multipart解析器能夠工作，必須把合適的jar放到類別路徑裡。對於
+			<code class="classname">CommonsMultipartResolver</code>來說，需要
+			<code class="literal">commons-fileupload.jar</code>。注意，必須使用至少1.1
+			版本的Commons FileUpload，因為以前的版本不支持JSR-168應用。</p>
+<p>現在你已經看到如何設置Portlet MVC來處理multipart請求，接下來我們
+			討論它的使用。當<code class="classname">DispatcherPortlet</code>檢測到
+			multipart時，它會啟動在context裡宣告的解析器，並把請求交給它。然後解析器
+			把當前的<code class="interfacename">ActionRequest</code>放到支持檔案上傳的
+			<code class="interfacename">MultipartActionRequest</code>中。通過
+			<code class="interfacename">MultipartActionRequest</code>，可以得到
+			請求包含的multipart資訊，並且在控制器裡存取multipart檔案。</p>
+<p>注意，不能從<code class="interfacename">RenderRequest</code>接收到multipart
+			檔案，而只能從<code class="interfacename">ActionRequest</code>裡。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="portlet-multipart-forms"></a>16.7.2.&#160;處理表單裡的檔案上傳</h3></div></div></div>
+<p>在 <code class="interfacename">PortletMultipartResolver</code> 處理完後，
+			請求會繼續被處理。你需要創建一個帶有上傳欄位的表單來使用它（見下面），Spring會
+			把檔案綁定在你的表單上（支持物件）。為了讓使用者上傳檔案，必須創建一個（JSP/HTML）的表單：
+			</p>
+<pre class="programlisting">&lt;h1&gt;Please upload a file&lt;/h1&gt;
+&lt;form method="post" action="&lt;portlet:actionURL/&gt;" enctype="multipart/form-data"&gt;
+    &lt;input type="file" name="file"/&gt;
+    &lt;input type="submit"/&gt;
+&lt;/form&gt;</pre>
+<p>如你所見，我們在bean的屬性後面創建名為「File」的欄位
+			用來容納 <code class="literal">byte[]</code>。加上了編碼屬性( <code class="literal">enctype="multipart/form-data"</code> )，
+			讓瀏覽器知道怎樣來編碼multipart欄位（切記！）。</p>
+<p>和其它那些不會自動轉化為字元串或原始型別的屬性一樣，為了把二進制資料放到物件
+			裡，必須註冊一個使用 <code class="classname">PortletRequestDataBinder</code>
+			的自定義的編輯器。現成有好幾個編輯器可以用來處理檔案並把結果放到物件上。
+			<code class="classname">StringMultipartFileEditor</code> 能夠把檔案轉換成字元串
+			(使用使用者定義的字元集)，<code class="classname">ByteArrayMultipartFileEditor</code>
+			能夠把檔案轉換成位元組資料。他們的功能和 
+			<code class="classname">CustomDateEditor</code>一樣。
+			</p>
+<p>所以，為了能夠使用表單來上傳檔案，需要宣告解析器，映射到處理這個bean的控制器的映射以及控制器。
+			</p>
+<pre class="programlisting">&lt;bean id="portletMultipartResolver"
+      class="org.springframework.web.portlet.multipart.CommonsPortletMultipartResolver"/&gt;
+
+&lt;bean id="portletModeHandlerMapping"
+      class="org.springframework.web.portlet.handler.PortletModeHandlerMapping"&gt;
+    &lt;property name="portletModeMap"&gt;
+        &lt;map&gt;
+            &lt;entry key="view" value-ref="fileUploadController"/&gt;
+        &lt;/map&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;
+
+&lt;bean id="fileUploadController" class="examples.FileUploadController"&gt;
+    &lt;property name="commandClass" value="examples.FileUploadBean"/&gt;
+    &lt;property name="formView" value="fileuploadform"/&gt;
+    &lt;property name="successView" value="confirmation"/&gt;
+&lt;/bean&gt;</pre>
+<p>接著，創建控制器以及實際容納這個檔案屬性的類別。</p>
+<pre class="programlisting">public class FileUploadController extends SimpleFormController {
+
+    public void onSubmitAction(
+        ActionRequest request,
+        ActionResponse response,
+        Object command,
+        BindException errors)
+        throws Exception {
+
+        <em class="lineannotation"><span class="lineannotation">// cast the bean</span></em>
+        FileUploadBean bean = (FileUploadBean) command;
+
+        <em class="lineannotation"><span class="lineannotation">// let's see if there's content there</span></em>
+        byte[] file = bean.getFile();
+        if (file == null) {
+            <em class="lineannotation"><span class="lineannotation">// hmm, that's strange, the user did not upload anything</span></em>
+        }
+
+        // do something with the file here
+    }
+
+    protected void initBinder(
+            PortletRequest request, PortletRequestDataBinder binder)
+        throws Exception {
+        // to actually be able to convert Multipart instance to byte[]
+        // we have to register a custom editor
+        binder.registerCustomEditor(byte[].class, new ByteArrayMultipartFileEditor());
+        <em class="lineannotation"><span class="lineannotation">// now Spring knows how to handle multipart object and convert</span></em>
+    }
+}
+
+public class FileUploadBean {
+
+    private byte[] file;
+
+    public void setFile(byte[] file) {
+        this.file = file;
+    }
+
+    public byte[] getFile() {
+        return file;
+    }
+}</pre>
+<p>如你所見，<code class="classname">FileUploadBean</code> 有一個型別是
+			<code class="literal">byte[]</code> 的屬性來容納檔案。控制器註冊了一個自定義編輯器來
+			讓Spring知道如何把解析器發現的multipart轉換成指定的屬性。在這個例子裡，
+			沒有對bean的 <code class="literal">byte[]</code> 屬性進行任何操作，但實際上，你可以做任
+			何操作（把它存到資料庫裡，把它電郵出去，或其它）</p>
+<p>下面是一個例子，檔案直接綁定在的一個（表單支持）物件上的字元串型別屬性上面：</p>
+<pre class="programlisting">public class FileUploadController extends SimpleFormController {
+
+    public void onSubmitAction(
+        ActionRequest request,
+        ActionResponse response,
+        Object command,
+        BindException errors) throws Exception {
+
+        // cast the bean
+        FileUploadBean bean = (FileUploadBean) command;
+
+        // let's see if there's content there
+        String file = bean.getFile();
+        if (file == null) {
+            // hmm, that's strange, the user did not upload anything
+        }
+
+        // do something with the file here
+    }
+
+    protected void initBinder(
+        PortletRequest request, PortletRequestDataBinder binder) throws Exception {
+
+        // to actually be able to convert Multipart instance to a String
+        // we have to register a custom editor
+        binder.registerCustomEditor(String.class,
+            new StringMultipartFileEditor());
+        // now Spring knows how to handle multipart objects and convert
+    }
+}
+
+public class FileUploadBean {
+
+    private String file;
+
+    public void setFile(String file) {
+        this.file = file;
+    }
+
+    public String getFile() {
+        return file;
+    }
+}</pre>
+<p>當然，最後的例子在上傳文本檔案時才有（邏輯上的）意義（在上傳圖像檔案時，它不會工作）。
+			</p>
+<p>第三個（也是最後一個）選項是，什麼情況下需要直接綁定在（表單支持）物件的
+			<code class="interfacename">MultipartFile</code> 屬性上。在以下的情況，不需要註冊自定義的屬性編輯器，因為不需要型別轉換。
+			</p>
+<pre class="programlisting">public class FileUploadController extends SimpleFormController {
+
+    public void onSubmitAction(
+        ActionRequest request,
+        ActionResponse response,
+        Object command,
+        BindException errors) throws Exception {
+
+        // cast the bean
+        FileUploadBean bean = (FileUploadBean) command;
+
+        // let's see if there's content there
+        MultipartFile file = bean.getFile();
+        if (file == null) {
+            // hmm, that's strange, the user did not upload anything
+        }
+
+        // do something with the file here
+    }
+}
+
+public class FileUploadBean {
+
+    private MultipartFile file;
+
+    public void setFile(MultipartFile file) {
+        this.file = file;
+    }
+
+    public MultipartFile getFile() {
+        return file;
+    }
+}</pre>
+</div>
+</div></body>
+</html>

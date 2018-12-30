@@ -1,0 +1,123 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>11.4.&#160;JDBC批量操作</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch11.html" title="第&#160;11&#160;章&#160;使用JDBC進行資料存取">
+<link rel="prev" href="ch11s03.html" title="11.3.&#160;控制資料庫連接">
+<link rel="next" href="ch11s05.html" title="11.5.&#160;通過使用SimpleJdbc類別簡化JDBC操作">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="jdbc-advanced-jdbc"></a>11.4.&#160;JDBC批量操作</h2></div></div></div>
+<p>
+		絕大多數JDBC驅動針對批量調用相同的prepared statement物件提供了性能提升。通過將這些更新操作封裝到一個批量操作中，可以大量減少與資料庫的操作頻繁度。
+		本章節將詳細描述使用JdbcTemplate或者SimpleJdbcTemplate進行批量操作的串流程。
+		</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jdbc-advanced-classic"></a>11.4.1.&#160;使用JdbcTemplate進行批量操作</h3></div></div></div>
+<p>
+			JdbcTemplate的批量操作特性需要實作特定的介面<code class="classname">BatchPreparedStatementSetter</code>來進行的, 通過實作這個介面，並將其傳入<code class="classname">batchUpdate</code>方法進行調用。
+			這個介面有兩個方法需要實作。一個叫做<code class="classname">getBatchSize</code>來提供當前需要批量操作的數量。另外一個方法是<code class="classname">setValues</code>
+ 允許你為prepared statement設置參數。這個方法將在整個過程中被調用的次數，則取決於你在<code class="classname">getBatchSize</code>中所指定的大小。
+			下面的範例展示了根據傳入的list參數更新actor表，而傳入的list同時作為批量操作的參數。
+		</p>
+<p>
+      </p>
+<pre class="programlisting">public class JdbcActorDao implements ActorDao {
+    private JdbcTemplate jdbcTemplate;
+
+    public void setDataSource(DataSource dataSource) {
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
+    }
+
+    public int[] batchUpdate(final List actors) {
+        int[] updateCounts = jdbcTemplate.batchUpdate(
+                "update t_actor set first_name = ?, last_name = ? where id = ?",
+                new BatchPreparedStatementSetter() {
+                    public void setValues(PreparedStatement ps, int i) throws SQLException {
+                        ps.setString(1, ((Actor)actors.get(i)).getFirstName());
+                        ps.setString(2, ((Actor)actors.get(i)).getLastName());
+                        ps.setLong(3, ((Actor)actors.get(i)).getId().longValue());
+                    }
+
+                    public int getBatchSize() {
+                        return actors.size();
+                    }
+                } );
+        return updateCounts;
+    }
+
+    //  ... additional methods
+}</pre>
+<p>
+     如果你是通過讀取檔案進行批量操作，那麼你可能需要一個特定的批量操作的數量，不過最後一次的批量操作，你可能沒有那麼多數量的記錄。
+     在這種情況下，你可以實作<code class="classname">InterruptibleBatchPreparedStatementSetter</code>介面，從而允許你在某些情況中斷批量操作，<code class="classname">isBatchExhausted</code> 方法允許你指定一個終止批量操作的信號量。
+     </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jdbc-advanced-simple"></a>11.4.2.&#160;使用SimpleJdbcTemplate進行批量操作</h3></div></div></div>
+<p><code class="classname">SimpleJdbcTemplate</code>類別提供了另外一種批量操作的方式。無需實作一個特定的介面，你只需要提供所有在調用過程中要用到的參數，框架會遍歷這些參數值，並使用內置的prepared statement類別進行批量操作。API將根據你是否使用命名參數而有所不同。對於使用命名參數的情況，你需要提供一個<code class="classname">SqlParameterSource</code>的陣列, 其中的每個元素將將作為批量操作的參數。
+			你可以使用<code class="classname">SqlParameterSource.createBatch</code>方法，通過傳入一個JavaBean的陣列或者一個套件含了參數鍵值對的Map陣列來創建這個陣列。
+		</p>
+<p>下面的範例展示了使用命名參數進行批量更新的方法：</p>
+<p>
+      </p>
+<pre class="programlisting">public class JdbcActorDao implements ActorDao {
+    private SimpleJdbcTemplate simpleJdbcTemplate;
+
+    public void setDataSource(DataSource dataSource) {
+        this.simpleJdbcTemplate = new SimpleJdbcTemplate(dataSource);
+    }
+
+    public int[] batchUpdate(final List&lt;Actor&gt; actors) {
+        SqlParameterSource[] batch = SqlParameterSourceUtils.createBatch(actors.toArray());
+        int[] updateCounts = simpleJdbcTemplate.batchUpdate(
+                "update t_actor set first_name = :firstName, last_name = :lastName where id = :id",
+                batch);
+        return updateCounts;
+    }
+
+    //  ... additional methods
+}</pre>
+<p>
+		對於使用傳統的「?」作為參數佔位符的情況，你可以傳入一個List，包含了所有需要進行批量更新的物件。這樣的物件陣列必須與每個SQL Statement的佔位符以及他們在SQL Statement中出現的位置一一對應。
+		</p>
+<p>下面是同樣的例子，使用的傳統的「?」作為參數佔位符：</p>
+<p>
+      </p>
+<pre class="programlisting">public class JdbcActorDao implements ActorDao {
+    private SimpleJdbcTemplate simpleJdbcTemplate;
+
+    public void setDataSource(DataSource dataSource) {
+        this.simpleJdbcTemplate = new SimpleJdbcTemplate(dataSource);
+    }
+
+    public int[] batchUpdate(final List&lt;Actor&gt; actors) {
+        List&lt;Object[]&gt; batch = new ArrayList&lt;Object[]&gt;();
+        for (Actor actor : actors) {
+            Object[] values = new Object[] {
+                    actor.getFirstName(),
+                    actor.getLastName(),
+                    actor.getId()};
+            batch.add(values);
+        }
+        int[] updateCounts = simpleJdbcTemplate.batchUpdate(
+                "update t_actor set first_name = ?, last_name = ? where id = ?",
+                batch);
+        return updateCounts;
+    }
+
+    //  ... additional methods
+}</pre>
+<p>
+			所有的批量更新的方法都會返回一組int的陣列，表示在整個操作過程中有多少記錄被批量更新。
+			這個數量是由JDBC驅動所返回的，有時這個返回並不可靠，尤其對於某些JDBC驅動只是簡單的返回-2作為返回值。   
+		</p>
+</div>
+</div></body>
+</html>

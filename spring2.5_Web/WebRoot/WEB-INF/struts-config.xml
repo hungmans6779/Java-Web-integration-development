@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts-config PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 1.2//EN" "http://struts.apache.org/dtds/struts-config_1_2.dtd">
+
+<struts-config>
+  
+  <!-- 設定資料來源，可以設定多個資料來源  -->
+  <data-sources />
+  
+  
+  <!-- FormBean 設定 -->
+  <form-beans>
+    <form-bean name="catForm"  type="com.struts.form.CatForm"   />
+    <form-bean name="cat2Form" type="com.struts.form.Cat2Form"  />
+  </form-beans>
+
+  
+  <global-exceptions >
+    <exception key="exception" type="java.lang.Exception" path="/form/exception.jsp" />
+  </global-exceptions>
+  
+  
+  <global-forwards />
+  
+  
+  <action-mappings>
+    <action
+      attribute="catForm"
+      input="/form/listCat.jsp"
+      name="catForm"
+      path="/cat"
+      scope="request"
+      type="com.struts.action.CatAction" >
+      <set-property property="cancellable" value="true" />
+      <forward name="list" path="/form/listCat.jsp" />
+    </action>
+    
+    <action
+      attribute="cat2Form"
+      input="/form/listCat2.jsp"
+      name="cat2Form"
+      path="/cat2"
+      scope="request"
+      type="com.struts.action.Cat2Action" >
+      <set-property property="cancellable" value="true" />
+      <forward name="list" path="/form/listCat2.jsp" />
+    </action>
+
+  </action-mappings>
+
+
+  <!-- 
+     增加的是一個 <controller /> 設定，processorClass 屬性設定為 Spring 的代理類別。該設定會把 Struts 的 Action 交給 Spring 處理。
+     Spring 會管理 Action ，並設定 Action 的相依，例如 ICatService 物件等。
+     
+     最核心的設定 <controller> 設定，該設定把 Struts 的 Action 交給 Spring 代理。設定完 <controller /> 後，
+     Cat2Action 的 type 屬性 就失去作用了。Struts 不會用type 屬性指定的類別來建立 Cat2Action 物件，
+     而是到 Spring 設定中尋找。因此 Spring 中必須設定到 Cat2Action。    
+  -->
+   <controller processorClass="org.springframework.web.struts.DelegatingRequestProcessor" />
+
+  
+  <message-resources parameter="com.struts.ApplicationResources" />
+  
+  
+</struts-config>

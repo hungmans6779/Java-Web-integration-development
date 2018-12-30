@@ -1,0 +1,269 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>部分&#160;IV.&#160;整合</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="prev" href="ch16s09.html" title="16.9.&#160;Portlet應用的部署">
+<link rel="next" href="ch17.html" title="第&#160;17&#160;章&#160;使用Spring進行遠端存取與Web服務">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="part" lang="zh-cn">
+<div class="titlepage"><div><div><h1 class="title">
+<a name="spring-integration"></a>部分&#160;IV.&#160;整合</h1></div></div></div>
+<div class="partintro" lang="zh-cn">
+<div></div>
+<p>
+				文檔的這一部分包括了Spring Framework與一系列J2EE（及相關）技術的整合。
+			</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><a href="ch17.html" title="第&#160;17&#160;章&#160;使用Spring進行遠端存取與Web服務">第&#160;17&#160;章 <i>使用Spring進行遠端存取與Web服務</i></a></p></li>
+<li><p><a href="ch18.html" title="第&#160;18&#160;章&#160;Enterprise Java Beans (EJB) 整合">第&#160;18&#160;章 <i>Enterprise Java Beans (EJB) 整合</i></a></p></li>
+<li><p><a href="ch19.html" title="第&#160;19&#160;章&#160;JMS (Java Message Service)">第&#160;19&#160;章 <i>JMS (Java Message Service)</i></a></p></li>
+<li><p><a href="ch20.html" title="第&#160;20&#160;章&#160;JMX">第&#160;20&#160;章 <i>JMX</i></a></p></li>
+<li><p><a href="ch21.html" title="第&#160;21&#160;章&#160;JCA CCI">第&#160;21&#160;章 <i>JCA CCI</i></a></p></li>
+<li><p><a href="ch22.html" title="第&#160;22&#160;章&#160;Spring郵件抽象層">第&#160;22&#160;章 <i>Spring郵件抽象層</i></a></p></li>
+<li><p><a href="ch23.html" title="第&#160;23&#160;章&#160;Spring中的定時調度(Scheduling)和執行緒池(Thread Pooling)">第&#160;23&#160;章 <i>Spring中的定時調度(Scheduling)和執行緒池(Thread Pooling)</i></a></p></li>
+<li><p><a href="ch24.html" title="第&#160;24&#160;章&#160;動態語言支持">第&#160;24&#160;章 <i>動態語言支持</i></a></p></li>
+<li><p><a href="ch25.html" title="第&#160;25&#160;章&#160;註釋和源程式碼級的元資料支持">第&#160;25&#160;章 <i>註釋和源程式碼級的元資料支持</i></a></p></li>
+</ul></div>
+<div class="toc">
+<p><b>目錄</b></p>
+<dl>
+<dt><span class="chapter"><a href="ch17.html">17. 使用Spring進行遠端存取與Web服務</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch17.html#remoting-introduction">17.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch17s02.html">17.2. 使用RMI暴露服務</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch17s02.html#remoting-rmi-server">17.2.1. 使用<code class="classname">RmiServiceExporter</code>暴露服務</a></span></dt>
+<dt><span class="section"><a href="ch17s02.html#remoting-rmi-client">17.2.2. 在客戶端連接服務</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch17s03.html">17.3. 使用Hessian或者Burlap通過HTTP遠端調用服務</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch17s03.html#remoting-caucho-protocols-hessian">17.3.1. 為Hessian和co.配置<code class="classname">DispatcherServlet</code></a></span></dt>
+<dt><span class="section"><a href="ch17s03.html#remoting-caucho-protocols-hessian-server">17.3.2. 使用<code class="classname">HessianServiceExporter</code>暴露你的bean</a></span></dt>
+<dt><span class="section"><a href="ch17s03.html#remoting-caucho-protocols-hessian-client">17.3.3. 在客戶端連接服務</a></span></dt>
+<dt><span class="section"><a href="ch17s03.html#remoting-caucho-protocols-burlap">17.3.4. 使用Burlap</a></span></dt>
+<dt><span class="section"><a href="ch17s03.html#remoting-caucho-protocols-security">17.3.5. 對通過Hessian或Burlap暴露的服務使用HTTP Basic認證</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch17s04.html">17.4. 使用HTTP調用器暴露服務</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch17s04.html#remoting-httpinvoker-server">17.4.1. Exposing the service object</a></span></dt>
+<dt><span class="section"><a href="ch17s04.html#remoting-httpinvoker-client">17.4.2. 在客戶端連接服務</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch17s05.html">17.5. Web Services</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch17s05.html#remoting-web-services-jaxrpc-export">17.5.1. 使用JAX-RPC暴露基於servlet的web服務</a></span></dt>
+<dt><span class="section"><a href="ch17s05.html#remoting-web-services-jaxrpc-access">17.5.2. 使用JAX-RPC存取web服務</a></span></dt>
+<dt><span class="section"><a href="ch17s05.html#remoting-web-services-jaxrpc-mapping-registration">17.5.3. 註冊JAX-RPC Bean映射</a></span></dt>
+<dt><span class="section"><a href="ch17s05.html#remoting-web-services-jaxrpc-handler-registration">17.5.4. 註冊自己的JAX-RPC 處理器</a></span></dt>
+<dt><span class="section"><a href="ch17s05.html#remoting-web-services-jaxws-export-servlet">17.5.5. 使用JAX-WS暴露基於servlet的web服務</a></span></dt>
+<dt><span class="section"><a href="ch17s05.html#remoting-web-services-jaxws-export-standalone">17.5.6. 使用JAX-WS暴露單獨web服務</a></span></dt>
+<dt><span class="section"><a href="ch17s05.html#remoting-web-services-jaxws-export-ri">17.5.7. 使用Spring支持的JAX-WS RI來暴露服務</a></span></dt>
+<dt><span class="section"><a href="ch17s05.html#remoting-web-services-jaxws-access">17.5.8. 使用JAX-WS存取web服務</a></span></dt>
+<dt><span class="section"><a href="ch17s05.html#remoting-web-services-xfire">17.5.9. 使用XFire來暴露Web服務</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch17s06.html">17.6. JMS</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch17s06.html#remoting-jms-server">17.6.1. 伺服端配置</a></span></dt>
+<dt><span class="section"><a href="ch17s06.html#remoting-jms-client">17.6.2. 客戶端配置</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch17s07.html">17.7. 對遠端介面不提供自動探測實作</a></span></dt>
+<dt><span class="section"><a href="ch17s08.html">17.8. 在選擇這些技術時的一些考慮</a></span></dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch18.html">18. Enterprise Java Beans (EJB) 整合</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch18.html#ejb-introduction">18.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch18s02.html">18.2. 存取EJB</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch18s02.html#ejb-access-concepts">18.2.1. 概念</a></span></dt>
+<dt><span class="section"><a href="ch18s02.html#ejb-access-local">18.2.2. 存取本地的無狀態Session Bean(SLSB)</a></span></dt>
+<dt><span class="section"><a href="ch18s02.html#ejb-access-remote">18.2.3. 存取遠端SLSB</a></span></dt>
+<dt><span class="section"><a href="ch18s02.html#ejb-access-ejb2-ejb3">18.2.4. Accessing EJB 2.x SLSBs versus EJB 3 SLSBs</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch18s03.html">18.3. 使用Spring提供的輔助類別實作EJB元件</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch18s03.html#ejb-implementation-ejb2">18.3.1. EJB 2.x base classes</a></span></dt>
+<dt><span class="section"><a href="ch18s03.html#ejb-implementation-ejb3">18.3.2. EJB 3 注入攔截</a></span></dt>
+</dl></dd>
+</dl></dd>
+<dt><span class="chapter"><a href="ch19.html">19. JMS (Java Message Service)</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch19.html#jms-introduction">19.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch19s02.html">19.2. 使用Spring JMS</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch19s02.html#id602830">19.2.1. <code class="classname">JmsTemplate</code></a></span></dt>
+<dt><span class="section"><a href="ch19s02.html#jms-connections">19.2.2. 連接處理器</a></span></dt>
+<dt><span class="section"><a href="ch19s02.html#jms-destinations">19.2.3. 目的地管理</a></span></dt>
+<dt><span class="section"><a href="ch19s02.html#jms-mdp">19.2.4. 訊息偵聽容器</a></span></dt>
+<dt><span class="section"><a href="ch19s02.html#jms-tx">19.2.5. 事務管理</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch19s03.html">19.3. 發送訊息</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch19s03.html#jms-msg-conversion">19.3.1. 使用訊息轉換器</a></span></dt>
+<dt><span class="section"><a href="ch19s03.html#jms-callbacks">19.3.2. <code class="interfacename">SessionCallback</code> 和 <code class="interfacename">ProducerCallback</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch19s04.html">19.4. 接收訊息</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch19s04.html#jms-receiving-sync">19.4.1. 同步接收</a></span></dt>
+<dt><span class="section"><a href="ch19s04.html#jms-asynchronousMessageReception">19.4.2. 異步接收 - 訊息驅動的POJO</a></span></dt>
+<dt><span class="section"><a href="ch19s04.html#jms-receiving-async-session-aware-message-listener">19.4.3. <code class="interfacename">SessionAwareMessageListener</code>介面</a></span></dt>
+<dt><span class="section"><a href="ch19s04.html#jms-receiving-async-message-listener-adapter">19.4.4. <code class="classname">MessageListenerAdapter</code></a></span></dt>
+<dt><span class="section"><a href="ch19s04.html#jms-tx-participation">19.4.5. 事務中的訊息處理</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch19s05.html">19.5. JCA訊息端點的支持</a></span></dt>
+<dt><span class="section"><a href="ch19s06.html">19.6. JMS命名空間支持</a></span></dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch20.html">20. JMX</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch20.html#jmx-introduction">20.1. 介紹</a></span></dt>
+<dt><span class="section"><a href="ch20s02.html">20.2. 將Bean暴露為JMX</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch20s02.html#jmx-exporting-mbeanserver">20.2.1. 創建<code class="interfacename">MBeanServer</code></a></span></dt>
+<dt><span class="section"><a href="ch20s02.html#jmx-mbean-server">20.2.2. 重用原有的<code class="interfacename">MBeanServer</code></a></span></dt>
+<dt><span class="section"><a href="ch20s02.html#jmx-exporting-lazy">20.2.3. 延遲初始化的MBean</a></span></dt>
+<dt><span class="section"><a href="ch20s02.html#jmx-exporting-auto">20.2.4. MBean的自動註冊</a></span></dt>
+<dt><span class="section"><a href="ch20s02.html#jmx-exporting-registration-behavior">20.2.5. 控制註冊行為</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch20s03.html">20.3. 控制Bean的管理介面</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch20s03.html#jmx-interface-assembler">20.3.1. <code class="interfacename">MBeanInfoAssembler</code>介面</a></span></dt>
+<dt><span class="section"><a href="ch20s03.html#jmx-interface-metadata">20.3.2. 使用源碼級元資料</a></span></dt>
+<dt><span class="section"><a href="ch20s03.html#jmx-interface-annotations">20.3.3. 使用JDK 5.0的註釋</a></span></dt>
+<dt><span class="section"><a href="ch20s03.html#jmx-interface-metadata-types">20.3.4. 源程式碼級的元資料型別</a></span></dt>
+<dt><span class="section"><a href="ch20s03.html#jmx-interface-autodetect">20.3.5. <code class="classname">AutodetectCapableMBeanInfoAssembler</code>介面</a></span></dt>
+<dt><span class="section"><a href="ch20s03.html#jmx-interface-java">20.3.6. 用Java介面定義管理介面</a></span></dt>
+<dt><span class="section"><a href="ch20s03.html#jmx-interface-methodnames">20.3.7. 使用<code class="classname">MethodNameBasedMBeanInfoAssembler</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch20s04.html">20.4. 控制Bean的<code class="classname">ObjectName</code></a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch20s04.html#jmx-naming-properties">20.4.1. 從<code class="classname">Properties</code>讀取<code class="classname">Properties</code></a></span></dt>
+<dt><span class="section"><a href="ch20s04.html#jmx-naming-metadata">20.4.2. 使用<code class="classname">MetadataNamingStrategy</code></a></span></dt>
+<dt><span class="section"><a href="ch20s04.html#jmx-context-mbeanexport">20.4.3. <code class="literal">&lt;context:mbean-export/&gt;</code>元素</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch20s05.html">20.5. JSR-160連接器</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch20s05.html#jmx-jsr160-server">20.5.1. 伺服器端連接器</a></span></dt>
+<dt><span class="section"><a href="ch20s05.html#jmx-jsr160-client">20.5.2. 客戶端連接器</a></span></dt>
+<dt><span class="section"><a href="ch20s05.html#jmx-jsr160-protocols">20.5.3. 基於Burlap/Hessian/SOAP的JMX</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch20s06.html">20.6. 通過代理存取MBean</a></span></dt>
+<dt><span class="section"><a href="ch20s07.html">20.7. 通知</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch20s07.html#jmx-notifications-listeners">20.7.1. 為通知註冊監聽器</a></span></dt>
+<dt><span class="section"><a href="ch20s07.html#jmx-notifications-publishing">20.7.2. 發佈通知</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch20s08.html">20.8. 更多資源</a></span></dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch21.html">21. JCA CCI</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch21.html#cci-introduction">21.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch21s02.html">21.2. 配置CCI</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch21s02.html#cci-config-connector">21.2.1. 連接器配置</a></span></dt>
+<dt><span class="section"><a href="ch21s02.html#cci-config-connectionfactory">21.2.2. 在Spring中配置<code class="interfacename">ConnectionFactory</code></a></span></dt>
+<dt><span class="section"><a href="ch21s02.html#cci-config-cci-connections">21.2.3. 配置CCI連接</a></span></dt>
+<dt><span class="section"><a href="ch21s02.html#cci-config-single-connection">21.2.4. 使用一個 CCI 單連接</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch21s03.html">21.3. 使用Spring的 CCI存取支持</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch21s03.html#cci-record-creator">21.3.1. 記錄轉換</a></span></dt>
+<dt><span class="section"><a href="ch21s03.html#cci-using-template">21.3.2. <code class="classname">CciTemplate</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch21s03.html#cci-using-dao">21.3.3. DAO支持</a></span></dt>
+<dt><span class="section"><a href="ch21s03.html#automatic-output-generation">21.3.4. 自動輸出記錄產生</a></span></dt>
+<dt><span class="section"><a href="ch21s03.html#template-summary">21.3.5. 總結</a></span></dt>
+<dt><span class="section"><a href="ch21s03.html#cci-straight">21.3.6. 直接使用一個CCI <code class="interfacename">Connection</code>介面和<code class="interfacename">Interaction</code>介面</a></span></dt>
+<dt><span class="section"><a href="ch21s03.html#cci-template-example">21.3.7. <code class="classname">CciTemplate</code> 使用範例</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch21s04.html">21.4. 建模CCI存取為操作物件</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch21s04.html#cci-object-mapping-record">21.4.1. <code class="classname">MappingRecordOperation</code></a></span></dt>
+<dt><span class="section"><a href="ch21s04.html#cci-object-mapping-comm-area">21.4.2. <code class="classname">MappingCommAreaOperation</code></a></span></dt>
+<dt><span class="section"><a href="ch21s04.html#cci-automatic-record-gen">21.4.3. 自動產生輸出記錄</a></span></dt>
+<dt><span class="section"><a href="ch21s04.html#cci-object-summary">21.4.4. 總結</a></span></dt>
+<dt><span class="section"><a href="ch21s04.html#cci-objects-mappring-record-example">21.4.5. <code class="classname">MappingRecordOperation</code> 使用範例</a></span></dt>
+<dt><span class="section"><a href="ch21s04.html#cci-objects-mapping-comm-area-example">21.4.6. <code class="classname">MappingCommAreaOperation</code> 使用範例</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch21s05.html">21.5. 事務</a></span></dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch22.html">22. Spring郵件抽象層</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch22.html#mail-introduction">22.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch22s02.html">22.2. 使用Spring郵件抽象</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch22s02.html#mail-usage-simple">22.2.1. <code class="interfacename">MailSender</code> 和 <code class="classname">SimpleMailMessage</code> 的基本用法</a></span></dt>
+<dt><span class="section"><a href="ch22s02.html#mail-usage-mime">22.2.2. 使用 <code class="interfacename">JavaMailSender</code> 和 <code class="classname">MimeMessagePreparator</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch22s03.html">22.3. 使用<code class="classname">MimeMessageHelper</code></a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch22s03.html#mail-javamail-mime-attachments">22.3.1. 發送附件和嵌入式資源(inline resources)</a></span></dt>
+<dt><span class="section"><a href="ch22s03.html#mail-templates">22.3.2. 使用模板來創建郵件內容</a></span></dt>
+</dl></dd>
+</dl></dd>
+<dt><span class="chapter"><a href="ch23.html">23. Spring中的定時調度(Scheduling)和執行緒池(Thread Pooling)</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch23.html#scheduling-introduction">23.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch23s02.html">23.2. 使用OpenSymphony Quartz 調度器</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch23s02.html#scheduling-quartz-jobdetail">23.2.1. 使用JobDetailBean</a></span></dt>
+<dt><span class="section"><a href="ch23s02.html#scheduling-quartz-method-invoking-job">23.2.2. 使用 <code class="classname">MethodInvokingJobDetailFactoryBean</code></a></span></dt>
+<dt><span class="section"><a href="ch23s02.html#scheduling-quartz-cron">23.2.3. 使用triggers和<code class="classname">SchedulerFactoryBean</code>來包裹任務</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch23s03.html">23.3. 使用JDK Timer支持類別</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch23s03.html#scheduling-jdk-timer-creating">23.3.1. 創建定制的timers</a></span></dt>
+<dt><span class="section"><a href="ch23s03.html#scheduling-jdk-timer-method-invoking-task">23.3.2. 使用 <code class="classname">MethodInvokingTimerTaskFactoryBean</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch23s03.html#scheduling-jdk-timer-factory-bean">23.3.3. 最後：使用<code class="classname">TimerFactoryBean</code>來設置任務</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch23s04.html">23.4. Spring<code class="interfacename">TaskExecutor</code>抽象</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch23s04.html#scheduling-task-executor-interface">23.4.1. <code class="interfacename">TaskExecutor</code>介面</a></span></dt>
+<dt><span class="section"><a href="ch23s04.html#scheduling-task-executor-types">23.4.2. <code class="interfacename">TaskExecutor</code>型別</a></span></dt>
+<dt><span class="section"><a href="ch23s04.html#scheduling-task-executor-usage">23.4.3. 使用<code class="interfacename">TaskExecutor</code></a></span></dt>
+</dl></dd>
+</dl></dd>
+<dt><span class="chapter"><a href="ch24.html">24. 動態語言支持</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch24.html#dynamic-language-introduction">24.1. 介紹</a></span></dt>
+<dt><span class="section"><a href="ch24s02.html">24.2. 第一個範例</a></span></dt>
+<dt><span class="section"><a href="ch24s03.html">24.3. 定義動態語言支持的bean</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch24s03.html#dynamic-language-beans-concepts">24.3.1. 公共概念</a></span></dt>
+<dt><span class="section"><a href="ch24s03.html#dynamic-language-beans-jruby">24.3.2. JRuby beans</a></span></dt>
+<dt><span class="section"><a href="ch24s03.html#dynamic-language-beans-groovy">24.3.3. Groovy beans</a></span></dt>
+<dt><span class="section"><a href="ch24s03.html#dynamic-language-beans-bsh">24.3.4. BeanShell beans</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch24s04.html">24.4. 場景</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch24s04.html#dynamic-language-scenarios-controllers">24.4.1. Spring MVC控制器的文稿化</a></span></dt>
+<dt><span class="section"><a href="ch24s04.html#dynamic-language-scenarios-validators">24.4.2. Validator的文稿化</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch24s05.html">24.5. Bits and bobs</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch24s05.html#dynamic-language-final-notes-aop">24.5.1. AOP - 通知文稿化bean</a></span></dt>
+<dt><span class="section"><a href="ch24s05.html#dynamic-language-final-notes-scopes">24.5.2. 作用域</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch24s06.html">24.6. 更多的資源</a></span></dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch25.html">25. 註釋和源程式碼級的元資料支持</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch25.html#metadata-introduction">25.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch25s02.html">25.2. Spring的元資料支持</a></span></dt>
+<dt><span class="section"><a href="ch25s03.html">25.3. 註釋</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch25s03.html#metadata-annotations-required">25.3.1. @<code class="interfacename">Required</code></a></span></dt>
+<dt><span class="section"><a href="ch25s03.html#metadata-annotations-other">25.3.2. Spring中的其它@Annotations</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch25s04.html">25.4. Jakarta Commons Attributes整合</a></span></dt>
+<dt><span class="section"><a href="ch25s05.html">25.5. 元資料和Spring AOP自動代理</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch25s05.html#metadata-fundamentals">25.5.1. 基本原理</a></span></dt>
+<dt><span class="section"><a href="ch25s05.html#metadata-tx">25.5.2. 宣告式事務管理</a></span></dt>
+</dl></dd>
+</dl></dd>
+</dl>
+</div>
+</div>
+</div></body>
+</html>

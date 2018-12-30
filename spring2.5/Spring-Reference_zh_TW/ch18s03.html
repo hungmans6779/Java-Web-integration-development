@@ -1,0 +1,119 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>18.3.&#160;使用Spring提供的輔助類別實作EJB元件</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch18.html" title="第&#160;18&#160;章&#160;Enterprise Java Beans (EJB) 整合">
+<link rel="prev" href="ch18s02.html" title="18.2.&#160;存取EJB">
+<link rel="next" href="ch19.html" title="第&#160;19&#160;章&#160;JMS (Java Message Service)">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="ejb-implementation"></a>18.3.&#160;使用Spring提供的輔助類別實作EJB元件</h2></div></div></div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="ejb-implementation-ejb2"></a>18.3.1.&#160;EJB 2.x base classes</h3></div></div></div>
+<p>Spring也提供了一些輔助類別來為EJB元件的實作提供便利。它們是為了倡導一些好的實踐經驗，比如把商業邏輯放在在EJB層之後的POJO中實作，只把事務劃分和遠端調用這些職責留給EJB。</p>
+<p>要實作一個無狀態或有狀態的Session Bean，或訊息驅動Bean，你只需要從<code class="classname">AbstractStatelessSessionBean</code>、<code class="classname">AbstractStatefulSessionBean</code>和<code class="classname">AbstractMessageDrivenBean</code>/<code class="classname">AbstractJmsMessageDrivenBean</code>分別繼承你的實作類別。</p>
+<p>考慮這個無狀態Session bean的例子：實際上我們把無狀態Session Bean的實作委託給一個普通的Java服務物件。業務介面的定義如下：</p>
+<pre class="programlisting">public interface MyComponent {
+    public void myMethod(...);
+    ...
+}</pre>
+<p>這是簡單Java物件的實作：</p>
+<pre class="programlisting">public class MyComponentImpl implements MyComponent {
+    public String myMethod(...) {
+        ...
+    }
+    ...
+}</pre>
+<p>最後是無狀態Session Bean自身：</p>
+<pre class="programlisting">public class MyFacadeEJB extends AbstractStatelessSessionBean
+        implements MyFacadeLocal {
+
+    private MyComponent myComp;
+
+    /**
+     * Obtain our POJO service object from the BeanFactory/ApplicationContext
+     * @see org.springframework.ejb.support.AbstractStatelessSessionBean#onEjbCreate()
+     */
+    protected void onEjbCreate() throws CreateException {
+        myComp = (MyComponent) getBeanFactory().getBean(
+            ServicesConstants.CONTEXT_MYCOMP_ID);
+    }
+
+    // for business method, delegate to POJO service impl.
+    public String myFacadeMethod(...) {
+        return myComp.myMethod(...);
+    }
+    ...
+}</pre>
+<p>缺省情況下，Spring EJB支持類別的基類別在其生命週期中將創建並載入一個Spring IoC容器供EJB使用(比如像前面獲得POJO服務物件的程式碼)。載入的工作是通過一個策略物件完成的，它是<code class="classname">BeanFactoryLocator</code>的子類別。
+預設情況下，實際使用的<code class="classname">BeanFactoryLocator</code>的實作類別是<code class="classname">ContextJndiBeanFactoryLocator</code>，它根據一個被指定為JNDI環境變數的資源位置來創建一個ApplicationContext物件(對於EJB類別，路徑是
+<code class="literal">java:comp/env/ejb/BeanFactoryPath</code>)。如果需要改變BeanFactory或ApplicationContext的載入策略，我們可以在
+<code class="literal">setSessionContext()</code>方法調用或在具體EJB子類別的建構函數中調用<code class="literal">setBeanFactoryLocator()</code>方法來覆寫預設使用的
+<code class="classname">BeanFactoryLocator</code>實作類別。具體細節請參考JavaDoc。
+		</p>
+<p>如JavaDoc中所述，有狀態Session Bean在其生命週期中將會被鈍化並重新啟動，由於(一般情況下)使用了一個不可串行化的容器實例，不可以被EJB容器保存，
+所以還需要手動在<code class="literal">ejbPassivate</code>和<code class="literal">ejbActivate</code>
+這兩個方法中分別調用<code class="literal">unloadBeanFactory()</code>和<code class="literal">loadBeanFactory</code>，
+才能在鈍化或啟動的時候卸載或載入。</p>
+<p>有些情況下，要載入ApplicationContext以使用EJB元件，<code class="classname">ContextJndiBeanFactoryLocator</code>的預設實作基本上足夠了，
+不過，當<code class="classname">ApplicationContext</code>需要載入多個bean，或這些bean初始化所需的時間或記憶體
+很多的時候(例如Hibernate的<code class="classname">SessionFactory</code>的初始化)，就有可能出問題，因為
+每個EJB元件都有自己的副本。這種情況下，使用者會想重載<code class="classname">ContextJndiBeanFactoryLocator</code>的預設實作，並使用其它
+<code class="classname">BeanFactoryLocator</code>的變體，例如<code class="classname">ContextSingletonBeanFactoryLocator</code>
+，他們可以載入並在多個EJB或者其客戶端間共享一個容器。這樣做相當簡單，只需要給EJB添加類似於如下的程式碼：</p>
+<pre class="programlisting">   /**
+    * Override default BeanFactoryLocator implementation
+    * @see javax.ejb.SessionBean#setSessionContext(javax.ejb.SessionContext)
+    */
+   public void setSessionContext(SessionContext sessionContext) {
+       super.setSessionContext(sessionContext);
+       setBeanFactoryLocator(ContextSingletonBeanFactoryLocator.getInstance());
+       setBeanFactoryLocatorKey(ServicesConstants.PRIMARY_CONTEXT_ID);
+   }</pre>
+<p>然後需要創建一個名為<code class="literal">beanRefContext.xml</code>的bean定義檔案。這個檔案定義了EJB中所有可能用到的bean處理器(通常以應用上下文的形式)。許多情況下，這個檔案只包括一個bean的定義，如下所示(檔案<code class="literal">businessApplicationContext.xml</code>包括了所有業務服務POJO的bean定義)：</p>
+<pre class="programlisting">&lt;beans&gt;
+    &lt;bean id="businessBeanFactory" class="org.springframework.context.support.ClassPathXmlApplicationContext"&gt;
+        &lt;constructor-arg value="businessApplicationContext.xml" /&gt;
+    &lt;/bean&gt;
+&lt;/beans&gt;</pre>
+<p>上例中，常數<code class="literal">ServicesConstants.PRIMARY_CONTEXT_ID</code>定義如下： </p>
+<pre class="programlisting">public static final String ServicesConstants.PRIMARY_CONTEXT_ID = "businessBeanFactory";</pre>
+<p><code class="classname">BeanFactoryLocator</code>和類別<code class="classname">ContextSingletonBeanFactoryLocator</code>的更多使用資訊請分別查看他們各自的Javadoc文檔。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="ejb-implementation-ejb3"></a>18.3.2.&#160;EJB 3 注入攔截</h3></div></div></div>
+<p>
+         對EJB3 Session bean和Message-Driven Bean來說, Spring在EJB元件類別
+        <code class="classname">org.springframework.ejb.interceptor.SpringBeanAutowiringInterceptor</code>中提供了實用的攔截器來解析Spring2.5的註釋<code class="literal">@Autowired</code>。
+         這個攔截器的使用有兩種方式，可以在EJB元件類別裡使用<code class="code">@Interceptors</code>註釋，也可以在EJB部署描述檔案中使用XML元素<code class="literal">interceptor-binding</code>。
+      </p>
+<pre class="programlisting">@Stateless
+@Interceptors(SpringBeanAutowiringInterceptor.class)
+public class MyFacadeEJB implements MyFacadeLocal {
+
+    // automatically injected with a matching Spring bean
+    @Autowired
+    private MyComponent myComp;
+
+    // for business method, delegate to POJO service impl.
+    public String myFacadeMethod(...) {
+        return myComp.myMethod(...);
+    }
+    ...
+}</pre>
+<p>
+        <code class="classname">SpringBeanAutowiringInterceptor</code> 預設情況下是從<code class="classname">ContextSingletonBeanFactoryLocator</code>獲得目標bean的，後者定義在<code class="literal">beanRefContext.xml</code>檔案中。通常情況下，最好使用單獨的上下文定義，並且根據型別而不是名稱來獲得。然而，如果你需要在多個上下文定義中切換，那麼就需要一個特定的定位鍵。這個定位鍵（例如定義在<code class="literal">beanRefContext.xml</code>中的上下文名稱）可以通過以下兩種方式來明確的指定。一種方式是在定制的<code class="classname">SpringBeanAutowiringInterceptor</code>子類別中覆寫<code class="literal">getBeanFactoryLocatorKey</code>方法。
+      </p>
+<p>
+        另一種方式是覆寫<code class="classname">SpringBeanAutowiringInterceptor</code>的
+        <code class="literal">getBeanFactory</code> 方法，例如從定制支持類別中獲得一個共享的<code class="interfacename">ApplicationContext</code>。
+      </p>
+</div>
+</div></body>
+</html>

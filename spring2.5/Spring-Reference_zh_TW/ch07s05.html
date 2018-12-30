@@ -1,0 +1,268 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>7.5.&#160;使用ProxyFactoryBean創建AOP代理</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch07.html" title="第&#160;7&#160;章&#160;Spring AOP APIs">
+<link rel="prev" href="ch07s04.html" title="7.4.&#160;Spring裡的Advisor API">
+<link rel="next" href="ch07s06.html" title="7.6.&#160;簡化代理定義">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="aop-pfb"></a>7.5.&#160;使用ProxyFactoryBean創建AOP代理</h2></div></div></div>
+<p>如果你正在使用Spring IoC容器（即ApplicationContext或BeanFactory）來管理你的業務物件--這正是你應該做的--你也許會想要使用Spring中關於AOP的FactoryBean。
+    （記住使用處理器bean引入一個間接層之後，我們就可以創建不同型別的物件了）。</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>Spring 2.0的AOP支持也在底層使用處理器bean。</p>
+</div>
+<p>在Spring裡創建一個AOP代理的基本方法是使用<span class="emphasis"><em>org.springframework.aop.framework.ProxyFactoryBean</em></span>。
+    這個類別對應用的切入點和通知提供了完整的控制能力（包括它們的應用順序）。然而如果你不需要這種控制，你會喜歡更簡單的方式。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="aop-pfb-1"></a>7.5.1.&#160;基礎</h3></div></div></div>
+<p>像其它的<code class="literal">FactoryBean</code>實作一樣，<code class="literal">ProxyFactoryBean</code>引入了一個間接層。如果你定義一個名為<code class="literal">foo</code>的<code class="literal">ProxyFactoryBean</code>，
+            參考<code class="literal">foo</code>的物件看到的將不是<code class="literal">ProxyFactoryBean</code>實例本身，而是一個<code class="literal">ProxyFactoryBean</code>實作裡<code class="literal">getObject() </code>方法所創建的物件。
+        這個方法將創建一個AOP代理，它包裹了一個目標物件。</p>
+<p>使用<code class="literal">ProxyFactoryBean</code>或者其它IoC相關類別帶來的最重要的好處之一就是創建AOP代理，這意味著通知和切入點也可以由IoC來管理。這是一個強大的功能並使得某些特定的解決方案成為可能，
+            而這些用其它AOP框架很難做到。例如，一個通知也許本身也要參考應用程序物件（不僅僅是其它AOP框架中也可以存取的目標物件），這令你可以從依賴注射的可拔插特性中獲益。
+        </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="aop-pfb-2"></a>7.5.2.&#160;JavaBean屬性</h3></div></div></div>
+<p>
+            通常情況下Spring提供了大多數的<code class="interfacename">FactoryBean</code>實作，<code class="classname">ProxyFactoryBean</code>類別本身也是一個JavaBean。它的屬性被用來：
+        </p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>指定你希望代理的目標物件</p></li>
+<li><p>指定是否使用CGLIB（查看下面叫做<a href="ch07s05.html#aop-pfb-proxy-types" title="7.5.3.&#160;基於JDK和CGLIB的代理">第&#160;7.5.3&#160;節 「基於JDK和CGLIB的代理」</a>的小節）。</p></li>
+</ul></div>
+<p>
+            一些主要屬性從<code class="classname">org.springframework.aop.framework.ProxyConfig</code>裡繼承下來（這個類別是Spring裡所有AOP代理處理器的父類別）。這些主要屬性包括：
+        </p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>
+                    <code class="literal">proxyTargetClass</code>：這個屬性為<code class="literal">true</code>時，目標類別本身被代理而不是目標類別的介面。如果這個屬性值被設為<code class="literal">true</code>，CGLIB代理將被創建（可以參看下面名為<a href="ch07s05.html#aop-pfb-proxy-types" title="7.5.3.&#160;基於JDK和CGLIB的代理">第&#160;7.5.3&#160;節 「基於JDK和CGLIB的代理」</a>的章節）。
+                </p></li>
+<li><p>
+                    <code class="literal">optimize</code>：用來控制<span class="emphasis"><em>通過CGLIB創建</em></span>的代理是否使用激進的優化策略。
+                    除非完全瞭解AOP代理如何處理優化，否則不推薦使用者使用這個設置。目前這個屬性僅用於CGLIB代理；
+                    對於JDK動態代理（缺省代理）無效。
+				</p></li>
+<li><p>
+					<code class="literal">frozen</code>：如果一個代理配置是<code class="literal">frozen</code>的，就不允許對該配置進行修改。
+					這在簡單優化和不希望調用者在代理創建後操作代理（通過<code class="interfacename">Advised</code>介面）
+					時很有用。缺省值為<code class="literal">false</code>，即可以進行類似添加附加通知的操作。
+				</p></li>
+<li><p>
+                    <code class="literal">exposeProxy</code>：決定當前代理是否被暴露在一個<code class="classname">ThreadLocal</code>
+                    中以便被目標物件存取。如果目標物件需要獲取代理而且<code class="literal">exposeProxy</code>屬性被設為
+                    <code class="literal">true</code>，目標對象可以使用<code class="literal">AopContext.currentProxy()</code>方法。 
+                </p></li>
+<li><p>
+                    <code class="literal">aopProxyFactory</code>：使用<code class="interfacename">AopProxyFactory</code>的實作。這提供了一種方法來自定義是否使用動態代理，CGLIB或其它代理策略。
+                    缺省實作將根據情況選擇動態代理或者CGLIB。一般情況下應該沒有使用這個屬性的需要；它是被設計來在Spring 1.1中添加新的代理型別的。
+                </p></li>
+</ul></div>
+<p><code class="classname">ProxyFactoryBean</code>中需要說明的其它屬性包括：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>
+                    <code class="literal">proxyInterfaces</code>：需要代理的介面名的字元串陣列。
+                    如果沒有提供，將為目標類別使用一個CGLIB代理（也可以查看下面名為<a href="ch07s05.html#aop-pfb-proxy-types" title="7.5.3.&#160;基於JDK和CGLIB的代理">第&#160;7.5.3&#160;節 「基於JDK和CGLIB的代理」</a>的章節）。 
+                </p></li>
+<li>
+<p>
+                    <code class="literal">interceptorNames</code>：<code class="interfacename">Advisor</code>的字元串陣列，可以包括攔截器或其它通知的名字。
+                    順序是很重要的，排在前面的將被優先服務。就是說列表裡的第一個攔截器將能夠第一個攔截調用。
+                </p>
+<p>
+                    這裡的名字是當前處理器中bean的名字，包括父處理器中bean的名字。這裡你不能使用bean的參考因為這會導致<code class="classname">ProxyFactoryBean</code>忽略通知的單例設置。
+                </p>
+<p>
+                    你可以把一個攔截器的名字加上一個星號作為後綴（<code class="literal">*</code>）。這將導致這個應用程序裡所有名字以星號之前部分開頭的通知器都被應用。
+                    你可以在<a href="ch07s05.html#aop-global-advisors" title="7.5.6.&#160;使用「全局」通知器">第&#160;7.5.6&#160;節 「使用「全局」通知器」</a> 發現一個使用這個特性的例子。
+                </p>
+</li>
+<li><p>
+                    單例：處理器是否應該返回同一個物件，不論方法<code class="literal">getObject()</code>被調用的多頻繁。
+                    多個<code class="interfacename">FactoryBean</code>實作都提供了這個方法。缺省值是<code class="literal">true</code>。
+                    如果你希望使用有狀態的通知--例如，有狀態的mixin--可以把單例屬性的值設置為<code class="literal">false</code>來使用原型通知。
+                </p></li>
+</ul></div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="aop-pfb-proxy-types"></a>7.5.3.&#160;基於JDK和CGLIB的代理</h3></div></div></div>
+<p>
+            這個小節作為說明性文檔，解釋了對於一個目標物件（需要被代理的物件），<code class="classname">ProxyFactryBean</code>是如何決定究竟創建一個基於JDK還是CGLIB的代理的。
+        </p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>
+                <code class="classname">ProxyFactoryBean</code>需要創建基於JDK還是CGLIB代理的具體行為在版本1.2.x和2.0中有所不同。
+                現在<code class="classname">ProxyFactoryBean</code>在關於自動檢測介面方面使用了與<code class="classname">TransactionProxyFactoryBean</code>相似的語義。	
+            </p>
+</div>
+<p>
+            如果一個需要被代理的目標物件的類別（後面將簡單地稱它為目標類別）沒有實作任何介面，那麼一個基於CGLIB的代理將被創建。
+            這是最簡單的場景，因為JDK代理是基於介面的，沒有介面意味著沒有使用JDK進行代理的可能。
+            在目標bean裡將被插入探測程式碼，通過<code class="literal">interceptorNames</code>屬性給出了攔截器的列表。
+            注意一個基於CGLIB的代理將被創建即使<code class="classname">ProxyFactoryBean</code>的<code class="literal">proxyTargetClass</code>屬性被設置為<code class="literal">false</code>。
+            （很明顯這種情況下對這個屬性進行設置是沒有意義的，最好把它從bean的定義中移除，因為雖然這只是個多餘的屬性，但在許多情況下會引起混淆。）
+        </p>
+<p>
+            如果目標類別實作了一個（或者更多）介面，那麼創建代理的型別將根據<code class="classname">ProxyFactoryBean</code>的配置來決定。
+        </p>
+<p>
+            如果<code class="classname">ProxyFactoryBean</code>的<code class="literal">proxyTargetClass</code>屬性被設為<code class="literal">true</code>，那麼一個基於CGLIB的代理將創建。
+            這樣的規定是有意義的，遵循了最小驚訝法則（保證了設定的一致性）。甚至當<code class="classname">ProxyFactoryBean</code>的<code class="literal">proxyInterfaces</code>屬性被設置為一個或者多個全限定介面名，
+            而<code class="literal">proxyTargetClass</code>屬性被設置為<code class="literal">true</code>仍然<span class="emphasis"><em>將</em></span>實際使用基於CGLIB的代理。
+        </p>
+<p>
+            如果<code class="classname">ProxyFactoryBean</code>的<code class="literal">proxyInterfaces</code>屬性被設置為一個或者多個全限定介面名，一個基於JDK的代理將被創建。
+            被創建的代理將實作所有在<code class="literal">proxyInterfaces</code>屬性裡被說明的介面；
+            如果目標類別實作了全部在<code class="literal">proxyInterfaces</code>屬性裡說明的介面以及一些額外介面，返回的代理將只實作說明的介面而不會實作那些額外介面。
+        </p>
+<p>
+            如果<code class="classname">ProxyFactoryBean</code>的<code class="literal">proxyInterfaces</code>屬性<span class="emphasis"><em>沒有</em></span>被設置，
+            但是目標類別<span class="emphasis"><em>實作了一個（或者更多）</em></span>介面，那麼<code class="classname">ProxyFactoryBean</code>將自動檢測到這個目標類別已經實作了至少一個介面，
+            一個基於JDK的代理將被創建。被實際代理的介面將是目標類別所實作的<span class="emphasis"><em>全部</em></span>介面；
+            實際上，這和在<code class="literal">proxyInterfaces</code>屬性中列出目標類別實作的每個介面的情況是一樣的。
+            然而，這將顯著地減少工作量以及輸入錯誤的可能性。
+        </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="aop-api-proxying-intf"></a>7.5.4.&#160;對介面進行代理</h3></div></div></div>
+<p>
+            讓我們看一個關於<code class="classname">ProxyFactoryBean</code>的簡單例子。這個例子涉及：
+        </p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>一個將被代理的<span class="emphasis"><em>目標bean</em></span>。在下面的例子裡這個bean是「personTarget」。</p></li>
+<li><p>被用來提供通知的一個通知器和一個攔截器。</p></li>
+<li><p>一個AOP代理bean的定義，它說明了目標物件（personTarget bean）以及需要代理的介面，還包括需要被應用的通知。</p></li>
+</ul></div>
+<p>
+            </p>
+<pre class="programlisting">&lt;bean id="personTarget" class="com.mycompany.PersonImpl"&gt;
+                &lt;property name="name"&gt;&lt;value&gt;Tony&lt;/value&gt;&lt;/property&gt;
+                &lt;property name="age"&gt;&lt;value&gt;51&lt;/value&gt;&lt;/property&gt;
+                &lt;/bean&gt;
+                
+                &lt;bean id="myAdvisor" class="com.mycompany.MyAdvisor"&gt;
+                &lt;property name="someProperty"&gt;&lt;value&gt;Custom string property value&lt;/value&gt;&lt;/property&gt;
+                &lt;/bean&gt;
+                
+                &lt;bean id="debugInterceptor" class="org.springframework.aop.interceptor.DebugInterceptor"&gt;
+                &lt;/bean&gt;
+                
+                &lt;bean id="person" 
+                class="org.springframework.aop.framework.ProxyFactoryBean"&gt;
+                &lt;property name="proxyInterfaces"&gt;&lt;value&gt;com.mycompany.Person&lt;/value&gt;&lt;/property&gt;
+                
+                &lt;property name="target"&gt;&lt;ref local="personTarget"/&gt;&lt;/property&gt;
+                &lt;property name="interceptorNames"&gt;
+                &lt;list&gt;
+                &lt;value&gt;myAdvisor&lt;/value&gt;
+                &lt;value&gt;debugInterceptor&lt;/value&gt;
+                &lt;/list&gt;
+                &lt;/property&gt;
+            &lt;/bean&gt;</pre>
+<p>
+        </p>
+<p>注意<code class="literal">interceptorNames</code>屬性接受一組字元串：當前處理器中攔截器或通知器bean的名字。
+            攔截器，通知器，前置, 後置和異常通知對象都可以在這裡被使用。這裡通知器的順序是很重要的。
+        </p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>你也許很奇怪為什麼這個列表不保存bean的參考。理由是如果ProxyFactoryBean的singleton屬性被設置為false，它必須返回獨立的代理實例。
+                如果任何通知器本身是一個原型，則每次都返回一個獨立實例，因此它必須能夠從處理器裡獲得原型的一個實例；保存一個參考是不夠的。
+            </p>
+</div>
+<p>上面「person」 bean的定義可以被用來取代一個Person介面的實作，就像下面這樣：</p>
+<pre class="programlisting">Person person = (Person) factory.getBean("person");</pre>
+<p>在同一個IoC上下文中其它的bean可以對這個bean有基於型別的依賴，就像對一個普通的Java物件那樣：</p>
+<p>
+            </p>
+<pre class="programlisting">&lt;bean id="personUser" class="com.mycompany.PersonUser"&gt;
+                &lt;property name="person"&gt;&lt;ref local="person" /&gt;&lt;/property&gt;
+            &lt;/bean&gt;</pre>
+<p>
+        </p>
+<p>這個例子裡的<code class="literal">PersonUser</code>類別將暴露一個型別為Person的屬性。就像我們關心的那樣，AOP代理可以透明地取代一個「真實」的person介面實作。
+        然而，它的類別將是一個動態代理類別。 它可以被轉型成<code class="literal">Advised</code>介面（將在下面討論）。</p>
+<p>就像下面這樣，你可以使用一個匿名<span class="emphasis"><em>內部bean</em></span>來隱藏目標和代理之間的區別。
+        僅僅<code class="literal">ProxyFactoryBean</code>的定義有所不同；通知的定義只是由於完整性的原因而被包括進來：</p>
+<p>
+            </p>
+<pre class="programlisting">&lt;bean id="myAdvisor" class="com.mycompany.MyAdvisor"&gt;
+                &lt;property name="someProperty"&gt;&lt;value&gt;Custom string property value&lt;/value&gt;&lt;/property&gt;
+                &lt;/bean&gt;
+                
+                &lt;bean id="debugInterceptor" class="org.springframework.aop.interceptor.DebugInterceptor"/&gt;
+                
+                &lt;bean id="person" class="org.springframework.aop.framework.ProxyFactoryBean"&gt;
+                &lt;property name="proxyInterfaces"&gt;&lt;value&gt;com.mycompany.Person&lt;/value&gt;&lt;/property&gt;
+                &lt;!-- Use inner bean, not local reference to target --&gt;
+                &lt;property name="target"&gt;
+                &lt;bean class="com.mycompany.PersonImpl"&gt;
+                &lt;property name="name"&gt;&lt;value&gt;Tony&lt;/value&gt;&lt;/property&gt;
+                &lt;property name="age"&gt;&lt;value&gt;51&lt;/value&gt;&lt;/property&gt;
+                &lt;/bean&gt;
+                &lt;/property&gt;
+                &lt;property name="interceptorNames"&gt;
+                &lt;list&gt;
+                &lt;value&gt;myAdvisor&lt;/value&gt;
+                &lt;value&gt;debugInterceptor&lt;/value&gt;
+                &lt;/list&gt;
+                &lt;/property&gt;
+            &lt;/bean&gt;</pre>
+<p>
+        </p>
+<p>對於只需要一個<code class="literal">Person</code>型別物件的情況，這是有好處的：如果你希望阻止應用程序上下文的使用者獲取一個指向未通知物件的參考或者希望避免使用Spring IoC <span class="emphasis"><em>自動織入</em></span> 時的混淆。
+        按理說ProxyFactoryBean定義還有一個優點是它是自包含的。然而，有時能夠從處理器裡獲取未通知的目標也是一個優點：例如，在某些測試場景裡。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="aop-api-proxying-class"></a>7.5.5.&#160;對類別進行代理</h3></div></div></div>
+<p>如果你需要代理一個類別而不是代理一個或是更多介面，那麼情況將是怎樣？</p>
+<p>想像在我們上面的例子裡，不存在<code class="literal">Person</code>介面：我們需要通知一個叫做<code class="literal">Person</code>的類別，它沒有實作任何業務介面。
+            在這種情況下，你可以配置Spring使用CGLIB代理，而不是動態代理。這只需簡單地把上面ProxyFactoryBean的<code class="literal">proxyTargetClass</code>屬性設為true。
+            雖然最佳方案是導向介面程式而不是類別，但在與遺留程式碼一起工作時，通知沒有實作介面的類別的能力是非常有用的。
+            （通常情況下，Spring沒有任何規定。它只是讓你很容易根據實際情況選擇最好的解決方案，避免強迫使用特定方式）。
+        </p>
+<p>也許你希望你能夠在任何情況下都強制使用CGLIB，甚至在你使用介面的時候也這樣做。</p>
+<p>CGLIB通過在運行時產生一個目標類別的子類別來進行代理工作。
+        Spring配置這個產生的子類別對原始目標物件的方法調用進行托管：子類別實作了<span class="emphasis"><em>裝飾器（Decorator）</em></span>模式，把通知織入。</p>
+<p>CGLIB的代理活動應當對使用者是透明的。然而，有一些問題需要被考慮：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><code class="literal">Final</code>方法不可以被通知，因為它們不能被覆寫。</p></li>
+<li><p>你需要在你的類別路徑裡有CGLIB 2的資源庫；使用動態代理的話只需要JDK。</p></li>
+</ul></div>
+<p>在CGLIB代理和動態代理之間的速度差別是很小的。在Spring 1.0中，動態代理會快一點點。但這點可能在將來被改變。
+            這種情況下，選擇使用何種代理時速度不應該成為決定性的理由。
+        </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="aop-global-advisors"></a>7.5.6.&#160;使用「全局」通知器</h3></div></div></div>
+<p>通過在一個攔截器名後添加一個星號，所有bean名字與星號之前部分相匹配的通知都將被加入到通知器鏈中。這讓你很容易添加一組標準的「全局」通知器：</p>
+<pre class="programlisting">
+                &lt;bean id="proxy" class="org.springframework.aop.framework.ProxyFactoryBean"&gt;
+                &lt;property name="target" ref="service"/&gt;
+                &lt;property name="interceptorNames"&gt;
+                &lt;list&gt;
+                &lt;value&gt;globa *&lt;/value&gt;
+                &lt;/list&gt;
+                &lt;/property&gt;
+                &lt;/bean&gt;
+                
+                &lt;bean id="global_debug" class="org.springframework.aop.interceptor.DebugInterceptor"/&gt;
+                &lt;bean id="global_performance" class="org.springframework.aop.interceptor.PerformanceMonitorInterceptor"/&gt;
+        </pre>
+</div>
+</div></body>
+</html>

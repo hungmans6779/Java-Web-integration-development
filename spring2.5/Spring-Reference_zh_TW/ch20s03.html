@@ -1,0 +1,533 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>20.3.&#160;控制Bean的管理介面</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch20.html" title="第&#160;20&#160;章&#160;JMX">
+<link rel="prev" href="ch20s02.html" title="20.2.&#160;將Bean暴露為JMX">
+<link rel="next" href="ch20s04.html" title="20.4.&#160;控制Bean的ObjectName">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="jmx-interface"></a>20.3.&#160;控制Bean的管理介面</h2></div></div></div>
+<p>
+    在前面的例子裡，對於你的Bean，你幾乎沒有什麼控制權。每個輸出Bean的所有的 <span class="emphasis"><em>public</em></span> 屬性和方法都被暴露成了相應的JMX的屬性和操作。要對Bean的確切哪個屬性和方法暴露成JMX的屬性和操作實施細粒度的控制，Spring JMX提供了一套全面的以及可擴展的機制來控制bean的管理介面。
+    </p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jmx-interface-assembler"></a>20.3.1.&#160;<code class="interfacename">MBeanInfoAssembler</code>介面</h3></div></div></div>
+<p>
+      <code class="classname">MBeanExporter</code> 在後台委託給了負責定義bean管理介面的
+      <code class="classname">org.springframework.jmx.export.assembler.MBeanInfoAssembler</code>
+      的一個實作來管理暴露Bean的資訊。缺省實作是 <code class="classname">org.springframework.jmx.export.assembler.SimpleReflectiveMBeanInfoAssembler</code>，它僅定義了一個暴露所有public屬性，public方法的管理介面（像你在前面例子看到的那樣）。
+      Spring還提供了兩個 <code class="interfacename">MBeanInfoAssembler</code> 介面的實作，
+      使你可以使用源碼級元資料或者其他任意介面來控制管理介面的產生。
+      </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jmx-interface-metadata"></a>20.3.2.&#160;使用源碼級元資料</h3></div></div></div>
+<p>
+      使用 <code class="classname">MetadataMBeanInfoAssembler</code>，你能夠用源碼級元資料給你的Bean定義管理介面。
+      <code class="classname">org.springframework.jmx.export.metadata.JmxAttributeSource</code> 封裝了元資料的讀取。
+      Sprin的JMX支持提供了這個介面的兩個現成的實作。對應Commons Attributes是 <code class="classname">org.springframework.jmx.export.metadata.AttributesJmxAttributeSource</code>，
+      而對應於JDK 5.0註釋的是 <code class="classname">org.springframework.jmx.export.annotation.AnnotationJmxAttributeSource</code>。
+      為了使 <code class="classname">MetadataMBeanInfoAssembler</code> 正確運作，（由於沒有缺省的配置實例）。
+      我們必須給它配置一個 <code class="classname">JmxAttributeSource</code> 介面的實例。下面例子中，我們將採取Commons Attributes的方法。
+      </p>
+<p>
+      要標識一個Bean輸出到JMX，你應該用 <code class="classname">ManagedResource</code> 屬性註釋那個Bean的類別。
+      使用Commons Attributes元資料的這種方法的情況下，我們可以在 <code class="literal">org.springframework.jmx.metadata</code> 套件裡找到它。
+      每個你想要暴露為操作的方法，每個你想要暴露的屬性，你都要將用 <code class="classname">ManagedOperation</code> 屬性標識它。
+      當標識屬性的時，為了產生只寫或者只讀的屬性，你可以忽略註釋對應的getter或者setter方法。
+      </p>
+<p>
+      下面例子中，我們用Commons Attributes元資料標識了在前面例子看到的 <code class="classname">JmxTestBean</code> 類別。
+      </p>
+<pre class="programlisting">package org.springframework.jmx;
+
+/**
+ * @@org.springframework.jmx.export.metadata.ManagedResource
+ *  (description="My Managed Bean", objectName="spring:bean=test",
+ *  log=true, logFile="jmx.log", currencyTimeLimit=15, persistPolicy="OnUpdate",
+ *  persistPeriod=200, persistLocation="foo", persistName="bar")
+ */
+public class JmxTestBean implements IJmxTestBean {
+
+  private String name;
+
+  private int age;
+
+
+  /**
+   * @@org.springframework.jmx.export.metadata.ManagedAttribute
+   *   (description="The Age Attribute", currencyTimeLimit=15)
+   */
+  public int getAge() {
+    return age;
+  }
+
+  public void setAge(int age) {
+    this.age = age;
+  }
+
+  /**
+   * @@org.springframework.jmx.export.metadata.ManagedAttribute
+   *  (description="The Name Attribute",  currencyTimeLimit=20,
+   *   defaultValue="bar", persistPolicy="OnUpdate")
+   */
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  /**
+   * @@org.springframework.jmx.export.metadata.ManagedAttribute
+   *   (defaultValue="foo", persistPeriod=300)
+   */
+  public String getName() {
+    return name;
+  }
+
+  /**
+   * @@org.springframework.jmx.export.metadata.ManagedOperation
+   *  (description="Add Two Numbers Together")
+   */
+  public int add(int x, int y) {
+    return x + y;
+  }
+
+  public void dontExposeMe() {
+    throw new RuntimeException();
+  }
+}</pre>
+<p>
+      你看到 <code class="classname">JmxTestBean</code> 被 <code class="classname">ManagedResource</code> 屬性標識了，且 <code class="classname">ManagedResource</code> 又配置了一堆的屬性。
+      這些屬性用來配置由 <code class="classname">MBeanExporter</code> 是產生的MBean的方方面面。
+      <a href="ch20s03.html#jmx-interface-metadata-types" title="20.3.4.&#160;源程式碼級的元資料型別">第&#160;20.3.4&#160;節 「源程式碼級的元資料型別」</a> 章節中將會對這些屬性詳細講解。
+      
+      </p>
+<p>
+      你是不是也發現了 <code class="literal">age</code> 和 <code class="literal">name</code> 屬性都被 <code class="classname">ManagedAttribute</code> 註釋了呢，但是對於 <code class="literal">age</code> 屬性，僅僅getter給標識了。這使得管理介面也將這些屬性包含進去，只是 <code class="literal">age</code> 屬性將是只讀的。
+      
+      </p>
+<p>
+      最後，你也注意到 <code class="literal">add(int, int)</code> 被 <code class="classname">ManagedOperation</code> 標識了，<code class="literal">dontExposeMe()</code> 卻沒有。
+      這使得使用 <code class="classname">MetadataMBeanInfoAssembler</code> 時，管理介面僅包含<code class="literal">add(int, int)</code> 方法。
+      
+      </p>
+<p>
+      下面程式碼顯示了如何使用 <code class="classname">MetadataMBeanInfoAssembler</code> 來配置 <code class="classname">MBeanExporter</code>。
+      </p>
+<pre class="programlisting">&lt;beans&gt;
+
+  &lt;bean id="exporter" class="org.springframework.jmx.export.MBeanExporter"&gt;
+    &lt;property name="beans"&gt;
+      &lt;map&gt;
+        &lt;entry key="bean:name=testBean1" value-ref="testBean"/&gt;
+      &lt;/map&gt;
+    &lt;/property&gt;
+    &lt;property name="assembler" ref="assembler"/&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="testBean" class="org.springframework.jmx.JmxTestBean"&gt;
+    &lt;property name="name" value="TEST"/&gt;
+    &lt;property name="age" value="100"/&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="attributeSource"
+        class="org.springframework.jmx.export.metadata.AttributesJmxAttributeSource"&gt;
+    &lt;property name="attributes"&gt;
+      &lt;bean class="org.springframework.metadata.commons.CommonsAttributes"/&gt;
+    &lt;/property&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="assembler" class="org.springframework.jmx.export.assembler.MetadataMBeanInfoAssembler"&gt;
+    &lt;property name="attributeSource" ref="attributeSource"/&gt;
+  &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<p>
+      這裡你看到了 <code class="classname">MetadataMBeanInfoAssembler</code> Bean被配置了一個 <code class="classname">AttributesJmxAttributeSource</code> 類別的實例，並且通過assembler屬性將之注入到 <code class="classname">MBeanExporter</code> 當中。為通過Spring暴露的MBean得到元資料驅動的管理介面的好處，要做的事情就是這麼多了。
+      </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jmx-interface-annotations"></a>20.3.3.&#160;使用JDK 5.0的註釋</h3></div></div></div>
+<p>
+      為了啟動JDK 5.0的註釋，用它來管理介面定義，Spring提供了一套相當於Commons Attribute註釋和一個策略介面 <code class="interfacename">JmxAttributeSource</code> 的實作類別 <code class="classname">AnnotationsJmxAttributeSource</code>，這個類別可以讓 <code class="interfacename">MBeanInfoAssembler</code> 讀取這些註釋。 
+      </p>
+<p>
+      下例用JDK 5.0註釋型別定義了一個管理介面Bean：
+      </p>
+<pre class="programlisting">package org.springframework.jmx;
+
+import org.springframework.jmx.export.annotation.ManagedResource;
+import org.springframework.jmx.export.annotation.ManagedOperation;
+import org.springframework.jmx.export.annotation.ManagedAttribute;
+
+@ManagedResource(objectName="bean:name=testBean4", description="My Managed Bean", log=true,
+    logFile="jmx.log", currencyTimeLimit=15, persistPolicy="OnUpdate", persistPeriod=200,
+    persistLocation="foo", persistName="bar")
+public class AnnotationTestBean implements IJmxTestBean {
+
+  private String name;
+  private int age;
+
+  @ManagedAttribute(description="The Age Attribute", currencyTimeLimit=15)
+  public int getAge() {
+    return age;
+  }
+
+  public void setAge(int age) {
+    this.age = age;
+  }
+
+  @ManagedAttribute(description="The Name Attribute",
+      currencyTimeLimit=20,
+      defaultValue="bar",
+      persistPolicy="OnUpdate")
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  @ManagedAttribute(defaultValue="foo", persistPeriod=300)
+  public String getName() {
+    return name;
+  }
+
+  @ManagedOperation(description="Add two numbers")
+  @ManagedOperationParameters({
+    @ManagedOperationParameter(name = "x", description = "The first number"),
+    @ManagedOperationParameter(name = "y", description = "The second number")})
+  public int add(int x, int y) {
+    return x + y;
+  }
+
+  public void dontExposeMe() {
+    throw new RuntimeException();
+  }
+}</pre>
+<p>
+      看到了吧，除了元資料定義的基本語法外，改動很小。這種方法在啟動時相對慢些，
+      因為JDK 5.0的註釋要轉換為Commons Attributes使用的類別。儘管如此，這也只是
+      一次性的開銷，JDK 5.0註釋給了編譯時檢查的額外好處。
+      </p>
+<pre class="programlisting">&lt;beans&gt;
+    &lt;bean id="exporter" class="org.springframework.jmx.export.MBeanExporter"&gt;
+        &lt;property name="assembler" ref="assembler"/&gt;
+        &lt;property name="namingStrategy" ref="namingStrategy"/&gt;
+        &lt;property name="autodetect" value="true"/&gt;
+    &lt;/bean&gt;
+
+    &lt;bean id="jmxAttributeSource"
+          class="org.springframework.jmx.export.annotation.AnnotationJmxAttributeSource"/&gt;
+
+    <em class="lineannotation"><span class="lineannotation">
+    &lt;!-- 這會使用註釋元資料創建管理介面 --&gt;</span></em>
+    &lt;bean id="assembler"
+          class="org.springframework.jmx.export.assembler.MetadataMBeanInfoAssembler"&gt;
+        &lt;property name="attributeSource" ref="jmxAttributeSource"/&gt;
+    &lt;/bean&gt;
+
+    <em class="lineannotation"><span class="lineannotation">
+    
+    &lt;!-- 從註釋中得到<code class="classname">ObjectName</code>  --&gt;</span></em>
+    &lt;bean id="namingStrategy"
+          class="org.springframework.jmx.export.naming.MetadataNamingStrategy"&gt;
+        &lt;property name="attributeSource" ref="jmxAttributeSource"/&gt;
+    &lt;/bean&gt;
+
+    &lt;bean id="testBean" class="org.springframework.jmx.AnnotationTestBean"&gt;
+        &lt;property name="name" value="TEST"/&gt;
+        &lt;property name="age" value="100"/&gt;
+    &lt;/bean&gt;
+&lt;/beans&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jmx-interface-metadata-types"></a>20.3.4.&#160;源程式碼級的元資料型別</h3></div></div></div>
+<p>Spring JMX中，可用使用以下源程式碼級的元資料型別：</p>
+<div class="table">
+<a name="jmx-metadata-types"></a><p class="title"><b>表&#160;20.2.&#160;源程式碼級的元資料型別</b></p>
+<div class="table-contents"><table summary="源程式碼級的元資料型別" border="1">
+<colgroup>
+<col align="left">
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th align="center">用途</th>
+<th align="center">Commons Attributes屬性</th>
+<th align="center">JDK 5.0註釋</th>
+<th align="center">屬性/註釋型別</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left">將類別的所有實例標識為JMX受控資源</td>
+<td><code class="classname">ManagedResource</code></td>
+<td><code class="literal">@ManagedResource</code></td>
+<td>Class 類別</td>
+</tr>
+<tr>
+<td align="left">將方法標識為JMX操作</td>
+<td><code class="classname">ManagedOperation</code></td>
+<td><code class="literal">@ManagedOperation</code></td>
+<td>Method方法</td>
+</tr>
+<tr>
+<td align="left">將getter或者setter標識為部分JMX屬性</td>
+<td><code class="classname">ManagedAttribute</code></td>
+<td><code class="classname">@ManagedAttribute</code></td>
+<td>Method (only getters and setters) 方法（僅getters和setters）</td>
+</tr>
+<tr>
+<td align="left">定義操作參數說明</td>
+<td><code class="classname">ManagedOperationParameter</code></td>
+<td>
+<code class="classname">@ManagedOperationParameter</code> 和 <code class="classname">@ManagedOperationParameters</code>
+</td>
+<td>Method 方法</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p><br class="table-break"></p>
+<p>源程式碼級的元資料型別可以使用以下配置參數：</p>
+<div class="table">
+<a name="jmx-metadata-parameters"></a><p class="title"><b>表&#160;20.3.&#160;源程式碼級的元資料參數</b></p>
+<div class="table-contents"><table summary="源程式碼級的元資料參數" border="1">
+<colgroup>
+<col align="left">
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th align="center">參數</th>
+<th align="center">描述</th>
+<th align="center">應用於</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left"><code class="classname">ObjectName</code></td>
+<td>
+<code class="classname">MetadataNamingStrategy</code> 用其來決定一個受控資源的 <code class="classname">ObjectName</code>
+</td>
+<td><code class="classname">ManagedResource</code></td>
+</tr>
+<tr>
+<td align="left"><code class="literal">說明</code></td>
+<td>設置資源，屬性，操作的說明</td>
+<td>
+<code class="classname">ManagedResource</code>、
+                <code class="classname">ManagedAttribute</code>、
+                <code class="classname">ManagedOperation</code>、
+                <code class="classname">ManagedOperationParameter</code>
+</td>
+</tr>
+<tr>
+<td align="left"><code class="literal">currencyTimeLimit</code></td>
+<td>設置 <code class="literal">currencyTimeLimit</code> 描述符欄位的值 <code class="literal">currencyTimeLimit</code>
+</td>
+<td>
+<code class="classname">ManagedResource</code>、<code class="classname">ManagedAttribute</code>
+</td>
+</tr>
+<tr>
+<td align="left"><code class="literal">defaultValue</code></td>
+<td>設置 <code class="literal">defaultValue</code> 描述符欄位的值</td>
+<td><code class="classname">ManagedAttribute</code></td>
+</tr>
+<tr>
+<td align="left"><code class="literal">log</code></td>
+<td>設置 <code class="literal">log</code> 描述符欄位的值</td>
+<td><code class="classname">ManagedResource</code></td>
+</tr>
+<tr>
+<td align="left"><code class="literal">logFile</code></td>
+<td>設置 <code class="literal">logFile</code> 描述符欄位的值</td>
+<td><code class="classname">ManagedResource</code></td>
+</tr>
+<tr>
+<td align="left"><code class="literal">persistPolicy</code></td>
+<td>設置 <code class="literal">persistPolicy</code> 描述符欄位的值</td>
+<td><code class="classname">ManagedResource</code></td>
+</tr>
+<tr>
+<td align="left"><code class="literal">persistPeriod</code></td>
+<td>設置 <code class="literal">persistPeriod</code> 描述符欄位的值</td>
+<td><code class="classname">ManagedResource</code></td>
+</tr>
+<tr>
+<td align="left"><code class="literal">persistLocation</code></td>
+<td>設置 <code class="literal">persistLocation</code> 描述符欄位的值</td>
+<td><code class="classname">ManagedResource</code></td>
+</tr>
+<tr>
+<td align="left"><code class="literal">persistName</code></td>
+<td>設置 <code class="literal">persistName</code> 描述符欄位的值</td>
+<td><code class="classname">ManagedResource</code></td>
+</tr>
+<tr>
+<td align="left"><code class="literal">name</code></td>
+<td>設置操作參數的顯示名稱</td>
+<td><code class="literal">ManagedOperationParameter</code></td>
+</tr>
+<tr>
+<td align="left"><code class="literal">index</code></td>
+<td>設置操作參數的索引</td>
+<td><code class="literal">ManagedOperationParameter</code></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<p><br class="table-break"></p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jmx-interface-autodetect"></a>20.3.5.&#160;<code class="classname">AutodetectCapableMBeanInfoAssembler</code>介面</h3></div></div></div>
+<p>
+      為了進一步簡化配置，Spring引入了 <code class="classname">AutodetectCapableMBeanInfoAssembler</code> 介面，
+      它擴展了 <code class="interfacename">MBeanInfoAssembler</code> 介面，增加了自動探測MBean資源的支持。
+      如果你用一個 <code class="classname">AutodetectCapableMBeanInfoAssembler</code> 實例配置了 <code class="classname">MBeanExporter</code>，那麼它就可以對要暴露給JMX的所有Bean的進行表決。
+      </p>
+<p>
+      <code class="classname">AutodetectCapableMBeanInfo</code> 現成的唯一實作是 <code class="classname">MetadataMBeanInfoAssembler</code>，它「表決」將所有標識了 <code class="classname">ManagedResource</code> 屬性的Bean包含在內。
+      這種情況的缺省方法是用bean的名稱作為 <code class="classname">ObjectName</code>，這樣，我們就得到了這樣一份配置：
+      </p>
+<pre class="programlisting">&lt;beans&gt;
+
+  &lt;bean id="exporter" class="org.springframework.jmx.export.MBeanExporter"&gt;
+    
+    
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- 這裡，注意怎樣才不顯示配置 <code class="literal">'beans'</code> --&gt;</span></em>
+    &lt;property name="autodetect" value="true"/&gt;
+    &lt;property name="assembler" ref="assembler"/&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="testBean" class="org.springframework.jmx.JmxTestBean"&gt;
+    &lt;property name="name" value="TEST"/&gt;
+    &lt;property name="age" value="100"/&gt;
+  &lt;/bean&gt;
+
+  <em class="lineannotation"><span class="lineannotation">&lt;!-- （對於Commons Attributes-based metadata） --&gt;</span></em>
+  &lt;bean id="attributeSource"
+        class="org.springframework.jmx.export.metadata.AttributesJmxAttributeSource"&gt;
+    &lt;property name="attributes"&gt;
+      &lt;bean class="org.springframework.metadata.commons.CommonsAttributes"/&gt;
+    &lt;/property&gt;
+  &lt;/bean&gt;
+  
+  <em class="lineannotation"><span class="lineannotation">&lt;!-- （對於基於註釋的JDK5+元資料） --&gt;</span></em><span class="emphasis"><em>
+  &lt;!--
+  &lt;bean id="attributeSource"
+        class="org.springframework.jmx.export.annotation.AnnotationJmxAttributeSource"/&gt;
+  --&gt;</em></span>
+
+  &lt;bean id="assembler" class="org.springframework.jmx.export.assembler.MetadataMBeanInfoAssembler"&gt;
+    &lt;property name="attributeSource" ref="attributeSource"/&gt;
+  &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<p>
+      注意，在這份配置中，<code class="classname">MBeanExporter</code> 沒有配置任何Bean，
+      然而，由於 <code class="classname">JmxTestBean</code> 用 <code class="classname">ManagedResource</code> 屬性做了標識，
+      <code class="classname">MetadataMBeanInfoAssembler</code> 探測到且表決將要包含它，因此它仍會被註冊。
+      這種方法的唯一問題是，現在的 <code class="classname">JmxTestBean</code> 有了業務含義。
+      這個問題可以通過 <a href="ch20s04.html" title="20.4.&#160;控制Bean的ObjectName">第&#160;20.4&#160;節 「控制Bean的<code class="classname">ObjectName</code>」</a> 定義那樣改變 <code class="classname">ObjectName</code> 創建的預設行為來解決。
+      </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jmx-interface-java"></a>20.3.6.&#160;用Java介面定義管理介面</h3></div></div></div>
+<p>
+      除了 <code class="classname">MetadataMBeanInfoAssembler</code>，Spring還包含了 <code class="classname">InterfaceBasedMBeanInfoAssembler</code>，它可以根據一組介面定義的方法限定要暴露的方法和屬性。
+      </p>
+<p>
+      雖然使用介面和簡單的命名規則是暴露MBean的標準方式，但是 <code class="classname">InterfaceBasedMBeanInfoAssembler</code> 擴展這個功能，去除了命名約定，使得你不但可以使用多個介面，還可以省去實作MBean介面的需求。
+      </p>
+<p>
+      試想一下這個介面，用它定義了之前看到的 <code class="classname">JmxTestBean</code> 的管理介面。
+      </p>
+<pre class="programlisting">public interface IJmxTestBean {
+
+  public int add(int x, int y);
+
+  public long myOperation();
+
+  public int getAge();
+
+  public void setAge(int age);
+
+  public void setName(String name);
+
+  public String getName();
+}</pre>
+<p>
+      這個介面定義了一些方法和屬性，它們將被暴露成JMX MBean操作和屬性。下面程式碼顯示了如何配置Spring JMX來使用這個介面作為管理介面的定義。
+      </p>
+<pre class="programlisting">&lt;beans&gt;
+
+  &lt;bean id="exporter" class="org.springframework.jmx.export.MBeanExporter"&gt;
+    &lt;property name="beans"&gt;
+      &lt;map&gt;
+        &lt;entry key="bean:name=testBean5" value-ref="testBean"/&gt;
+      &lt;/map&gt;
+    &lt;/property&gt;
+    &lt;property name="assembler"&gt;
+      &lt;bean class="org.springframework.jmx.export.assembler.InterfaceBasedMBeanInfoAssembler"&gt;
+        &lt;property name="managedInterfaces"&gt;
+          &lt;value&gt;org.springframework.jmx.IJmxTestBean&lt;/value&gt;
+        &lt;/property&gt;
+      &lt;/bean&gt;
+    &lt;/property&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="testBean" class="org.springframework.jmx.JmxTestBean"&gt;
+    &lt;property name="name" value="TEST"/&gt;
+    &lt;property name="age" value="100"/&gt;
+  &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<p>
+      你可以看到，當為任意Bean建構管理介面時，<code class="classname">InterfaceBasedMBeanInfoAssembler</code> 配置了使用 <code class="interfacename">IJmxTestBean</code> 介面。
+      由 <code class="classname">InterfaceBasedMBeanInfoAssembler</code> 處理的bean不需要實作用來產生JMX管理介面的介面，明白這一點很很重要。
+      </p>
+<p>
+      在上面例子中，<code class="interfacename">IJmxTestBean</code> 被用來建構所有bean的管理介面。
+      很多情況下，在你想對不同的Bean使用不同介面時就不想這樣了。
+      這時，你可以給 <code class="classname">InterfaceBasedMBeanInfoAssembler</code> 通過 <code class="literal">interfaceMappings</code> 屬性傳遞一個 <code class="classname">Properties</code>實例。每個條目的鍵值是Bean的名字，條目的值一個以逗號(;)隔開，使用於該Bean的的介面名稱列表。
+      </p>
+<p>
+      如果沒有通過 <code class="literal">managedInterfaces</code> 和 <code class="literal">interfaceMappings</code> 屬性指定管理介面，<code class="classname">InterfaceBasedMBeanInfoAssembler</code> 將通過反射，使用該Bean實作的所有介面來產生管理介面。
+      </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jmx-interface-methodnames"></a>20.3.7.&#160;使用<code class="classname">MethodNameBasedMBeanInfoAssembler</code></h3></div></div></div>
+<p>
+      <code class="classname">MethodNameBasedMBeanInfoAssembler</code> 允許你指定要暴露成JMX屬性和操作的方法名稱列表。以下程式碼顯示了一段配置樣例：
+      </p>
+<pre class="programlisting">&lt;bean id="exporter" class="org.springframework.jmx.export.MBeanExporter"&gt;
+    &lt;property name="beans"&gt;
+      &lt;map&gt;
+        &lt;entry key="bean:name=testBean5" value-ref="testBean"/&gt;
+      &lt;/map&gt;
+    &lt;/property&gt;
+    &lt;property name="assembler"&gt;
+      &lt;bean class="org.springframework.jmx.export.assembler.MethodNameBasedMBeanInfoAssembler"&gt;
+        &lt;property name="managedMethods"&gt;
+          &lt;value&gt;add,myOperation,getName,setName,getAge&lt;/value&gt;
+        &lt;/property&gt;
+      &lt;/bean&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;</pre>
+<p>
+      你可以看到 <code class="literal">add</code> 和 <code class="literal">myOperation</code> 方法將被暴露成JMX操作，<code class="literal">getName()</code>，<code class="literal">setName(String)</code> 和 <code class="literal">getAge()</code> 將被暴露成對應的JMX屬性。以上程式碼使用與那些暴露到JMX的Bean。
+      要控制基於一個一個Bean的方法暴露，就要使用 <code class="classname">MethodNameMBeanInfoAssembler</code> 的 <code class="literal">methodMappings</code> 屬性來將Bean名字映射到方法名稱列表上了。
+      </p>
+</div>
+</div></body>
+</html>

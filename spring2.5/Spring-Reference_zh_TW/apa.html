@@ -1,0 +1,84 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>附錄&#160;A.&#160;XML Schema-based configuration</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="prev" href="ch26s03.html" title="26.3.&#160;使用SimpleJdbcTemplate和@Repository實作DAO">
+<link rel="next" href="apas02.html" title="A.2.&#160;XML Schema-based configuration">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="appendix" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title">
+<a name="xsd-config"></a>附錄&#160;A.&#160;XML Schema-based configuration</h2></div></div></div>
+<div class="toc">
+<p><b>目錄</b></p>
+<dl>
+<dt><span class="section"><a href="apa.html#xsd-config-introduction">A.1. Introduction</a></span></dt>
+<dt><span class="section"><a href="apas02.html">A.2. XML Schema-based configuration</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="apas02.html#xsd-config-body-referencing">A.2.1. Referencing the schemas</a></span></dt>
+<dt><span class="section"><a href="apas02.html#xsd-config-body-schemas-util">A.2.2. The <code class="literal">util</code> schema</a></span></dt>
+<dt><span class="section"><a href="apas02.html#xsd-config-body-schemas-jee">A.2.3. The <code class="literal">jee</code> schema</a></span></dt>
+<dt><span class="section"><a href="apas02.html#xsd-config-body-schemas-lang">A.2.4. The <code class="literal">lang</code> schema</a></span></dt>
+<dt><span class="section"><a href="apas02.html#xsd-config-body-schemas-jms">A.2.5. The <code class="literal">jms</code> schema</a></span></dt>
+<dt><span class="section"><a href="apas02.html#xsd-config-body-schemas-tx">A.2.6. The <code class="literal">tx</code> (transaction) schema</a></span></dt>
+<dt><span class="section"><a href="apas02.html#xsd-config-body-schemas-aop">A.2.7. The <code class="literal">aop</code> schema</a></span></dt>
+<dt><span class="section"><a href="apas02.html#xsd-config-body-schemas-context">A.2.8. The <code class="literal">context</code> schema</a></span></dt>
+<dt><span class="section"><a href="apas02.html#xsd-config-body-schemas-tool">A.2.9. The <code class="literal">tool</code> schema</a></span></dt>
+<dt><span class="section"><a href="apas02.html#xsd-config-body-schemas-beans">A.2.10. The <code class="literal">beans</code> schema</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="apas03.html">A.3. Setting up your IDE</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="apas03.html#xsd-config-setup-eclipse">A.3.1. Setting up Eclipse</a></span></dt>
+<dt><span class="section"><a href="apas03.html#xsd-config-setup-idea">A.3.2. Setting up IntelliJ IDEA</a></span></dt>
+<dt><span class="section"><a href="apas03.html#xsd-config-integration">A.3.3. Integration issues</a></span></dt>
+</dl></dd>
+</dl>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="xsd-config-introduction"></a>A.1.&#160;Introduction</h2></div></div></div>
+<p>This appendix details the XML Schema-based configuration introduced in Spring 2.0.</p>
+<div class="sidebar">
+<p class="title"><b>DTD support?</b></p>
+<p>Authoring Spring configuration files using the older DTD style
+            is still fully supported.</p>
+<p>Nothing will break if you forego the use of the new XML Schema-based
+            approach to authoring Spring XML configuration files. All that you lose
+            out on is the opportunity to have more succinct and clearer configuration.
+            Regardless of whether the XML configuration is DTD- or Schema-based, in the end
+            it all boils down to the same object model in the container (namely one or
+            more <code class="interfacename">BeanDefinition</code> instances).</p>
+</div>
+<p>The central motivation for moving to XML Schema based configuration files was
+        to make Spring XML configuration easier. The <span class="emphasis"><em>'classic'</em></span>
+        <code class="literal">&lt;bean/&gt;</code>-based approach is good, but its generic-nature comes
+        with a price in terms of configuration overhead.</p>
+<p>From the Spring IoC containers point-of-view, <span class="emphasis"><em>everything</em></span>
+        is a bean. That's great news for the Spring IoC container, because if everything is
+        a bean then everything can be treated in the exact same fashion. The same, however,
+        is not true from a developer's point-of-view. The objects defined in a Spring
+        XML configuration file are not all generic, vanilla beans. Usually, each bean requires
+        some degree of specific configuration.</p>
+<p>Spring 2.0's new XML Schema-based configuration addresses this issue.
+        The <code class="literal">&lt;bean/&gt;</code> element is still present, and if you
+        wanted to, you could continue to write the <span class="emphasis"><em>exact same</em></span>
+        style of Spring XML configuration using only <code class="literal">&lt;bean/&gt;</code>
+        elements. The new XML Schema-based configuration does, however, make
+        Spring XML configuration files substantially clearer to read. In addition, it allows
+        you to express the intent of a bean definition.</p>
+<p>The key thing to remember is that the new custom tags work best for infrastructure
+        or integration beans: for example, AOP, collections, transactions, integration with
+        3rd-party frameworks such as Mule, etc., while the existing bean tags are best suited to
+        application-specific beans, such as DAOs, service layer objects, validators, etc.</p>
+<p>The examples included below will hopefully convince you that the inclusion
+        of XML Schema support in Spring 2.0 was a good idea. The reception in the community
+        has been encouraging; also, please note the fact that this new configuration mechanism
+        is totally customisable and extensible. This means you can write your own domain-specific
+        configuration tags that would better represent your application's domain; the process
+        involved in doing so is covered in the appendix entitled <a href="apb.html" title="附錄&#160;B.&#160;Extensible XML authoring">附錄&#160;B, <i>Extensible XML authoring</i></a>.</p>
+</div>
+</div></body>
+</html>

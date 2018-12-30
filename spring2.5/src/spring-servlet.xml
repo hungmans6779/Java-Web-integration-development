@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+  
+  
+ 
+  <bean id="viewResolver" 
+        class="org.springframework.web.servlet.view.InternalResourceViewResolver" >
+    <property name="prefix" >
+      <value>/WEB-INF/jsp/</value>
+    </property> 
+    <property name="suffix" >
+      <value>.jsp</value>
+    </property>
+  </bean> 
+  
+  
+  <!-- 設定分發器參數 -->
+  <bean id="paraMethodResolver"
+        class="org.springframework.web.servlet.mvc.multiaction.ParameterMethodNameResolver" >
+    <property name="paramName" >
+      <value>action</value>  <!-- 以地址欄參數 做為分發參數 -->
+    </property>    
+    <property name="defaultMethodName" >
+      <value>list</value>    <!--  如果 action 參數為空，則執行預設的list 方法 -->
+    </property>  
+  </bean>
+  
+  
+
+
+  <!-- 設定 URL Mapping 映射  -->
+  <bean id="urlHandlerMapping" 
+        class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping" > 
+    <!-- URL 映射 -->
+    <property name="mappings" >
+      <props>
+        <!-- URL映射，包含副檔案 .mvc  -->
+        <prop key="cat.mvc" >catController</prop>             <!-- 如果存取 cat.mvc，則交給 catController 處理  -->
+        <prop key="catMulti.mvc" >catMultiController</prop>   <!-- 如果存取 catMulti.mvc，則交給 catMultiController 處理  -->
+      </props>
+    </property>
+  </bean>
+  
+  
+  
+  
+ 
+  <bean id="catController" 
+        class="com.helloweenvsfei.mvc.CatController" >
+    <property name="catService" ref="catService" ></property>
+  </bean>
+
+
+
+  <bean id="catMultiController"
+        class="com.helloweenvsfei.mvc.CatMultiController" >
+     <property name="catService" ref="catService" ></property>
+   </bean>
+  
+  
+</beans>

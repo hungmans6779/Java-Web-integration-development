@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+       
+<hibernate-mapping package="com.helloweenvsfei.hibernate.bean.xml" >
+
+  <class name="com.helloweenvsfei.hibernate.bean.Cat" table="tb_cat" >
+  
+    <!-- 
+                      指定屬性對應的資料庫表的列為 「id」 
+        @Id                                            // 指定該列為主鍵。主鍵類型最好不要使用int 等原始類型。
+        @Column(name="id")                             // 指定屬性對應的資料庫表的列為 「id」
+        @GeneratedValue(strategy=GenerationType.AUTO)  // 主鍵類型， auto 為資料庫自增長類型 
+        private Integer id;
+    -->
+    <id name="id" column="id" ><generator class="native" /></id>
+ 
+ 
+ 
+ 
+    <!-- 
+                      指定屬性對應的資料庫表的列為 「name」  
+        @Column(name="name")                           // 指定屬性對應的資料庫表的列為 「name」
+        private String name;                                   
+    -->
+    <property name="name" type="string" column="name" ></property>  
+    
+    
+    
+    
+    <!-- 
+                      指定屬性對應的資料庫表的列為 「description」 
+        @Column(name="description")                    // 指定屬性對應的資料庫表的列為 「description」
+        private String description;
+    -->
+    <property name="description" type="text" ></property>
+    
+    
+    
+    
+    <!-- 
+                      日期類型(DATE,TIME 還是 TIMESTEMP)  
+         @Temporal(TemporalType.TIMESTAMP)              // 日期類型(DATE,TIME 還是 TIMESTEMP)
+         @Column(name="createDate")  
+         private Date createDate;
+    -->
+    <property name="createDate" type="timestamp" ></property>
+    
+    
+    
+    <!-- 
+                      指定屬性對應的資料庫表的列為 「mother_id」 
+        @ManyToOne                                     // 指定POJO之間的關係，本例為多對一關係
+        @JoinColumn(name = "mother_id")                // 指定屬性對應的資料庫表的列為 「mother_id」
+        private Cat mother;                            // 對屬性對應的列
+    -->
+    <!-- 對屬性對應的列  -->
+    <many-to-one name="mother" column="mother_id" ></many-to-one>
+
+    
+    
+    <!-- 
+    <bag name="events" inverse="true" >
+      <key column="cat_id" ></key>
+      <one-to-many  class="Event" ></one-to-many>
+    </bag>
+    -->
+    
+     
+    
+    <sql-query name="cat by name" >
+      <![CDATA[
+        select c from Cat c where c.name = :name
+      ]]>
+      <return alias="" class="com.helloweenvsfei.hibernate.bean.Cat" />
+    </sql-query>   
+    
+    <sql-query name="cat by mother" >
+      <![CDATA[
+         select c from Cat c where c.mother.name = :mother
+      ]]>
+      <return alias="" class="com.helloweenvsfei.hibernate.bean.Cat" />
+    </sql-query>
+    
+  </class>
+
+</hibernate-mapping> 

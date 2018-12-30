@@ -1,0 +1,104 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>19.2.&#160;使用Spring JMS</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch19.html" title="第&#160;19&#160;章&#160;JMS (Java Message Service)">
+<link rel="prev" href="ch19.html" title="第&#160;19&#160;章&#160;JMS (Java Message Service)">
+<link rel="next" href="ch19s03.html" title="19.3.&#160;發送訊息">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="jms-using"></a>19.2.&#160;使用Spring JMS</h2></div></div></div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="id602830"></a>19.2.1.&#160;<code class="classname">JmsTemplate</code></h3></div></div></div>
+<p><code class="classname">JmsTemplate</code> 類別有兩個實作方式。<code class="classname">JmsTemplate</code> 類別使用JMS 1.1的API，
+而子類別 <code class="classname">JmsTemplate102</code> 使用了JMS 1.0.2的API。 
+        </p>
+<p>使用 <code class="classname">JmsTemplate</code> 的程式碼只需要實作規範中定義的回調介面。
+<code class="classname">MessageCreator</code> 回調介面通過JmsTemplate中調用程式碼提供的Session來創建一條訊息。
+然而，為了允許更複雜的JMS API應用，回調介面 <code class="classname">SessionCallback</code> 為使用者提供JMS session，並且回調介面 <code class="classname">ProducerCallback</code> 將Session和MessageProducer對顯露給使用者。 
+         </p>
+<p>JMS API有兩種發送方法，一種採用發送模式、優先級和存活時間作為服務質量（QOS）參數，另一種使用無需QOS參數的缺省值方法。由於在 <code class="classname">JmsTemplate</code> 中有許多種發送方法，QOS參數通過bean的屬性方式進行設置，從而避免在多種發送方法中重複。同樣，使用 <code class="classname">setReceiveTimeout</code> 屬性值來設置同步接收調用的逾時值。 
+            </p>
+<p>某些JMS供應者允許通過ConnectionFactory的配置來設置缺省的QOS值。這樣在調用 <code class="classname">MessageProducer</code> 的發送方法 <code class="methodname">send(Destination destination, Message message)</code> 時會使用那些不同的QOS缺省值，而不是JMS規範中定義的值。所以，為了提供對QOS值的一致管理，<code class="classname">JmsTemplate</code>必須通過設置布林值屬性 <span class="property">isExplicitQosEnabled</span> 為true，使它能夠使用自己的QOS值。
+            </p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p><code class="classname">JmsTemplate</code> 類別的實例 <span class="emphasis"><em>一經配置便是執行緒安全</em></span> 的。
+				這很重要，因為這意味著你可以配置一個 <code class="classname">JmsTemplate</code> 的單例，然後把這個 <span class="emphasis"><em>共享的</em></span> 參考安全的注入多個協作的物件中。
+				要清楚一點，<code class="classname">JmsTemplate</code> 是有狀態的，因為它維護了 <code class="interfacename">ConnectionFactory</code> 的參考，但這個狀態時不是Session狀態。
+				</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jms-connections"></a>19.2.2.&#160;連接處理器</h3></div></div></div>
+<p><code class="classname">JmsTemplate</code> 需要一個對 <code class="classname">ConnectionFactory</code> 的參考。<code class="classname">ConnectionFactory</code> 是JMS規範的一部分，並且是使用JMS的入口。客戶端應用通常用它作處理器配合JMS提供者去創建連接，並封裝許多和供應商相關的配置參數，例如SSL的配置選項。 
+      </p>
+<p>當在EJB裡使用JMS時，供應商會提供JMS介面的實作，這樣們可以參與宣告式事務管理並提供連接池和Session池。
+	  為了使用這個JMS實作，Java EE容器通常要求你在EJB或servlet部署描述符中宣告一個JMS連接處理器做為 <span class="property">resource-ref</span>。
+	  為確保可以在EJB內使用 <code class="classname">JmsTemplate</code> 的這些特性，客戶應用應當確保它參考了被管理的ConnectionFactory實作。 
+      </p>
+<p>Spring提供了一個 <code class="classname">ConnectionFactory</code> 介面的實作，<code class="classname">SingleConnectionFactory</code>，它將在所有的 <code class="methodname">createConnection</code> 調用中返回一個相同的 <code class="classname">Connection</code>，並忽略所有對 <code class="methodname">close</code>的調用。這在測試和獨立環境中相當有用，因為多個 <code class="classname">JmsTemplate</code> 調用可以使用同一個連接以跨越多個事務。<code class="classname">SingleConnectionFactory</code> 通常參考一個來自JNDI的標準 <code class="classname">ConnectionFactory</code>。 
+      </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jms-destinations"></a>19.2.3.&#160;目的地管理</h3></div></div></div>
+<p>和連接處理器一樣，目的地是可以在JNDI中存儲和獲取的JMS管理的物件。配置一個Spring應用上下文時，可以使用JNDI處理器類別 <code class="classname">JndiObjectFactoryBean</code> 把對你物件的參考依賴注入到JMS目的地中。然而，如果在應用中有大量的目的地，或者JMS供應商提供了特有的高層級目的地管理特性，這個策略常常顯得很麻煩。創建動態目的地或支持目的地的命名空間層次就是這種高層級目的地管理的例子。<code class="classname">JmsTemplate</code> 將目的地名稱到JMS目的地物件的解析委派給 <code class="classname">DestinationResolver</code> 介面的一個實作。<code class="classname">JndiDestinationResolver</code> 是 <code class="classname">JmsTemplate</code> 使用的預設實作，並且提供動態目的地解析。同時 <code class="classname">JndiDestinationResolver</code> 作為JNDI中的目的地服務定位器，還可選擇回退去使用 <code class="classname">DynamicDestinationResolver</code> 中的行為。 
+       </p>
+<p>經常見到一個JMS應用中使用的目的地在運行時才知道，因此，當部署一個應用時，它不能用可管理的方式創建。這是經常發生的，因為在互相作用的系統元件間有些共享應用邏輯會在運行的時候按照共同的命名規範創建訊息目的地。雖然動態創建目的地不是JMS規範的一部分，但是大多數供應商已經提供了這個功能。
+使用者為動態創建的目的地定義和臨時目的地不同的名字，並且通常不被註冊到JNDI中。不同供應商創建動態訊息目的地所使用的API差異很大，因為和目的地相關的屬性是供應商特有的。然而，有時由供應商會作出一個簡單的實作選擇-忽略JMS規範中的警告，使用 <code class="classname">TopicSession</code> 的方法 <code class="methodname">createTopic(String topicName)</code> 或者 <code class="classname">QueueSession</code> 的方法 <code class="methodname">createQueue(String queueName)</code> 來創建一個帶預設值屬性的新目的地。依賴於供應商的實作，<code class="classname">DynamicDestinationResolver</code> 也可能創建一個物理上的目的地，而不再僅僅是一個解析。
+       </p>
+<p>布林屬性 <span class="property">pubSubDomain</span> 用來配置 <code class="classname">JmsTemplate</code> 使用什麼樣的JMS域。這個屬性的預設值是false，使用點到點的域，也就是隊列。在1.0.2的實作中，這個屬性值用來決定 <code class="classname">JmsTemplate</code> 將訊息發送到一個 <code class="interfacename">Queue</code> 還是一個 <code class="interfacename">Topic</code>。這個標誌在1.1的實作中對發送操作沒有影響。然而，在這兩個JMS版本中，這個屬性決定了通過介面 <code class="interfacename">DestinationResolver</code> 的實作來決定如何解析動態訊息目的地。 
+      	</p>
+<p>你還可以通過屬性 <span class="property">defaultDestination</span> 配置一個帶有預設目的地的 <code class="classname">JmsTemplate</code>。不指明目的地的發送和接受操作將使用該預設目的地。 
+        </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jms-mdp"></a>19.2.4.&#160;訊息偵聽容器</h3></div></div></div>
+<p>在EJB世界裡，JMS訊息最常用的功能之一是用於實作訊息驅動Bean（MDB）。Spring提供了一個方法來創建訊息驅動的POJO（MDP），並且不會把使用者綁定在某個EJB容器上。（關於Spring的MDP支持的細節請參考標題為 <a href="ch19s04.html#jms-asynchronousMessageReception" title="19.4.2.&#160;異步接收 - 訊息驅動的POJO">第&#160;19.4.2&#160;節 「異步接收 - 訊息驅動的POJO」</a> 的章節。）
+		</p>
+<p>通常用訊息監聽器容器從JMS訊息隊列接收訊息並驅動被注射進來的MDP。訊息監聽器容器負責訊息接收的多執行緒處理並分發到各MDP中。一個訊息偵聽容器是MDP和訊息提供者之間的一個中介，用來處理訊息接收的註冊，事務管理的參與，資源獲取和釋放，異常轉換等等。這使得應用開發人員可以專注於開發和接收訊息（可能的響應）相關的（複雜）商業邏輯，把和JMS基礎框架有關的樣板化的部分委託給框架處理。
+		</p>
+<p>Spring提供了三種 <code class="classname">AbstractMessageListenerContainer</code> 的子類別，每種各有其特點。
+		</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="jms-mdp-simple"></a>19.2.4.1.&#160;<code class="classname">SimpleMessageListenerContainer</code></h4></div></div></div>
+<p>這個訊息偵聽容器是三種中最簡單的。它在啟動時創建固定數量的JMS session並在容器的整個生命週期中使用它們。這個類別不能動態的適應運行時的要求或參與訊息接收的事務處理。然而它對JMS提供者的要求也最低。它只需要簡單的JMS API。
+			</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="jms-mdp-default"></a>19.2.4.2.&#160;<code class="classname">DefaultMessageListenerContainer</code></h4></div></div></div>
+<p>這個訊息偵聽器使用的最多。和 <code class="classname">SimpleMessageListenerContainer</code> 相反，這個子類別可以動態適應運行時侯的要求，也可以參與事務管理。每個收到的訊息都註冊到一個XA事務中（如果使用 <code class="classname">JtaTransactionManager</code> 配置過），這樣就可以利用XA事務語義的優勢了。這個類別在對JMS提供者的低要求和提供包括事務參於等的強大功能上取得了很好的平衡。
+				</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="jms-mdp-server-session"></a>19.2.4.3.&#160;<code class="classname">ServerSessionMessageListenerContainer</code></h4></div></div></div>
+<p>這個監聽器容器利用JMS ServerSessionPool SPI動態管理JMS Session。
+			     使用者各種訊息監聽器可以獲得運行時動態調優功能，但是這也要求JMS提供者支持ServerSessionPool SPI。如果不需要運行時性能調整，請使用 <code class="classname">DefaultMessageListenerContainer</code> 或 <code class="classname">SimpleMessageListenerContainer</code>。
+			     </p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jms-tx"></a>19.2.5.&#160;事務管理</h3></div></div></div>
+<p>Spring提供了 <code class="classname">JmsTransactionManager</code> 為單個JMS <code class="classname">ConnectionFactory</code> 管理事務。這將允許JMS應用利用 <a href="ch09.html" title="第&#160;9&#160;章&#160;事務管理">第&#160;9&#160;章 <i>事務管理</i></a> 中描述的Spring的事務管理功能。<code class="classname">JmsTransactionManager</code> 綁定 <code class="classname">ConnectionFactory</code> 的一個Connection/Session對到執行緒上，來提供本地資源事務。<code class="classname">JmsTemplate</code> 自動檢測到這些事務性資源從而對它們進行操作。
+            </p>
+<p>在Java EE環境中，<code class="classname">SingleConnectionFactory</code>將把Connection和Session放到緩衝池中，因此這些資源在事務中得到了有效的復用。在獨立環境中使用Spring的 <code class="classname">SingleConnectionFactory</code> 會存在共享的JMS <code class="classname">Connection</code>，但每個事務有自己獨立的 <code class="classname">Session</code>。另外可以考慮使用供應商特定的池適配器,，如ActiveMQ的 <code class="classname">PooledConnectionFactory</code> 類別。
+           </p>
+<p><code class="classname">JmsTemplate</code> 也可以和 <code class="classname">JtaTransactionManager</code> 以及具有XA能力的JMS <code class="classname">ConnectionFactory</code>一起使用來提供分佈式事務。記住這需要使用JTA事務管理器或合適的可配置的XA ConnectionFactory！（參考你所使用的J2EE伺服器/JMS供應商的文檔。）
+            </p>
+<p>當使用JMS API從一個 <code class="classname">Connection</code> 中創建 <code class="classname">Session</code> 時，在受管理的和非受管理的事務環境下重用程式碼會可能會讓人迷惑。這是因為JMS API只有一個處理器方法來創建 <code class="classname">Session</code> ，並且它需要用於事務和模式確認的值。在受管理的環境下，由事務結構環境負責設置這些值，這樣在供應商包裹的JMS連接中可以忽略這些值。當在一個非管理性的環境中使用 <code class="classname">JmsTemplate</code> 時，你可以通過使用屬性 <code class="classname">SessionTransacted</code> 和 <code class="classname">SessionAcknowledgeMode</code> 來指定這些值。當 <code class="classname">JmsTemplate</code> 配合 <code class="classname">PlatformTransactionManager</code> 使用時，模板將一直被賦予一個事務性JMS的 <code class="classname">Session</code>。 
+			</p>
+</div>
+</div></body>
+</html>

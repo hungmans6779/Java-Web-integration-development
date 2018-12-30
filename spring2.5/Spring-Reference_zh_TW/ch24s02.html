@@ -1,0 +1,91 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>24.2.&#160;第一個範例</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch24.html" title="第&#160;24&#160;章&#160;動態語言支持">
+<link rel="prev" href="ch24.html" title="第&#160;24&#160;章&#160;動態語言支持">
+<link rel="next" href="ch24s03.html" title="24.3.&#160;定義動態語言支持的bean">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="dynamic-language-a-first-example"></a>24.2.&#160;第一個範例</h2></div></div></div>
+<p>
+			本章的大部分內容的關注點都在描述Spring對動態語言的支持的細節上。在深入到這些細節之前，首先讓我們看一個使用動態語言定義的bean的快速上手的例子。第一個bean使用的動態語言是Groovy（這個例子來自Spring的測試套件，如果你打算看看對其他語言的支持的相同的例子，請閱讀相應的源碼）。
+        </p>
+<p>
+			下面是Groovy bean要實作的<code class="interfacename">Messenger</code>介面。注意該介面是使用純Java定義的。依賴的物件是通過<code class="interfacename">Messenger</code>介面的參考注入的，並不知道其實作是Groovy文稿。
+        </p>
+<pre class="programlisting">package org.springframework.scripting;
+
+public interface Messenger {
+
+    String getMessage();
+}</pre>
+<p>
+			下面是依賴於<code class="interfacename">Messenger</code>介面的類別的定義。
+        </p>
+<pre class="programlisting">package org.springframework.scripting;
+
+public class DefaultBookingService implements BookingService {
+
+    private Messenger messenger;
+
+    public void setMessenger(Messenger messenger) {
+        this.messenger = messenger;
+    }
+
+    public void processBooking() {
+        // use the injected Messenger object...
+    }
+}</pre>
+<p>下面是使用Groovy實作的<code class="interfacename">Messenger</code>介面。</p>
+<pre class="programlisting">// from the file 'Messenger.groovy'
+package org.springframework.scripting.groovy;
+
+// import the Messenger interface (written in Java) that is to be implemented
+import org.springframework.scripting.Messenger
+
+// define the implementation in Groovy
+class GroovyMessenger implements Messenger {
+
+    String message
+}</pre>
+<p>
+		    最後，這裡的bean定義將Groovy定義的<code class="interfacename">Messenger</code>實作注入到<code class="classname">DefaultBookingService</code>類別的實例中。
+        </p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>
+		        要使用使用者定制的動態語言標籤來定義 dynamic-language-backed bean，需要在Spring XML配置檔案的頭部添加相應的XML Schema。同樣需要Spring的<code class="interfacename">ApplicationContext</code>實作作為IoC容器。Spring支持在簡單的<code class="interfacename">BeanFactory</code>實作下使用dynamic-language-backed bean，但是你需要管理Spring內部的種種細節。
+            </p>
+<p>關於XML Schema的配置，詳情請看<a href="apa.html" title="附錄&#160;A.&#160;XML Schema-based configuration">附錄&#160;A, <i>XML Schema-based configuration</i></a>。</p>
+</div>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:lang="http://www.springframework.org/schema/lang"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.5.xsd"&gt;
+
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- this is the bean definition for the Groovy-backed <code class="interfacename">Messenger</code> implementation --&gt;</span></em>
+    &lt;lang:groovy id="messenger" script-source="classpath:Messenger.groovy"&gt;
+        &lt;lang:property name="message" value="I Can Do The Frug" /&gt;
+    &lt;/lang:groovy&gt;
+
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- an otherwise normal bean that will be injected by the Groovy-backed <code class="interfacename">Messenger</code> --&gt;</span></em>
+    &lt;bean id="bookingService" class="x.y.DefaultBookingService"&gt;
+        &lt;property name="messenger" ref="messenger" /&gt;
+    &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<p>
+            現在可以像以前一樣使用<code class="literal">bookingService</code> bean （<code class="classname">DefaultBookingService</code>）的私有成員變數 <code class="literal">messenger</code>，因為被注入的<code class="interfacename">Messenger</code>實例確實<span class="emphasis"><em>是</em></span>一個真正的<code class="interfacename">Messenger</code>實例。這裡也沒有什麼特別的地方，就是簡單的Java和Groovy。
+        </p>
+<p>
+			但願你能夠無需多加說明就看明白以上的XML片段，而不用太擔心它是否恰當或者是否正確。請繼續閱讀更深層次的細節以瞭解以上配置的原因。
+        </p>
+</div></body>
+</html>

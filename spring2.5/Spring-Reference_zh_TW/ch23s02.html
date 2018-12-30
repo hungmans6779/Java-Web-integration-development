@@ -1,0 +1,151 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>23.2.&#160;使用OpenSymphony Quartz 調度器</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch23.html" title="第&#160;23&#160;章&#160;Spring中的定時調度(Scheduling)和執行緒池(Thread Pooling)">
+<link rel="prev" href="ch23.html" title="第&#160;23&#160;章&#160;Spring中的定時調度(Scheduling)和執行緒池(Thread Pooling)">
+<link rel="next" href="ch23s03.html" title="23.3.&#160;使用JDK Timer支持類別">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="scheduling-quartz"></a>23.2.&#160;使用OpenSymphony Quartz 調度器</h2></div></div></div>
+<p>
+		Quartz使用<code class="classname">Trigger</code>, <code class="classname">Job</code>以及<code class="classname">JobDetail</code>等物件來進行各種型別的任務調度。關於Quartz的基本概念，請參閱<a href="http://www.opensymphony.com/quartz" target="_top">http://www.opensymphony.com/quartz</a>。為了讓基於Spring的應用程序方便使用，Spring提供了一些類別來簡化uartz的用法。
+  	</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="scheduling-quartz-jobdetail"></a>23.2.1.&#160;使用JobDetailBean</h3></div></div></div>
+<p>
+  				<code class="classname">JobDetail</code> 物件保存運行一個任務所需的全部資訊。Spring提供一個叫作<code class="classname">JobDetailBean</code>的類別讓<code class="classname">JobDetail</code>能對一些有意義的初始值進行初始化。讓我們來看個例子：
+  		</p>
+<pre class="programlisting">
+&lt;bean name="exampleJob" class="org.springframework.scheduling.quartz.JobDetailBean"&gt;
+  &lt;property name="jobClass" value="example.ExampleJob" /&gt;
+  &lt;property name="jobDataAsMap"&gt;
+    &lt;map&gt;
+      &lt;entry key="timeout" value="5" /&gt;
+    &lt;/map&gt;
+  &lt;/property&gt;
+&lt;/bean&gt;</pre>
+<p>
+			Job detail bean擁有所有運行job(<code class="classname">ExampleJob</code>)的必要資訊。
+			可以通過job的data map來制定timeout。Job的data map可以通過<code class="classname">JobExecutionContext</code>（在運行時刻傳遞給你)來得到，但是<code class="classname">JobDetailBean</code>同時把從job的data map中得到的屬性映射到實際job中的屬性中去。 
+			所以，如果ExampleJob中包含一個名為<code class="literal">timeout</code>的屬性，<code class="classname">JobDetailBean</code>將自動為它賦值： 
+			</p>
+<pre class="programlisting">package example;
+
+public class ExampleJob extends QuartzJobBean {
+
+  private int timeout;
+  
+  /**
+   * Setter called after the ExampleJob is instantiated
+   * with the value from the JobDetailBean (5)
+   */ 
+  public void setTimeout(int timeout) {
+    this.timeout = timeout;
+  }
+  
+  protected void executeInternal(JobExecutionContext ctx) throws JobExecutionException {
+      <em class="lineannotation"><span class="lineannotation">// do the actual work</span></em>
+  }
+}</pre>
+<p>當然，你同樣可以對Job detail bean中所有其他的額外配置進行設置。</p>
+<p>
+			<span class="emphasis"><em>注意：使用<code class="literal">name</code>和<code class="literal">group</code>屬性,你可以分別修改job在哪一個組下運行和使用什麼名稱。 預設情況下，job的名稱等於job detail bean的名稱（在上面的例子中為<code class="literal">exampleJob</code>）。</em></span>
+			</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="scheduling-quartz-method-invoking-job"></a>23.2.2.&#160;使用 <code class="classname">MethodInvokingJobDetailFactoryBean</code></h3></div></div></div>
+<p>
+				通常情況下,你只需要調用特定物件上的一個方法即可實作任務調度。你可以使用<code class="classname">MethodInvokingJobDetailFactoryBean</code>準確的做到這一點: 
+			</p>
+<pre class="programlisting">&lt;bean id="jobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean"&gt;
+  &lt;property name="targetObject" ref="exampleBusinessObject" /&gt;
+  &lt;property name="targetMethod" value="doIt" /&gt;
+&lt;/bean&gt;</pre>
+<p>
+				上面例子將調用<code class="literal">exampleBusinessObject</code>中的<code class="literal">doIt</code>方法（如下）： 
+			</p>
+<pre class="programlisting">public class ExampleBusinessObject {
+  
+  <em class="lineannotation"><span class="lineannotation">// properties and collaborators</span></em>
+  
+  public void doIt() {
+    <em class="lineannotation"><span class="lineannotation">// do the actual work</span></em>
+  }
+}</pre>
+<pre class="programlisting">
+&lt;bean id="exampleBusinessObject" class="examples.ExampleBusinessObject"/&gt;</pre>
+<p>	
+			使用<code class="literal">MethodInvokingJobDetailFactoryBean</code>你不需要創建只有一行程式碼且只調用一個方法的job, 你只需要創建真實的業務物件來包裹具體的細節的物件。
+			</p>
+<p>
+			預設情況下，Quartz Jobs是無狀態的，可能導致jobs之間互相的影響。如果你為相同的<code class="classname">JobDetail</code>指定兩個Trigger,
+			很可能當第一個job完成之前，第二個job就開始了。如果<code class="classname">JobDetail</code>物件實作了<code class="interfacename">Stateful</code>介面，就不會發生這樣的事情。
+			第二個job將不會在第一個job完成之前開始。為了使得jobs不並發運行,設置<code class="classname">MethodInvokingJobDetailFactoryBean</code>中的<code class="literal">concurrent</code>標記為<code class="literal">false</code>。
+			</p>
+<pre class="programlisting">
+&lt;bean id="jobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean"&gt;
+  &lt;property name="targetObject" ref="exampleBusinessObject" /&gt;
+  &lt;property name="targetMethod" value="doIt" /&gt;
+  &lt;property name="concurrent" value="false" /&gt;
+&lt;/bean&gt;</pre>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>
+					注意：預設情況下，jobs在並行的方式下運行。
+				</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="scheduling-quartz-cron"></a>23.2.3.&#160;使用triggers和<code class="classname">SchedulerFactoryBean</code>來包裹任務</h3></div></div></div>
+<p>
+			我們已經創建了job details,jobs。我們同時回顧了允許你調用特定物件上某一個方法的便捷的bean。
+			當然我們仍需要調度這些jobs。這需要使用triggers和<code class="classname">SchedulerFactoryBean</code>來完成。
+			Quartz自帶一些可供使用的triggers。Spring提供兩個子類別triggers，分別為<code class="classname">CronTriggerBean</code>和<code class="classname">SimpleTriggerBean</code>。
+		</p>
+<p>
+			Triggers也需要被調度。Spring提供<code class="classname">SchedulerFactoryBean</code>來暴露一些屬性來設置triggers。<code class="classname">SchedulerFactoryBean</code>負責調度那些實際的triggers。
+		</p>
+<p>
+			來看幾個例子：
+			</p>
+<pre class="programlisting">&lt;bean id="simpleTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean"&gt;
+    &lt;!-- see the example of method invoking job above --&gt;
+    &lt;property name="jobDetail" ref="jobDetail" /&gt;
+    &lt;!-- 10 seconds --&gt;
+    &lt;property name="startDelay" value="10000" /&gt;
+    &lt;!-- repeat every 50 seconds --&gt;
+    &lt;property name="repeatInterval" value="50000" /&gt;
+&lt;/bean&gt;
+
+&lt;bean id="cronTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean"&gt;
+    &lt;property name="jobDetail" ref="exampleJob" /&gt;
+    &lt;!-- run every morning at 6 AM --&gt;
+    &lt;property name="cronExpression" value="0 0 6 * * ?" /&gt;
+&lt;/bean&gt;</pre>
+<p>
+			現在我們創建了兩個triggers，其中一個開始延遲10秒以後每50秒運行一次，另一個每天早上6點鐘運行。
+			我們需要創建一個<code class="classname">SchedulerFactoryBean</code>來最終實作上述的一切：
+			</p>
+<pre class="programlisting">&lt;bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean"&gt;
+    &lt;property name="triggers"&gt;
+        &lt;list&gt;
+            &lt;ref bean="cronTrigger" /&gt;
+            &lt;ref bean="simpleTrigger" /&gt;
+        &lt;/list&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;</pre>
+<p>
+				更多的屬性你可以通過<code class="classname">SchedulerFactoryBean</code>來設置，例如job details使用的Calendars, 用來訂製Quartz的一些屬性以及其它相關資訊。
+			你可以查閱相應的JavaDOC(<a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/scheduling/quartz/SchedulerFactoryBean.html" target="_top">http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/scheduling/quartz/SchedulerFactoryBean.html</a>)來瞭解進一步的資訊。
+			</p>
+</div>
+</div></body>
+</html>

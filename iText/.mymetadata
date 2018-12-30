@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-module
+  type="WEB"
+  name="iText"
+  id="myeclipse.1316528017167"
+  context-root="/iText"
+  j2ee-spec="5.0"
+  archive="iText.war">
+  <attributes>
+    <attribute name="webrootdir" value="WebRoot" />
+  </attributes>
+</project-module>
+

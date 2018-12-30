@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<!-- 類別所在的包名 -->    
+<hibernate-mapping package="com.helloweenvsfei.hibernate.bean.xml" >
+
+  <class name="com.helloweenvsfei.hibernate.bean.Sailor" table="tb_sailor" >
+    
+    
+    <!-- 
+      @Id                                                // 主鍵設定
+      @GeneratedValue(strategy=GenerationType.AUTO)      // 主鍵產生策略設定
+      private Integer id;  
+    -->
+    <id name="id" column="id">
+      <generator class="native" />
+    </id>
+    
+    
+    <!-- 
+      private String name;                                // 船員姓名(name 使用預設設定)
+    -->
+    <property name="name" />
+    
+    
+    <!-- 
+      @ManyToOne(cascade=CascadeType.PERSIST)           
+      @JoinColumn(name="ship_id")                          // 外鍵為 ship_id
+      private Ship ship;                                   // 水手對艦船是多對一
+    -->
+    <many-to-one name="ship" column="ship_id" />
+    
+    
+    <!-- 
+      @OneToOne(mappedBy="captain")    
+      private Ship captainedShip;                          // 船長對艦船是一對一
+    -->
+    <one-to-one name="captainedShip" />
+
+    
+  </class>
+  
+</hibernate-mapping>  

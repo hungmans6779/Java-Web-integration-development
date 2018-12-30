@@ -1,0 +1,146 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>第&#160;16&#160;章&#160;Portlet MVC框架</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="pt03.html" title="部分&#160;III.&#160;The Web">
+<link rel="prev" href="ch15s07.html" title="15.7.&#160;更多資源">
+<link rel="next" href="ch16s02.html" title="16.2.&#160; DispatcherPortlet">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="chapter" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title">
+<a name="portlet"></a>第&#160;16&#160;章&#160;Portlet MVC框架</h2></div></div></div>
+<div class="toc">
+<p><b>目錄</b></p>
+<dl>
+<dt><span class="section"><a href="ch16.html#portlet-introduction">16.1. 介紹</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch16.html#portlet-introduction-controller">16.1.1. 控制器 - MVC中的C</a></span></dt>
+<dt><span class="section"><a href="ch16.html#portlet-introduction-view">16.1.2. 視圖 - MVC中的V</a></span></dt>
+<dt><span class="section"><a href="ch16.html#portlet-introduction-scope">16.1.3. Web作用範圍的Bean</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch16s02.html">16.2. 
+			<code class="classname">DispatcherPortlet</code>
+		</a></span></dt>
+<dt><span class="section"><a href="ch16s03.html">16.3. <code class="classname">ViewRendererServlet</code></a></span></dt>
+<dt><span class="section"><a href="ch16s04.html">16.4. 控制器</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch16s04.html#portlet-controller-abstractcontroller">16.4.1. <code class="classname">AbstractController</code> 和 <code class="classname">PortletContentGenerator</code></a></span></dt>
+<dt><span class="section"><a href="ch16s04.html#portlet-controller-simple">16.4.2. 其它簡單的控制器</a></span></dt>
+<dt><span class="section"><a href="ch16s04.html#portlet-controller-command">16.4.3. Command控制器</a></span></dt>
+<dt><span class="section"><a href="ch16s04.html#portlet-controller-wrapping">16.4.4. <code class="classname">PortletWrappingController</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch16s05.html">16.5. 處理器映射</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch16s05.html#portlet-handlermapping-portletmode">16.5.1. <code class="classname">PortletModeHandlerMapping</code></a></span></dt>
+<dt><span class="section"><a href="ch16s05.html#portlet-handlermapping-parameter">16.5.2. <code class="classname">ParameterHandlerMapping</code></a></span></dt>
+<dt><span class="section"><a href="ch16s05.html#portlet-handlermapping-portletmodeparameter">16.5.3. <code class="classname">PortletModeParameterHandlerMapping</code></a></span></dt>
+<dt><span class="section"><a href="ch16s05.html#portlet-handlermapping-interceptor">16.5.4. 增加 <code class="interfacename">HandlerInterceptor</code>s</a></span></dt>
+<dt><span class="section"><a href="ch16s05.html#portlet-handlermapping-interceptoradapter">16.5.5. <code class="classname">HandlerInterceptorAdapter</code></a></span></dt>
+<dt><span class="section"><a href="ch16s05.html#portlet-handlermapping-parameterinterceptor">16.5.6. <code class="classname">ParameterMappingInterceptor</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch16s06.html">16.6. 視圖和它們的解析</a></span></dt>
+<dt><span class="section"><a href="ch16s07.html">16.7. Multipart檔案上傳支持</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch16s07.html#portlet-multipart-resolver">16.7.1. 使用 <code class="interfacename">PortletMultipartResolver</code></a></span></dt>
+<dt><span class="section"><a href="ch16s07.html#portlet-multipart-forms">16.7.2. 處理表單裡的檔案上傳</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch16s08.html">16.8. 異常處理</a></span></dt>
+<dt><span class="section"><a href="ch16s09.html">16.9. Portlet應用的部署</a></span></dt>
+</dl>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="portlet-introduction"></a>16.1.&#160;介紹</h2></div></div></div>
+<div class="sidebar">
+<p class="title"><b>JSR-168 Java Portlet規範</b></p>
+<p>更多關於Portlet開發的資訊，請參閱SUN的白皮書
+		    <a href="http://developers.sun.com/prodtech/portalserver/reference/techart/jsr168/" target="_top">《JSR 168入門》</a>，
+		    以及 <a href="http://jcp.org/aboutJava/communityprocess/final/jsr168/" target="_top">JSR-168規範</a>。</p>
+</div>
+<p>Spring不僅支持傳統（基於Servlet）的Web開發，也支持JSR-168 Portlet開發。
+		Portlet MVC框架盡可能多地採用Web MVC框架，使用相同的底層表現層抽象和整合技術。所以，
+		在繼續閱讀本章前，務必溫習<a href="ch13.html" title="第&#160;13&#160;章&#160;Web MVC framework Web框架">第&#160;13&#160;章 <i>Web MVC framework Web框架</i></a>和<a href="ch14.html" title="第&#160;14&#160;章&#160;整合視圖技術">第&#160;14&#160;章 <i>整合視圖技術</i></a>兩章。</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>請牢記，在Spring MVC中的概念和Spring Porlet MVC中的相同的同時，JSR-168 Portlet
+			獨特的工作串流程造成了一些顯著的差異。</p>
+</div>
+<p>Porlet工作串流程和Servlet的主要差異在於，Portlet的請求處理有兩個獨特
+		的階段：動作階段和顯示階段。動作階段會有「後台」資料改變或動作的程式碼，這些程式碼
+		只會執行一次。顯示階段會產生使用者每次刷新時的看到的顯示內容。重要的是，
+		在單個請求的整個處理過程中，動作階段只會被執行一次，而顯示階段可能會被執行多次。
+		這就提供了(並且要求)在改變系統持久狀態的活動和產生顯示內容的活動之間
+		有一個清晰的分層。</p>
+<div class="sidebar">
+<p class="title"><b>Spring WebFlow</b></p>
+<p>Spring Web Flow（SWF）的目標是成為Web應用程序頁面串流轉管理的最佳解決方案。</p>
+<p>SWF在servlet和portlet環境中都與比如Spring MVC，Struts，和JSF這樣的現存框架整合在一起。
+  如果你面對的是一個更能得益於作為對話模型，而不是單純的請求模型的業務串流程（或多個串流程）的話，
+  那麼SWF可能就是解決方案了。</p>
+<p>SWF使你能夠把邏輯上的頁面串流轉捕捉為自容納的模組，並在不同的情形下被復用。
+  而這對於開發要引導使用者完成受控的瀏覽動作，從而驅動業務串流程的Web應用程序模組正是理想的。</p>
+<p>關於SWF的更多資訊，請存取<a href="http://www.springframework.org/webflow" target="_top">Spring WebFlow站點</a>。</p>
+</div>
+<p>這種兩階段的請求處理是JSR-168規範的一個優點，比如，可以自動地更新動態
+		的搜尋結果，不需要使用者特意去再次執行搜尋。許多其它的Portlet MVC框架試圖向開
+		發人員徹底隱藏這種兩階段處理，讓框架看上去盡可能和傳統的Servlet開發相同 - 在我們
+		看來，這種方式去掉了使用Portlet的一個主要好處，所以在Spring Portlet MVC
+		框架裡分離的兩階段處理被保留了下來，這主要表現在，Servlet版本的MVC類別將只
+		有一個方法來處理請求，而Portlet版本的MVC類別裡將會有兩個方法：一個用在動作
+		階段，另一個用在顯示階段。比如，在Servlet版本的 <code class="classname">AbstractController</code> 有
+		<code class="methodname">handleRequestInternal(..)</code>方法，Portlet版本的
+		<code class="classname">AbstractController</code>有
+		<code class="methodname">handleActionRequestInternal(..)</code>和
+		<code class="methodname">handleRenderRequestInternal(..)</code>方法。</p>
+<p>這個框架是圍繞著分發器<code class="classname">DispatcherPortlet</code>設計的，分發器把請求轉發給處理
+		器。和Web框架的<code class="classname">DispatcherServlet</code>一樣，
+		這個框架還有可配置的處理器映射和視圖解析，同時也支持檔案上傳。</p>
+<p>Portlet MVC不支持本地化解析和主題解析 - 它們是portal/portlet容器
+		的範疇，並不適合放在Spring框架裡。但是，Spring裡所有依賴本地化(比如訊息的
+		國際化)仍舊可以工作，因為<code class="classname">DispatcherPortlet</code>在以
+		<code class="classname">DispatcherServlet</code>相同的方式暴露當前的本地化資訊。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="portlet-introduction-controller"></a>16.1.1.&#160;控制器 - MVC中的C</h3></div></div></div>
+<p>缺省的處理器是一個非常簡單的
+		    <code class="interfacename">Controller</code>介面，它提供了兩個方法：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><code class="methodname">void handleActionRequest(request,response)</code> </p></li>
+<li><p><code class="methodname">ModelAndView handleRenderRequest(request,response)</code> </p></li>
+</ul></div>
+<p>這個框架包含了許多相同的控制器實作層次，比如，
+				<code class="classname">AbstractController</code>，
+				<code class="classname">SimpleFormController</code>等。它在資料綁定、命令物件使用、
+				模型處理和視圖解析等方面和Servlet框架相同。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="portlet-introduction-view"></a>16.1.2.&#160;視圖 - MVC中的V</h3></div></div></div>
+<p>這個框架利用了一個特殊的橋Servlet
+		    <code class="classname">ViewRendererServlet</code>來使用Servlet框架裡的視圖顯示
+				功能，這樣，Portlet請求就被轉化為Servlet請求，Portlet視圖能夠以通常的
+				Servlet底層程式碼來顯示。這意味著，在Portlet裡仍能使用當前所有的顯示方法，
+				如JSP、Velocity等。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="portlet-introduction-scope"></a>16.1.3.&#160;Web作用範圍的Bean</h3></div></div></div>
+<p>Spring Portlet MVC支持Web Bean，這些Bean的生命週期在於當前的HTTP請求
+						或HTTP <code class="interfacename">Session</code>(一般的和全局的)裡，這不是
+						框架自身的特性，而是由使用的容器的
+						<code class="interfacename">WebApplicationContext</code>提供的。
+						<a href="ch03s04.html#beans-factory-scopes-other" title="3.4.4.&#160;其他作用域">第&#160;3.4.4&#160;節 「其他作用域」</a>詳細地描述了這些Bean的作用範圍。</p>
+</div>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>
+		    Spring發佈包帶有完整的Spring Portlet MVC範例，這個應用演示了所有Spring Portlet MVC框架的功能和特色。
+		    你可以在<code class="filename">samples/petportal</code>目錄下找到這個'petportal'應用。
+		    </p>
+</div>
+</div>
+</div></body>
+</html>

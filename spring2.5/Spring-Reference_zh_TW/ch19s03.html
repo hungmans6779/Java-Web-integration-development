@@ -1,0 +1,97 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>19.3.&#160;發送訊息</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch19.html" title="第&#160;19&#160;章&#160;JMS (Java Message Service)">
+<link rel="prev" href="ch19s02.html" title="19.2.&#160;使用Spring JMS">
+<link rel="next" href="ch19s04.html" title="19.4.&#160;接收訊息">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="jms-sending"></a>19.3.&#160;發送訊息</h2></div></div></div>
+<p><code class="classname">JmsTemplate</code> 套件含許多方便的方法來發送訊息。有些發送方法可以使用 <code class="classname">javax.jms.Destination</code> 物件指定目的地，也可以使用字元串在JNDI中尋找目的地。沒有目的地參數的發送方法使用預設的目的地。這裡有個例子使用1.0.2版的JMS實作發送訊息到一個隊列。 
+      </p>
+<pre class="programlisting">import javax.jms.ConnectionFactory;
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.Queue;
+import javax.jms.Session;
+
+import org.springframework.jms.core.MessageCreator;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.core.JmsTemplate102;
+
+public class JmsQueueSender {
+
+    private JmsTemplate jmsTemplate;
+    private Queue queue;
+
+    public void setConnectionFactory(ConnectionFactory cf) {
+        this.jmsTemplate = new JmsTemplate102(cf, false);
+    }
+
+    public void setQueue(Queue queue) {
+        this.queue = queue;
+    }
+
+    public void simpleSend() {
+        this.jmsTemplate.send(this.queue, new MessageCreator() {
+            public Message createMessage(Session session) throws JMSException {
+              return session.createTextMessage("hello queue world");
+            }
+        });
+    }
+}</pre>
+<p>這個例子使用 <code class="classname">MessageCreator</code> 回調介面從提供的 <code class="classname">Session</code> 物件中創建一個文本訊息，並且通過一個 <code class="classname">ConnectionFactory</code> 的參考和指定訊息域的布林值來創建 <code class="classname">JmsTemplate</code>。提供了一個無參數的建構器和 <span class="property">connectionFactory</span> / <span class="property">queue</span> Bean屬性並可用於創建實例（使用一個BeanFactory或者普通Java程式碼）。或者考慮從Spring的基類別 <code class="classname">JmsGatewaySupport</code>，它對JMS配置具有內置的Bean屬性，繼承一個類別。
+      </p>
+<p>當在應用上下文中配置JMS 1.0.2時，重要的是記得設定布林屬性 <span class="property">pubSubDomain</span> 的值以指明你是要發送到隊列還是主題。</p>
+<p>方法 <code class="methodname">send(String destinationName, MessageCreator creator)</code> 讓你利用目的地的字元串名字發送訊息。如果這個名字在JNDI中註冊，你應當將模板中的 <span class="property">destinationResolver</span> 屬性設置為 <code class="classname">JndiDestinationResolver</code> 的一個實例。</p>
+<p>如果你創建 <code class="classname">JmsTemplate</code> 並指定一個預設的目的地，<code class="methodname">send(MessageCreator c)</code> 發送訊息到這個目的地。 
+      </p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jms-msg-conversion"></a>19.3.1.&#160;使用訊息轉換器</h3></div></div></div>
+<p>為便於發送領域模型物件，<code class="classname">JmsTemplate</code> 有多種以一個Java物件為參數並做為訊息資料內容的發送方法。<code class="classname">JmsTemplate</code> 裡可重載的方法 <code class="methodname">convertAndSend</code> 和 <code class="methodname">receiveAndConvert</code> 將轉換的過程委託給介面 <code class="literal">MessageConverter</code> 的一個實例。這個介面定義了一個簡單的合約用來在Java物件和JMS訊息間進行轉換。缺省的實作 <code class="classname">SimpleMessageConverter</code> 支持 <code class="classname">String</code> 和 <code class="classname">TextMessage</code>，<code class="classname">byte[]</code> 和 <code class="classname">BytesMesssage</code>，以及 <code class="classname">java.util.Map</code> 和 <code class="classname">MapMessage</code> 之間的轉換。使用轉換器，可以使你和你的應用關注於通過JMS接收和發送的業務物件而不用操心它是具體如何表達成JMS訊息的。
+  		</p>
+<p>目前的沙箱模型包括一個 <code class="classname">MapMessageConverter</code>，它使用反射轉換JavaBean和 <code class="classname">MapMessage</code>。其他串流行可選的實作方式包括使用已存在的XML編組的套件，例如JAXB、Castor、XMLBeans或XStream的轉換器來創建一個表示物件的 <code class="interfacename">TextMessage</code>。
+      </p>
+<p>為方便那些不能以通用方式封裝在轉換類別裡的訊息屬性，訊息頭和訊息體的設置，通過 <code class="interfacename">MessagePostProcessor</code> 介面你可以在訊息被轉換後並且在發送前存取該訊息。下例展示了如何在 <code class="interfacename">java.util.Map</code> 已經轉換成一個訊息後更改訊息頭和屬性。
+      </p>
+<pre class="programlisting">public void sendWithConversion() {
+    Map map = new HashMap();
+    map.put("Name", "Mark");
+    map.put("Age", new Integer(47));
+    jmsTemplate.convertAndSend("testQueue", map, new MessagePostProcessor() {
+        public Message postProcessMessage(Message message) throws JMSException {
+            message.setIntProperty("AccountID", 1234);
+            message.setJMSCorrelationID("123-00001");
+            return message;
+        }
+    });
+}</pre>
+<p>這將產生一個如下的訊息格式:</p>
+<pre class="programlisting">MapMessage={
+    Header={
+        ... standard headers ...
+        CorrelationID={123-00001}
+    }
+    Properties={
+        AccountID={Integer:1234}
+    }
+    Fields={
+        Name={String:Mark}
+        Age={Integer:47}
+    } 
+}</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jms-callbacks"></a>19.3.2.&#160;<code class="interfacename">SessionCallback</code> 和 <code class="interfacename">ProducerCallback</code></h3></div></div></div>
+<p>雖然send操作適用於許多常見的使用場景，但是有時你需要在一個JMS <code class="interfacename">Session</code> 或者 <code class="interfacename">MessageProducer</code> 上執行多個操作。介面 <code class="interfacename">SessionCallback</code> 和 <code class="interfacename">ProducerCallback</code> 分別提供了JMS <code class="interfacename">Session</code> 和 <code class="interfacename">Session</code> / <code class="interfacename">MessageProducer</code> 對。<code class="classname">JmsTemplate</code> 上的 <code class="methodname">execute()</code> 方法執行這些回調方法。
+        </p>
+</div>
+</div></body>
+</html>

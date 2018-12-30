@@ -1,0 +1,314 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>12.3.&#160;JDO</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch12.html" title="第&#160;12&#160;章&#160;使用ORM工具進行資料存取">
+<link rel="prev" href="ch12s02.html" title="12.2.&#160;Hibernate">
+<link rel="next" href="ch12s04.html" title="12.4.&#160;Oracle TopLink">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="orm-jdo"></a>12.3.&#160;JDO</h2></div></div></div>
+<p>Spring支持標準的JDO 1.0/2.0 API作為資料存取策略，同樣遵循類似於Spring對Hibernate的支持樣式。對應的支持與整合類別位於 <code class="literal">org.springframework.orm.jdo</code> 套件中。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="orm-jdo-setup"></a>12.3.1.&#160;建立<code class="interfacename">PersistenceManagerFactory</code>
+      </h3></div></div></div>
+<p>Spring提供了一個 <code class="classname">LocalPersistenceManagerFactoryBean</code> 類別，允許你通過Spring的application context來定義一個本地的JDO <code class="interfacename">PersistenceManagerFactory</code>：
+      </p>
+<pre class="programlisting">&lt;beans&gt;
+
+  &lt;bean id="myPmf" class="org.springframework.orm.jdo.LocalPersistenceManagerFactoryBean"&gt;
+    &lt;property name="configLocation" value="classpath:kodo.properties"/&gt;
+  &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<p>作為可選方案，<code class="interfacename">PersistenceManagerFactory</code> 也可以通過直接實例化一個 <code class="interfacename">PersistenceManagerFactory</code> 的實作類別得到。
+		一個JDO <code class="interfacename">PersistenceManagerFactory</code> 的實作類別遵循JavaBeans的模式，它非常像一個JDBC <code class="interfacename">DataSource</code> 的實作類別，這使得它天然的非常適合作為一個Spring的bean定義。
+		這種創建樣式通常支持一個Spring定義的JDBC <code class="interfacename">DataSource</code>，將它傳入到對應的實作類別的connectionFactory的屬性中進行bean的創建。具體的例子參見開源的JDO實作JPOX（<a href="http://www.jpox.org" target="_top">http://www.jpox.org</a>）：</p>
+<pre class="programlisting">&lt;beans&gt;
+
+ &lt;bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close"&gt;
+   &lt;property name="driverClassName" value="${jdbc.driverClassName}"/&gt;
+   &lt;property name="url" value="${jdbc.url}"/&gt;
+   &lt;property name="username" value="${jdbc.username}"/&gt;
+   &lt;property name="password" value="${jdbc.password}"/&gt;
+ &lt;/bean&gt;
+
+ &lt;bean id="myPmf" class="org.jpox.PersistenceManagerFactoryImpl" destroy-method="close"&gt;
+   &lt;property name="connectionFactory" ref="dataSource"/&gt;
+   &lt;property name="nontransactionalRead" value="true"/&gt;
+ &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<p>一個JDO的 <code class="interfacename">PersistenceManagerFactory</code> 能夠同樣在一個J2EE應用伺服器的JNDI環境下被創建。
+		這通常由特定的JDO實作所提供的JCA連接器來完成。Spring標準的 <code class="literal">JndiObjectFactoryBean</code> 也能夠被用來獲取和暴露這個 <code class="interfacename">PersistenceManagerFactory</code>。
+		當然，通常在一個EJB環境之外，在JNDI中持有 <code class="interfacename">PersistenceManagerFactory</code> 的實例沒有什麼特別吸引人的好處，因而我們一般只在有非常充足的理由時選擇這種建立方式。
+		請參看Hibernate章節中「容器資源 vs 本地資源」這一節的討論，那裡的討論同樣適用於JDO。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="orm-jdo-template"></a>12.3.2.&#160;<code class="classname">JdoTemplate</code>和<code class="classname">JdoDaoSupport</code></h3></div></div></div>
+<p>
+      
+       每一個基於JDO的DAO類別都需要通過IoC來注入一個 
+      <code class="interfacename">PersistenceManagerFactory</code>。
+			這樣的DAO類別可以在 <code class="interfacename">PersistenceManagerFactory</code> 的說明下來操作原生的JDO API進行程式，
+			但是通常來說我們更願意使用Spring提供的 <code class="classname">JdoTemplate</code>：
+      </p>
+<pre class="programlisting">&lt;beans&gt;
+  
+  &lt;bean id="myProductDao" class="product.ProductDaoImpl"&gt;
+    &lt;property name="persistenceManagerFactory" ref="myPmf"/&gt;
+  &lt;/bean&gt;
+  
+&lt;/beans&gt;</pre>
+<pre class="programlisting">public class ProductDaoImpl implements ProductDao {
+  
+    private JdoTemplate jdoTemplate;
+
+    public void setPersistenceManagerFactory(PersistenceManagerFactory pmf) {
+        this.jdoTemplate = new JdoTemplate(pmf);
+    }
+
+    public Collection loadProductsByCategory(final String category) throws DataAccessException {
+        return (Collection) this.jdoTemplate.execute(new JdoCallback() {
+            public Object doInJdo(PersistenceManager pm) throws JDOException {
+                Query query = pm.newQuery(Product.class, "category = pCategory");
+                query.declareParameters("String pCategory"); 
+                List result = query.execute(category);
+                <em class="lineannotation"><span class="lineannotation">// do some further stuff with the result list</span></em>
+                return result;
+            }
+        });
+    }
+}</pre>
+<p>
+       一個回調的實作能夠有效地在任何JDO資料存取中使用。
+      <code class="classname">JdoTemplate</code> 會確保當前的 <code class="classname">PersistenceManager</code> 
+       物件的正確打開和關閉，並自動參與到事務管理中去。
+		  Template實例不僅是執行緒安全的，同時它也是可重用的，因而他們可以作為外部物件的實例變數而被持有。
+		  對於那些簡單的諸如 <code class="literal">find</code>、<code class="literal">load</code>、
+		  <code class="literal">makePersistent</code> 或者 <code class="literal">delete</code> 操作的調用，
+		  <code class="classname">JdoTemplate</code> 提供可選擇的快捷函數來替換這種回調的實作。
+		  不僅如此，Spring還提供了一個簡便的 <code class="classname">JdoDaoSupport</code> 基類別，
+		  這個類別提供了 <code class="literal">setPersistenceManagerFactory(..)</code> 方法來接受一個 
+		  <code class="classname">PersistenceManagerFactory</code> 物件，
+		  同時提供了 <code class="methodname">getPersistenceManagerFactory()</code> 
+		  和 <code class="methodname">getJdoTemplate()</code> 給子類別使用。
+		  綜合了這些，對於那些典型的業務需求，就有了一個非常簡單的DAO實作：
+      </p>
+<pre class="programlisting">public class ProductDaoImpl extends JdoDaoSupport implements ProductDao {
+  
+    public Collection loadProductsByCategory(String category) throws DataAccessException {
+        return getJdoTemplate().find(
+            Product.class, "category = pCategory", "String category", new Object[] {category});
+    }
+}</pre>
+<p>作為不使用Spring的 <code class="classname">JdoTemplate</code> 來實作DAO的替代解決方案，你依然可以通過在原生JDO API的級別對那些基於Spring的DAO進行程式，此時你必須明確地打開和關閉一個 <code class="interfacename">PersistenceManager</code>。
+		正如在相應的Hibernate章節描述的一樣，這種做法的主要優點在於你的資料存取程式碼可以在整個過程中拋出checked exceptions。<code class="classname">JdoDaoSupport</code> 為這種情況提供了多種函數支持，
+		包括獲取和釋放一個具備事務管理功能的 <code class="interfacename">PersistenceManager</code> 和相關的異常轉化。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="orm-jdo-daos-straight"></a>12.3.3.&#160;
+      
+      基於原生的JDO API實作DAO
+      </h3></div></div></div>
+<p>我們可以直接操作JDO API來實作DAO，通過直接使用一個注入的 <code class="interfacename">PersistenceManagerFactory</code>，而無需對Spring產生的任何依賴。
+		一個相應的DAO實作看上去就像下面這樣：</p>
+<pre class="programlisting">public class ProductDaoImpl implements ProductDao {
+
+    private PersistenceManagerFactory persistenceManagerFactory;
+
+    public void setPersistenceManagerFactory(PersistenceManagerFactory pmf) {
+        this.persistenceManagerFactory = pmf;
+    }
+
+    public Collection loadProductsByCategory(String category) {
+        PersistenceManager pm = this.persistenceManagerFactory.getPersistenceManager();
+        try {
+            Query query = pm.newQuery(Product.class, "category = pCategory");
+            query.declareParameters("String pCategory"); 
+            return query.execute(category);
+        }
+        finally {
+          pm.close();
+        }
+    }
+}</pre>
+<p>
+      
+      上面我們所列出的DAO完全遵循IoC，它如同使用Spring的 
+      <code class="classname">JdoTemplate</code> 進行編碼那樣，非常適合在Spring容器中進行配置：
+      </p>
+<pre class="programlisting">&lt;beans&gt;
+
+  &lt;bean id="myProductDao" class="product.ProductDaoImpl"&gt;
+    &lt;property name="persistenceManagerFactory" ref="myPmf"/&gt;
+  &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<p>這類別DAO的主要問題在於他們每次總是從處理器中得到一個新的 <code class="interfacename">PersistenceManager</code> 
+       實例。為了依然能夠存取受到Spring管理的、具備事務管理功能的 <code class="interfacename">PersistenceManager</code>，
+       不妨考慮一下在目標 <code class="interfacename">PersistenceManagerFactory</code> 之前，
+			定義一個 <code class="classname">TransactionAwarePersistenceManagerFactoryProxy</code>（Spring已經提供），
+			然後將這個代理注入到你的DAO中去。
+      </p>
+<pre class="programlisting">&lt;beans&gt;
+
+  &lt;bean id="myPmfProxy"
+      class="org.springframework.orm.jdo.TransactionAwarePersistenceManagerFactoryProxy"&gt;
+    &lt;property name="targetPersistenceManagerFactory" ref="myPmf"/&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="myProductDao" class="product.ProductDaoImpl"&gt;
+    &lt;property name="persistenceManagerFactory" ref="myPmfProxy"/&gt;
+  &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<p>
+      	這樣，你的資料存取程式碼就可以通過 <code class="methodname">PersistenceManagerFactory.getPersistenceManager()</code> 
+       	方法得到一個具備事務管理功能的 <code class="interfacename">PersistenceManager</code>。
+				而這一方法將通過代理類別的處理：在從處理器獲取一個新的 <code class="interfacename">PersistenceManager</code> 
+				實例之前檢查一下當前具備事務管理功能的 <code class="interfacename">PersistenceManager</code>，
+				如果這是一個具備事務管理功能的 <code class="interfacename">PersistenceManager</code>，
+				<code class="methodname">close()</code> 調用在此時將被忽略。
+      </p>
+<p>
+      	如果你的資料存取程式碼總是在一個處於活躍狀態的事務中執行（或者至少在一個活躍的事務同步中），
+      	那麼你能夠非常安全地忽略 <code class="methodname">PersistenceManager.close()</code> 的調用和整個 
+      	<code class="literal">finally</code> 塊的程式碼。這將使你的DAO實作變得比較簡潔：
+      </p>
+<pre class="programlisting">public class ProductDaoImpl implements ProductDao {
+
+    private PersistenceManagerFactory persistenceManagerFactory;
+
+    public void setPersistenceManagerFactory(PersistenceManagerFactory pmf) {
+        this.persistenceManagerFactory = pmf;
+    }
+
+    public Collection loadProductsByCategory(String category) {
+        PersistenceManager pm = this.persistenceManagerFactory.getPersistenceManager();
+        Query query = pm.newQuery(Product.class, "category = pCategory");
+        query.declareParameters("String pCategory"); 
+        return query.execute(category);
+    }
+}</pre>
+<p>對於這種依賴於活躍事務的DAO，比較推薦的做法是將 
+      <code class="classname">TransactionAwarePersistenceManagerFactoryProxy</code> 
+      中的"allowCreate"標誌關閉，從而強制活躍事務。</p>
+<pre class="programlisting">&lt;beans&gt;
+
+  &lt;bean id="myPmfProxy"
+      class="org.springframework.orm.jdo.TransactionAwarePersistenceManagerFactoryProxy"&gt;
+    &lt;property name="targetPersistenceManagerFactory" ref="myPmf"/&gt;
+    &lt;property name="allowCreate" value="false"/&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="myProductDao" class="product.ProductDaoImpl"&gt;
+    &lt;property name="persistenceManagerFactory" ref="myPmfProxy"/&gt;
+  &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<p>這種DAO存取方式的主要優勢在於它僅僅依賴於JDO API本身而無需引入任何的Spring的類別。
+      從無入侵性的角度來看，這一點非常吸引人。同時，對於JDO開發人員來說也更自然。</p>
+<p>
+      	然而，這樣的DAO存取方式會拋出 <code class="exceptionname">JDOException</code>，
+      	這是一個無需宣告或捕獲的unchecked exception。這意味著，DAO的調用者只能以普通的錯誤來處理這些異常，
+      	除非完全依賴JDO自身的異常體系。因而，除非你將DAO的調用者綁定到具體的實作策略上去，
+      	否則你將無法捕獲特定的異常原因（諸如樂觀鎖異常）。這種折中平衡或許可以被接受，
+      	如果你的應用完全基於JDO或者無需進行特殊的異常處理。
+      </p>
+<p>
+      	總體來說，DAO可以基於JDO的原生API實作，同時，它依舊需要能夠參與到Spring的事務管理中。
+			這對於那些已經對JDO非常熟悉的人來說很有吸引力，因為這種方式更加自然。
+			不過，這種DAO將拋出 <code class="exceptionname">JDOException</code>，因而，
+			如果有必要的話需要明確地去做由 <code class="exceptionname">JDOException</code> 到Spring的 
+			<code class="exceptionname">DataAccessException</code> 的轉化。
+      </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="orm-jdo-tx"></a>12.3.4.&#160;事務管理</h3></div></div></div>
+<p>將事務管理納入到Service操作的執行中，你可以使用Spring通用的宣告式的事務管理功能，
+      參加下面的例子：</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans
+        xmlns="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:aop="http://www.springframework.org/schema/aop"
+        xmlns:tx="http://www.springframework.org/schema/tx"
+        xsi:schemaLocation="
+   http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+   http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd
+   http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd"&gt;
+
+  &lt;bean id="myTxManager" class="org.springframework.orm.jdo.JdoTransactionManager"&gt;
+    &lt;property name="persistenceManagerFactory" ref="myPmf"/&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="myProductService" class="product.ProductServiceImpl"&gt;
+    &lt;property name="productDao" ref="myProductDao"/&gt;
+  &lt;/bean&gt;
+
+  &lt;tx:advice id="txAdvice" transaction-manager="txManager"&gt;
+    &lt;tx:attributes&gt;
+      &lt;tx:method name="increasePrice*" propagation="REQUIRED"/&gt;
+      &lt;tx:method name="someOtherBusinessMethod" propagation="REQUIRES_NEW"/&gt;
+      &lt;tx:method name="*" propagation="SUPPORTS" read-only="true"/&gt;
+    &lt;/tx:attributes&gt;
+  &lt;/tx:advice&gt;
+
+  &lt;aop:config&gt;
+    &lt;aop:pointcut id="productServiceMethods" expression="execution(* product.ProductService.*(..))"/&gt;
+    &lt;aop:advisor advice-ref="txAdvice" pointcut-ref="productServiceMethods"/&gt;
+  &lt;/aop:config&gt;
+
+&lt;/beans&gt;</pre>
+<p>注意，JDO要求你必須在一個活躍的事務中修改一個持久化物件。
+       與Hibernate相比，在JDO中並沒有一種類似脫離事務刷出（non-transactional flush）的概念。
+			基於這種原因，你所選擇的JDO實作需要被建立在特定的環境中，尤其是它需要為JTA同步做明確的創建，
+			由此來自行檢測一個JTA事務。這一點對於本地事務不是必要的，由於它已經被Spring的 
+			<code class="classname">JdoTransactionManager</code> 處理，但是對於需要參與到JTA事務中的情況，是必須的
+			（無論是由Spring的 <code class="classname">JtaTransactionManager</code>、EJB CMT或者普通的JTA所驅動的事務）。
+			</p>
+<p>
+      	<code class="classname">JdoTransactionManager</code> 能夠將一個JDO事務暴露給存取相同的JDBC 
+      	<code class="interfacename">DataSource</code> 的JDBC存取程式碼。前提條件是，被註冊的 
+      	<code class="classname">JdoDialect</code> 能夠支持獲取底層的JDBC <code class="interfacename">Connection</code>。
+				這一功能預設被基於JDBC的JDO 2.0 實作。對於JDO 1.0的實作，必須註冊一個使用者自定義的 
+				<code class="classname">JdoDialect</code>。具體參見下一節有關 <code class="classname">JdoDialect</code> 的機制。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="orm-jdo-dialect"></a>12.3.5.&#160;<code class="interfacename">JdoDialect</code></h3></div></div></div>
+<p>
+      
+      	作為高層級特性，<code class="classname">JdoTemplate</code> 和 <code class="classname">interfacename</code> 
+      	都支持一個使用者自定義的 <code class="interfacename">JdoDialect</code> 作為「jdoDialect」的bean屬性進行注入。
+				在這種情況下，DAO將不再接收 <code class="interfacename">PersistenceManagerFactory</code> 的參考作為參數，
+				而是接收一個完整的 <code class="classname">JdoTemplate</code> 實例（也就是將它注入到 
+				<code class="classname">JdoDaoSupport</code> 的"jdoTemplate"屬性中去）。一個 <code class="interfacename">JdoDialect</code> 
+				實作能夠啟動一些由Spring支持的高層級特性，這通常由特定的實作供應商指定：
+      </p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>執行特定的事務語義（例如使用者自定義的事務隔離級別和事務逾時）</p></li>
+<li><p>獲取具備事務功能的JDBC <code class="interfacename">Connection</code> （暴露給基於JDBC的DAO）</p></li>
+<li><p>應用查詢逾時功能（自動地從Spring管理的事務逾時中計算）</p></li>
+<li><p>及時刷出 <code class="interfacename">PersistenceManager</code> （使得事務變化對於基於JDBC的資料存取程式碼可見）</p></li>
+<li><p>從 <code class="literal">JDOExceptions</code> 到Spring的 <code class="literal">DataAccessExceptions</code> 的高層級轉化</p></li>
+</ul></div>
+<p>這對於JDO 1.0的實作有特別的價值，由於這些特性都沒有在其標準的API中包含。
+			對於JDO 2.0，其中的絕大多數的特性已經以標準的方式被支持。因而，Spring的 <code class="literal">DefaultJdoDialect</code> 
+			在預設情況下（Spring 1.2後）使用相應的JDO 2.0 API函數。對於特殊的事務語義和異常的高層級轉化這樣的高層級特性，
+			獲取和使用JDO實作供應商特定的 <code class="classname">JdoDialect</code> 子類別還是比較有價值的。
+			</p>
+<p>更多有關它的操作以及它如何在Spring的JDO支持中使用的詳細資訊請參看
+       <code class="classname">JdoDialect</code> 的Javadoc。</p>
+</div>
+</div></body>
+</html>

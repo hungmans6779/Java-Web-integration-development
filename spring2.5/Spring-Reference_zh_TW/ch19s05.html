@@ -1,0 +1,53 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>19.5.&#160;JCA訊息端點的支持</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch19.html" title="第&#160;19&#160;章&#160;JMS (Java Message Service)">
+<link rel="prev" href="ch19s04.html" title="19.4.&#160;接收訊息">
+<link rel="next" href="ch19s06.html" title="19.6.&#160;JMS命名空間支持">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="jms-jca-message-endpoint-manager"></a>19.5.&#160;JCA訊息端點的支持</h2></div></div></div>
+<p>從Spring2.5版本開始，Spring也提供了基於JCA <code class="interfacename">MessageListener</code> 容器的支持。
+     <code class="classname">JmsMessageEndpointManager</code> 將根據供應者 <code class="interfacename">ResourceAdapter</code> 的類別名自動地決定 <code class="interfacename">ActivationSpec</code> 類別名。因此，通常它只提供如下例所示的Spring的通用 <code class="classname">JmsActivationSpecConfig</code> 。
+    </p>
+<pre class="programlisting">&lt;bean class="org.springframework.jms.listener.endpoint.JmsMessageEndpointManager"&gt;
+    &lt;property name="resourceAdapter" ref="resourceAdapter"/&gt;
+    &lt;property name="jmsActivationSpecConfig"&gt;
+        &lt;bean class="org.springframework.jms.listener.endpoint.JmsActivationSpecConfig"&gt;
+            &lt;property name="destinationName" value="myQueue"/&gt;
+        &lt;/bean&gt;
+    &lt;/property&gt;
+    &lt;property name="messageListener" ref="myMessageListener"/&gt;
+&lt;/bean&gt;</pre>
+<p>使用Spring的 <code class="classname">ResourceAdapterFactoryBean</code>，
+    目標 <code class="interfacename">ResourceAdapter</code> 可以像下例描述的那樣本地配置。
+    在一些環境裡（如WebLogic）也可以通過JNDI尋找來完成。
+    </p>
+<pre class="programlisting">&lt;bean id="resourceAdapter" class="org.springframework.jca.support.ResourceAdapterFactoryBean"&gt;
+    &lt;property name="resourceAdapter"&gt;
+        &lt;bean class="org.apache.activemq.ra.ActiveMQResourceAdapter"&gt;
+            &lt;property name="serverUrl" value="tcp://localhost:61616"/&gt;
+        &lt;/bean&gt;
+    &lt;/property&gt;
+    &lt;property name="workManager"&gt;
+        &lt;bean class="org.springframework.jca.work.SimpleTaskWorkManager"/&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;</pre>
+<p>請參考 <code class="classname">JmsMessageEndpointManager</code>、<code class="classname">JmsActivationSpecConfig</code> 和 <code class="classname">ResourceAdapterFactoryBean</code> 部分的JavaDoc，以獲得更詳細的資訊。
+    </p>
+<p>Spring也提供了並不與JMS綁定的通用JCA訊息端點管理器：
+    <code class="classname">org.springframework.jca.endpoint.GenericMessageEndpointManager</code>。
+    它允許使用任何型別的訊息監聽器（例如CCI MessageListener）和任何提供者特定的ActivationSpec物件。從所涉及的JCA提供者的文檔可以找到這個連接器的實際能力，從 <code class="classname">GenericMessageEndpointManager</code> 的JavaDoc中可以找到Spring特有的配置細節。
+    </p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>基於JCA的訊息端點管理器與EJB 2.1的Message-Driven Beans很相似，它使用了相同的資源提供者約定。像EJB 2.1 MDB一樣，任何被JCA提供者支持的訊息監聽器介面都可以在Spring Context中使用。儘管如此，Spring仍為JMS提供了顯式的「方便的」支持，很顯然是因為JMS是JCA端點管理約定中最通用的端點API。
+       </p>
+</div>
+</div></body>
+</html>

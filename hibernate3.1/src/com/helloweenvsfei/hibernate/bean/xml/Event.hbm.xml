@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+                                   "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+                                   
+                                   
+<!-- 類別所在的包名  -->                                   
+<hibernate-mapping package="com.helloweenvsfei.hibernate.bean.xml" >
+
+  <class name="com.helloweenvsfei.hibernate.bean.Event" table="tb_event" >
+  
+    <!-- 
+      @Id
+      @GeneratedValue(strategy=GenerationType.AUTO)
+      private Integer id;
+    -->
+    <id name="id" column="id" >
+      <generator class="native" />
+    </id>  
+  
+    
+    <!-- 
+      private String description;
+    -->
+    <property name="description" type="text" ></property>
+  
+  
+    <!-- 
+      @Temporal(TemporalType.TIMESTAMP)
+      private Date createDate;
+    -->
+    <property name="createDate" type="timestamp" ></property>
+  
+  
+    <!-- 
+      @ManyToOne(fetch = FetchType.LAZY)
+      @JoinColumn(name = "cat_id")
+      private Cat cat;
+    -->
+    <many-to-one name="cat" lazy="false" column="cat_dt" ></many-to-one>
+    
+  </class>
+
+</hibernate-mapping>

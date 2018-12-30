@@ -1,0 +1,110 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>13.7.&#160;使用主題</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch13.html" title="第&#160;13&#160;章&#160;Web MVC framework Web框架">
+<link rel="prev" href="ch13s06.html" title="13.6.&#160;本地化解析器">
+<link rel="next" href="ch13s08.html" title="13.8.&#160;Spring對分段檔案上傳（multipart file upload）的支持">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="mvc-themeresolver"></a>13.7.&#160;使用主題</h2></div></div></div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-themeresolver-introduction"></a>13.7.1.&#160;簡介</h3></div></div></div>
+<p>Sping的web MVC框架允許你通過<span class="emphasis"><em>主題（theme）</em></span>來控制網頁的樣式，這將進一步改善使用者的體驗。
+        簡單來說，一個主題就是一組靜態的資源（比如樣式表和圖片），它們可以影響應用程序的視覺效果。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-themeresolver-defining"></a>13.7.2.&#160;如何定義主題</h3></div></div></div>
+<p>為了在web應用中使用主題，需要設置<code class="interfacename">org.springframework.ui.context.ThemeSource</code>。
+        <code class="interfacename">WebApplicationContext</code>是從<code class="interfacename">ThemeSource</code>擴展而來，
+        但是它本身並沒有實作<code class="interfacename">ThemeSource</code>定義的方法，它把這些任務轉交給別的專用模組。
+        如果沒有明確設置，真正實作<code class="interfacename">ThemeSource</code>的類別是<code class="classname">org.springframework.ui.context.support.ResourceBundleThemeSource</code>。
+        這個類別在classpath的根部（比如在<code class="literal">/WEB-INF/classes</code>目錄下）尋找合適的屬性檔案來完成配置。
+        如果想自己實作<code class="interfacename">ThemeSource</code>介面，
+        或者需要配置<code class="classname">ResourceBundleThemeSource</code>所需的屬性檔案的前綴名（basename prefix），
+        可以在應用上下文中定義一個名為"themeSource"的bean（注意，必須用這個名字）。
+        web application context會自動檢測並使用這個bean。</p>
+<p>在使用<code class="classname">ResourceBundleThemeSource</code>時，每個主題是用一個屬性檔案來配置的。
+        這個屬性檔案中列舉了構成一個主題所需的資源。比如:</p>
+<pre class="programlisting">styleSheet=/themes/cool/style.css
+background=/themes/cool/img/coolBg.jpg</pre>
+<p>這些屬性的名字應該和視圖中的某些主題元素（themed element）一一對應。
+        在JSP視圖中，這些元素通常用<code class="literal">spring:theme</code>標籤宣告（這個標籤的用法和<code class="literal">spring:message</code>很相似）。
+        下文這個JSP片段使用了我們在前面定義的主題：
+        </p>
+<pre class="programlisting">&lt;%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%&gt;
+&lt;html&gt;
+   &lt;head&gt;
+      &lt;link rel="stylesheet" href="&lt;spring:theme code="styleSheet"/&gt;" type="text/css"/&gt;
+   &lt;/head&gt;
+   &lt;body background="&lt;spring:theme code="background"/&gt;"&gt;
+      ...
+   &lt;/body&gt;
+&lt;/html&gt;</pre>
+<p>除非有特殊配置，當<code class="classname">ResourceBundleThemeSource</code>尋找所需的屬性檔案時，它預設在配置的屬性檔案名中沒有任何前綴，
+        也就是說，它只會在classpath的根部尋找。舉例來說，如果一個主題的定義包含在<code class="literal">cool.properties</code>這個屬性檔案中，
+        需要把這個檔案放在classpath的根部，比如在<code class="literal">/WEB-INF/classes</code>目錄下。
+        同時，<code class="classname">ResourceBundleThemeSource</code> 使用標準的Java resource bundle管理機制，
+        這意味著實作主題的國際化是很容易的。
+        比如，<code class="literal">/WEB-INF/classes/cool_nl.properties</code>這個屬性檔案中可以指向一個顯示荷蘭文字的圖片。</p>
+<p>譯者註：如果對ResourceBundle和它的屬性檔案名的規範不熟悉，請參閱JavaDoc中關於ResourceBundle.getBundle(String baseName,Locale locale)這個API。
+        這個baseName參數和屬性檔案名有一定關係。
+        比如，如果cool.properties這個屬性檔案放置在了/WEB-INF/classes/com/aa/bb/cc目錄下，
+        那麼這個baseName的值應該為com.aa.bb.cc.cool。
+        在這裡，com.aa.bb.cc就是這個屬性檔案名的前綴(basename prefix)。
+        支持前綴的API會在前綴所宣告的目錄下尋找相應的檔案，比如getBundle(）。
+        如果沒有特殊的配置，<code class="classname">ResourceBundleThemeSource</code>不支持前綴，
+        在這種情況下你要把它所需要的屬性檔案放在<code class="literal">/WEB-INF/classes</code>目錄下。
+	  </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-themeresolver-resolving"></a>13.7.3.&#160;主題解析器</h3></div></div></div>
+<p>現在我們已經知道如何定義主題了，剩下的事就是決定該用哪個主題。
+        <code class="classname">DispatcherServlet</code>會尋找一個叫「themeResolver」的bean，
+        這個bean應該實作了<code class="interfacename">ThemeResolver</code>介面。
+        主題解析器的工作串流程和<code class="interfacename">LocaleResolver</code>差不多。
+        它可以解析每個請求所對應的主題，也可以動態地更換主題。下面是Spring提供的幾個主題解析器：
+        </p>
+<div class="table">
+<a name="mvc-theme-resolver-impls-tbl"></a><p class="title"><b>表&#160;13.6.&#160;<code class="interfacename">ThemeResolver</code>的實作</b></p>
+<div class="table-contents"><table summary="ThemeResolver的實作" border="1">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>Java類別</th>
+<th>描述</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code class="classname">FixedThemeResolver</code></td>
+<td>
+              選用一個固定的主題，這個主題由「defaultThemeName」屬性決定。</td>
+</tr>
+<tr>
+<td><code class="classname">SessionThemeResolver</code></td>
+<td>
+              主題保存在使用者的HTTP session。在每個session中，這個主題只需要被設置一次，但是每個新session的主題都要重新設置。</td>
+</tr>
+<tr>
+<td><code class="classname">CookieThemeResolver</code></td>
+<td>
+              使用者所選擇的主題以cookie的形式存在客戶端的機器上面。</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><p>Spring 也支持一個叫<code class="classname">ThemeChangeInterceptor</code>
+	  的請求攔截器。它可以根據請求中包含的參數來動態地改變主題。
+      </p>
+</div>
+</div></body>
+</html>

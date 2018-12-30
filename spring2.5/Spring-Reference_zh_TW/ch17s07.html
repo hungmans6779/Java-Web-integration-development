@@ -1,0 +1,19 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>17.7.&#160;對遠端介面不提供自動探測實作</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch17.html" title="第&#160;17&#160;章&#160;使用Spring進行遠端存取與Web服務">
+<link rel="prev" href="ch17s06.html" title="17.6.&#160;JMS">
+<link rel="next" href="ch17s08.html" title="17.8.&#160;在選擇這些技術時的一些考慮">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="remoting-autodection-remote-interfaces"></a>17.7.&#160;對遠端介面不提供自動探測實作</h2></div></div></div>
+<p>對遠端介面不實作自動探測的主要原因是防止產生太多的遠端調用。目標物件有可能實作的是類似<code class="interfacename">InitializingBean</code>或者<code class="interfacename">DisposableBean</code>這樣的內部回調介面，而這些是不希望暴露給調用者的。</p>
+<p>提供一個所有介面都被目標實作的代理通常和本地情況無關。但是當暴露一個遠端服務時，你應該只暴露特定的用於遠端使用的服務介面。除了內部回調介面，目標有可能實作了多個業務介面，而往往只有一個是用於遠端調用的。出於這些原因，我們 <span class="emphasis"><em>要求</em></span> 指定這樣的服務介面。</p>
+<p>這是在配置方便性和意外暴露內部方法的危險性之間作的平衡。總是指明服務介面並不要花太大代價，並可以讓你控制需暴露方法從而更加安全。</p>
+</div></body>
+</html>

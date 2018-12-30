@@ -1,0 +1,330 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>E.8.&#160;The label tag</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ape.html" title="附錄&#160;E.&#160;spring-form.tld">
+<link rel="prev" href="apes07.html" title="E.7.&#160;The input tag">
+<link rel="next" href="apes09.html" title="E.9.&#160;The option tag">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="spring-form.tld.label"></a>E.8.&#160;The <code class="literal">label</code> tag</h2></div></div></div>
+<p>Renders a form field label in an HTML 'label' tag.</p>
+<div class="table">
+<a name="spring-form.tld.label.table"></a><p class="title"><b>表&#160;E.7.&#160;Attributes</b></p>
+<div class="table-contents"><table summary="Attributes" border="1">
+<colgroup>
+<col align="center">
+<col align="center">
+<col align="center">
+</colgroup>
+<thead><tr>
+<th align="center">Attribute</th>
+<th align="center">Required?</th>
+<th align="center">Runtime Expression?</th>
+<th align="left">Description</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="center">
+                     <p>cssClass</p>
+                  </td>
+<td align="center">
+                     <p>false</p>
+                  </td>
+<td align="center">
+                     <p>true</p>
+                  </td>
+<td align="left">
+                     <p>Equivalent to "class" - HTML Optional Attribute.</p>
+                  </td>
+</tr>
+<tr>
+<td align="center">
+                     <p>cssErrorClass</p>
+                  </td>
+<td align="center">
+                     <p>false</p>
+                  </td>
+<td align="center">
+                     <p>true</p>
+                  </td>
+<td align="left">
+                     <p>Equivalent to "class" - HTML Optional Attribute. Used only when errors are present.</p>
+                  </td>
+</tr>
+<tr>
+<td align="center">
+                     <p>cssStyle</p>
+                  </td>
+<td align="center">
+                     <p>false</p>
+                  </td>
+<td align="center">
+                     <p>true</p>
+                  </td>
+<td align="left">
+                     <p>Equivalent to "style" - HTML Optional Attribute</p>
+                  </td>
+</tr>
+<tr>
+<td align="center">
+                     <p>dir</p>
+                  </td>
+<td align="center">
+                     <p>false</p>
+                  </td>
+<td align="center">
+                     <p>true</p>
+                  </td>
+<td align="left">
+                     <p>HTML Standard Attribute</p>
+                  </td>
+</tr>
+<tr>
+<td align="center">
+                     <p>for</p>
+                  </td>
+<td align="center">
+                     <p>false</p>
+                  </td>
+<td align="center">
+                     <p>true</p>
+                  </td>
+<td align="left">
+                     <p>HTML Standard Attribute</p>
+                  </td>
+</tr>
+<tr>
+<td align="center">
+                     <p>htmlEscape</p>
+                  </td>
+<td align="center">
+                     <p>false</p>
+                  </td>
+<td align="center">
+                     <p>true</p>
+                  </td>
+<td align="left">
+                     <p>Enable/disable HTML escaping of rendered values.</p>
+                  </td>
+</tr>
+<tr>
+<td align="center">
+                     <p>id</p>
+                  </td>
+<td align="center">
+                     <p>false</p>
+                  </td>
+<td align="center">
+                     <p>true</p>
+                  </td>
+<td align="left">
+                     <p>HTML Standard Attribute</p>
+                  </td>
+</tr>
+<tr>
+<td align="center">
+                     <p>lang</p>
+                  </td>
+<td align="center">
+                     <p>false</p>
+                  </td>
+<td align="center">
+                     <p>true</p>
+                  </td>
+<td align="left">
+                     <p>HTML Standard Attribute</p>
+                  </td>
+</tr>
+<tr>
+<td align="center">
+                     <p>onclick</p>
+                  </td>
+<td align="center">
+                     <p>false</p>
+                  </td>
+<td align="center">
+                     <p>true</p>
+                  </td>
+<td align="left">
+                     <p>HTML Event Attribute</p>
+                  </td>
+</tr>
+<tr>
+<td align="center">
+                     <p>ondblclick</p>
+                  </td>
+<td align="center">
+                     <p>false</p>
+                  </td>
+<td align="center">
+                     <p>true</p>
+                  </td>
+<td align="left">
+                     <p>HTML Event Attribute</p>
+                  </td>
+</tr>
+<tr>
+<td align="center">
+                     <p>onkeydown</p>
+                  </td>
+<td align="center">
+                     <p>false</p>
+                  </td>
+<td align="center">
+                     <p>true</p>
+                  </td>
+<td align="left">
+                     <p>HTML Event Attribute</p>
+                  </td>
+</tr>
+<tr>
+<td align="center">
+                     <p>onkeypress</p>
+                  </td>
+<td align="center">
+                     <p>false</p>
+                  </td>
+<td align="center">
+                     <p>true</p>
+                  </td>
+<td align="left">
+                     <p>HTML Event Attribute</p>
+                  </td>
+</tr>
+<tr>
+<td align="center">
+                     <p>onkeyup</p>
+                  </td>
+<td align="center">
+                     <p>false</p>
+                  </td>
+<td align="center">
+                     <p>true</p>
+                  </td>
+<td align="left">
+                     <p>HTML Event Attribute</p>
+                  </td>
+</tr>
+<tr>
+<td align="center">
+                     <p>onmousedown</p>
+                  </td>
+<td align="center">
+                     <p>false</p>
+                  </td>
+<td align="center">
+                     <p>true</p>
+                  </td>
+<td align="left">
+                     <p>HTML Event Attribute</p>
+                  </td>
+</tr>
+<tr>
+<td align="center">
+                     <p>onmousemove</p>
+                  </td>
+<td align="center">
+                     <p>false</p>
+                  </td>
+<td align="center">
+                     <p>true</p>
+                  </td>
+<td align="left">
+                     <p>HTML Event Attribute</p>
+                  </td>
+</tr>
+<tr>
+<td align="center">
+                     <p>onmouseout</p>
+                  </td>
+<td align="center">
+                     <p>false</p>
+                  </td>
+<td align="center">
+                     <p>true</p>
+                  </td>
+<td align="left">
+                     <p>HTML Event Attribute</p>
+                  </td>
+</tr>
+<tr>
+<td align="center">
+                     <p>onmouseover</p>
+                  </td>
+<td align="center">
+                     <p>false</p>
+                  </td>
+<td align="center">
+                     <p>true</p>
+                  </td>
+<td align="left">
+                     <p>HTML Event Attribute</p>
+                  </td>
+</tr>
+<tr>
+<td align="center">
+                     <p>onmouseup</p>
+                  </td>
+<td align="center">
+                     <p>false</p>
+                  </td>
+<td align="center">
+                     <p>true</p>
+                  </td>
+<td align="left">
+                     <p>HTML Event Attribute</p>
+                  </td>
+</tr>
+<tr>
+<td align="center">
+                     <p>path</p>
+                  </td>
+<td align="center">
+                     <p>true</p>
+                  </td>
+<td align="center">
+                     <p>true</p>
+                  </td>
+<td align="left">
+                     <p>Path to errors object for data binding</p>
+                  </td>
+</tr>
+<tr>
+<td align="center">
+                     <p>tabindex</p>
+                  </td>
+<td align="center">
+                     <p>false</p>
+                  </td>
+<td align="center">
+                     <p>true</p>
+                  </td>
+<td align="left">
+                     <p>HTML Standard Attribute</p>
+                  </td>
+</tr>
+<tr>
+<td align="center">
+                     <p>title</p>
+                  </td>
+<td align="center">
+                     <p>false</p>
+                  </td>
+<td align="center">
+                     <p>true</p>
+                  </td>
+<td align="left">
+                     <p>HTML Standard Attribute</p>
+                  </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break">
+</div></body>
+</html>

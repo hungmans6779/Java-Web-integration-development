@@ -1,0 +1,23 @@
+<!DOCTYPE validators PUBLIC
+"-//OpenSymphony Group//XWork Validator 1.0//EN"
+"http://www.opensymphony.com/xwork/xwork-validator-1.0.2.dtd">
+
+<validators>
+
+  <!-- 檢查書名 -->
+  <field name="name" >
+    <field-validator type="requiredstring" >    <!-- 必需的 -->
+      <param name="true" >true</param>          <!-- 檢查時去掉前後空白 -->
+      <message>請輸入書籍名稱</message>         <!-- 提示資訊 -->
+    </field-validator>
+  </field>
+  
+  
+  <!-- 檢查作者，必須為空 -->
+  <field name="author" >
+    <field-validator type="requiredstring" >    <!-- 必需的 -->
+      <message>請輸入書籍作者</message>         <!-- 提示資訊 -->
+    </field-validator>
+  </field>
+  
+</validators>

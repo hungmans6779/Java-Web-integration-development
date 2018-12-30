@@ -1,0 +1,29 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>13.10.&#160;處理異常</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch13.html" title="第&#160;13&#160;章&#160;Web MVC framework Web框架">
+<link rel="prev" href="ch13s09.html" title="13.9.&#160;使用Spring的表單標籤資源庫">
+<link rel="next" href="ch13s11.html" title="13.11.&#160;慣例優先原則（convention over configuration）">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="mvc-exceptionhandlers"></a>13.10.&#160;處理異常</h2></div></div></div>
+<p>當與請求匹配的控制器處理請求時，可能會發生意料之外的異常。
+    Spring提供了<code class="literal">HandlerExceptionResolvers</code>來減輕這些異常帶來的痛苦。
+    <code class="literal">HandlerExceptionResolvers</code>有點像在Web應用程序描述符<code class="literal">web.xml</code>中定義的異常映射（exception mappings），
+    但是它處理異常的方式更加靈活。它可以提供當異常被拋出時是什麼處理程序在執行的資訊。
+    更進一步，一個以程式方式處理異常的途徑，讓你對於在請求被指向另一個URL（與使用按servlet的異常映射的最終結果一樣）之前如何恰當的響應有了更多選擇。
+    </p>
+<p>實作<code class="interfacename">HandlerExceptionResolver</code>介面很簡單，
+    只需實作<code class="literal">resolveException（Exception，Handler）</code>方法，
+    並返回一個<code class="classname">ModelAndView</code>，除此之外，
+    也可以直接使用<code class="classname">SimpleMappingExceptionResolver</code>。
+    這個解析器允許你取得任何可能被拋出的異常的類別名，並把它映射到一個視圖名。
+    這和Servlet API中提供的異常映射特性在功能上是相當的，但是，它還允許對來自不同處理程序的異常實作更細粒度的異常映射。
+    </p>
+</div></body>
+</html>

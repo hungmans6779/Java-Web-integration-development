@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<taglib version="2.1" xmlns="http://java.sun.com/xml/ns/javaee"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee web-jsptaglibrary_2_1.xsd">
+ 
+  
+ <description>A simple tab library for the examples</description>
+ <tlib-version>1.0</tlib-version>
+ <short-name>taglib</short-name>
+ <uri>http://www.helloweenvsfei.com/tags</uri>
+ <tag>
+  <name>copyright</name>
+  <tag-class>com.helloweenvsfei.tags.Copyright</tag-class>
+  <body-content>JSP</body-content>
+  <description>Tag Sample</description>
+ </tag>
+ <tag>
+  <name>copyright2</name>
+  <tag-class>com.helloweenvsfei.tags.Copyright2</tag-class>
+  <body-content>JSP</body-content>
+  <description>TagSupport Sample</description>
+ </tag>
+ <tag>
+  <name>hello</name>
+  <tag-class>com.helloweenvsfei.tags.HelloTag</tag-class>
+  <body-content>empty</body-content>
+  <description>TagSuport Tag for param</description>
+  <attribute>
+   <name>name</name>
+   <required>true</required>
+   <rtexprvalue>true</rtexprvalue>
+  </attribute>
+ </tag>
+ <tag>
+  <name>add</name>
+  <tag-class>com.helloweenvsfei.tags.AddTag</tag-class>
+  <body-content>empty</body-content>
+  <attribute>
+   <name>num1</name>
+   <required>true</required>
+   <rtexprvalue>true</rtexprvalue>
+  </attribute>
+  <attribute>
+   <name>num2</name>
+   <required>true</required>
+   <rtexprvalue>true</rtexprvalue>
+  </attribute>
+ </tag>
+ <tag>
+  <name>toLowerCase</name>
+  <tag-class>com.helloweenvsfei.tags.toLowerCaseTag</tag-class>
+  <body-content>JSP</body-content>
+ </tag>
+ <tag>
+  <name>loop</name>
+  <tag-class>com.helloweenvsfei.tags.LoopTag</tag-class>
+  <body-content>JSP</body-content>
+  <description>Tag with body.</description>
+ </tag>
+ <tag>
+  <name>dynamicAttribute</name>
+  <tag-class>com.helloweenvsfei.tags.DynamicAttributeTag</tag-class>
+  <body-content>empty</body-content>
+  <!-- 
+  <dynamic-attributes>true</dynamic-attributes>
+   -->
+  <description>Tag with dynamic attribute.</description>
+ </tag>
+ <tag>
+  <name>table</name>
+  <tag-class>com.helloweenvsfei.tags.table.Table</tag-class>
+  <body-content>JSP</body-content>
+  <attribute>
+   <name>items</name>
+   <required>true</required>
+   <rtexprvalue>true</rtexprvalue>
+  </attribute>
+  <attribute>
+   <name>url</name>
+   <rtexprvalue>true</rtexprvalue>
+  </attribute>
+ </tag>
+ <tag>
+  <name>column</name>
+  <tag-class>com.helloweenvsfei.tags.table.Column</tag-class>
+  <body-content>empty</body-content>
+  <attribute>
+   <name>property</name>
+   <required>true</required>
+   <rtexprvalue>true</rtexprvalue>
+  </attribute>
+  <attribute>
+   <name>label</name>
+   <rtexprvalue>true</rtexprvalue>
+  </attribute>
+ </tag>
+ <tag>
+  <name>multi</name>
+  <tag-class>com.helloweenvsfei.tags.MultiTag</tag-class>
+  <body-content>empty</body-content>
+  <description>multi Tag with parameters</description>
+  <attribute>
+   <name>num1</name>
+   <required>true</required>
+   <rtexprvalue>true</rtexprvalue>
+  </attribute>
+  <attribute>
+   <name>num2</name>
+   <required>true</required>
+   <rtexprvalue>true</rtexprvalue>
+  </attribute>
+ </tag>
+ <tag>
+  <name>toUpperCase</name>
+  <tag-class>com.helloweenvsfei.tags.ToUpperCaseTag</tag-class>
+  <body-content>tagdependent</body-content>
+  <description>body tag</description>
+ </tag>
+ <tag>
+  <name>multiAttribute</name>
+  <tag-class>com.helloweenvsfei.tags.multiAttributeTag</tag-class>
+  <body-content>tagdependent</body-content>
+  <description>multi attribute tag with parameters</description>
+  <attribute>
+   <name>body1</name>
+   <rtexprvalue>false</rtexprvalue>
+   <!-- 
+   <fragment>true</fragment>
+   -->
+  </attribute>
+  <attribute>
+   <name>body2</name>
+   <rtexprvalue>false</rtexprvalue>
+   <!-- 
+   <fragment>true</fragment>
+   -->
+  </attribute>
+ </tag>
+</taglib>

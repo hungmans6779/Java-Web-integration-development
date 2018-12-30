@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+
+  
+  
+  
+
+  
+  <!-- 攔截器(aopMethodBeforeInterceptor、aopMethodAfterInterceptor、aopThrowsInterceptor)的運用(開始)   -->
+  <!-- 
+                 把 3 個攔截器連同Service 實現類設定到Spring 中。Spring將產生實體3個攔堆器物件、一個Service 物件，並安裝指定的規則並裝配。   
+                實際上，Spring 無法將Service 實現類別與攔截器直接組裝，因為沒有對應的 getter、setter 方法。安裝時借助的是Spring 的代理類，
+                即把攔截器安裝到 NameMatchMethodPointcutAdvisor 中，把自訂的 Service 安裝到了 ProxyFactoryBean 中，然後組裝在一塊。
+  -->
+  
+  <!-- 攔截器  在 withAOP() 方法前執行    安裝到 NameMatchMethodPointcutAdvisor 中 -->
+  <bean id="aopMethodBeforeInterceptor" class="org.springframework.aop.support.NameMatchMethodPointcutAdvisor" >
+   <property name="advice" >
+     <bean class="com.helloweenvsfei.aop.filter.MethodBeforeInterceptor" />
+   </property>      
+   <property name="mappedName" value="withAOP" ></property>
+  </bean>     
+
+  <!-- 攔截器在 withAOP() 返回後運行   安裝到 NameMatchMethodPointcutAdvisor 中  -->
+  <bean id="aopMethodAfterInterceptor" class="org.springframework.aop.support.NameMatchMethodPointcutAdvisor"  >
+    <property name="advice" >
+      <bean class="com.helloweenvsfei.aop.filter.MethodAfterInterceptor" />
+    </property>      
+    <property name="mappedName" value="withAOP" ></property>
+  </bean> 
+
+	
+  <!-- 攔截器在異常拋出後運行  安裝到 NameMatchMethodPointcutAdvisor 中  -->
+  <bean id="aopThrowsInterceptor" class="org.springframework.aop.support.NameMatchMethodPointcutAdvisor"  >
+     <property name="advice" >
+       <bean class="com.helloweenvsfei.aop.filter.ThrowsInterceptor" />
+     </property>   
+     <property name="mappedName" value="withAOP" ></property>
+  </bean>	
+
+  <!-- Service 物件，安裝到 ProxyFactoryBean 物件中  -->
+  <bean id="aopService" class="org.springframework.aop.framework.ProxyFactoryBean" >
+	<!-- 攔截器 -->
+	<property name="interceptorNames" >
+	  <list>
+      	<value>aopMethodBeforeInterceptor</value>
+	    <value>aopMethodAfterInterceptor</value>   
+		<value>aopThrowsInterceptor</value>
+	  </list>
+	</property>
+	
+	<!-- 被攔截的對象 -->
+	<property name="target" >
+	  <bean class="com.helloweenvsfei.aop.dao.impl.AOPServiceImpl" >
+	    <property name="name" value="kevinhung" ></property>
+	  </bean>
+	</property>	  
+  </bean>
+  
+  <!-- 攔截器(aopMethodBeforeInterceptor、aopMethodAfterInterceptor、aopThrowsInterceptor)的運用(結束)   -->
+  
+  
+
+  
+  
+</beans> 

@@ -1,0 +1,238 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>13.5.&#160;視圖與視圖解析</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch13.html" title="第&#160;13&#160;章&#160;Web MVC framework Web框架">
+<link rel="prev" href="ch13s04.html" title="13.4.&#160;處理器映射（handler mapping）">
+<link rel="next" href="ch13s06.html" title="13.6.&#160;本地化解析器">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="mvc-viewresolver"></a>13.5.&#160;視圖與視圖解析</h2></div></div></div>
+<p>所有web應用的MVC框架都有它們定位視圖的方式。
+      Spring提供了視圖解析器供你在瀏覽器顯示模型資料，而不必被束縛在特定的視圖技術上。
+      Spring內置了對JSP，Velocity模版和XSLT視圖的支持。 
+      <a href="ch14.html" title="第&#160;14&#160;章&#160;整合視圖技術">第&#160;14&#160;章 <i>整合視圖技術</i></a>這一章詳細說明了Spring如何與不同的視圖技術整合。
+      </p>
+<p><code class="interfacename">ViewResolver</code>和<code class="interfacename">View</code>是Spring的視圖處理方式中特別重要的兩個介面。
+      <code class="interfacename">ViewResolver</code>提供了從視圖名稱到實際視圖的映射。
+      <code class="interfacename">View</code>處理請求的準備工作，並將該請求提交給某種具體的視圖技術。
+	</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-viewresolver-resolver"></a>13.5.1.&#160;視圖解析器（<code class="interfacename">ViewResolver</code>）</h3></div></div></div>
+<p>正如前面（<a href="ch13s03.html" title="13.3.&#160;控制器">第&#160;13.3&#160;節 「控制器」</a>）所討論的，
+        SpringWeb框架的所有控制器都返回一個<code class="classname">ModelAndView</code>實例。
+        Sprnig中的視圖以名字為標識，視圖解析器通過名字來解析視圖。Spring提供了多種視圖解析器。我們將舉例加以說明。
+        </p>
+<div class="table">
+<a name="mvc-view-resolvers-tbl"></a><p class="title"><b>表&#160;13.4.&#160;視圖解析器</b></p>
+<div class="table-contents"><table summary="視圖解析器" border="1">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th><code class="interfacename">ViewResolver</code></th>
+<th>描述</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code class="classname">AbstractCachingViewResolver</code></td>
+<td>
+			  抽象視圖解析器實作了對視圖的快取記憶體。在視圖被使用之前，通常需要進行一些準備工作。
+			  從它繼承的視圖解析器將對要解析的視圖進行快取記憶體。
+			  </td>
+</tr>
+<tr>
+<td><code class="classname">XmlViewResolver</code></td>
+<td>
+			  XmlViewResolver實作<code class="interfacename">ViewResolver</code>，支持XML格式的配置檔案。
+			  該配置檔案必須採用與Spring XML Bean Factory相同的DTD。預設的配置檔案是
+			  <code class="literal">/WEB-INF/views.xml</code>。
+			  </td>
+</tr>
+<tr>
+<td><code class="classname">ResourceBundleViewResolver</code></td>
+<td>
+			  ResourceBundleViewResolver實作<code class="interfacename">ViewResolver</code>，
+			  在一個<code class="classname">ResourceBundle</code>中尋找所需bean的定義。
+			  這個bundle通常定義在一個位於classpath中的屬性檔案中。預設的屬性檔案是<code class="literal">views.properties</code>。
+			  </td>
+</tr>
+<tr>
+<td><code class="classname">UrlBasedViewResolver</code></td>
+<td>
+			  UrlBasedViewResolver實作<code class="interfacename">ViewResolver</code>，
+			  將視圖名直接解析成對應的URL，不需要顯式的映射定義。
+			  如果你的視圖名和視圖資源的名字是一致的，就可使用該解析器，而無需進行映射。
+			  </td>
+</tr>
+<tr>
+<td><code class="classname">InternalResourceViewResolver</code></td>
+<td>
+			  作為<code class="classname">UrlBasedViewResolver</code>的子類別，
+			  它支持<code class="classname">InternalResourceView</code>（對Servlet和JSP的套件裝），
+			  以及其子類別<code class="classname">JstlView</code>和<code class="classname">TilesView</code>。
+			  通過<code class="literal">setViewClass</code>方法，可以指定用於該解析器產生視圖使用的視圖類別。
+			  更多資訊請參考<code class="classname">UrlBasedViewResolver</code>的Javadoc。
+			  </td>
+</tr>
+<tr>
+<td>
+<code class="classname">VelocityViewResolver</code> /
+              <code class="classname">FreeMarkerViewResolver</code>
+</td>
+<td>
+			  作為<code class="classname">UrlBasedViewResolver</code>的子類別，
+			  它能支持<code class="classname">VelocityView</code>（對Velocity模版的套件裝）和<code class="classname">FreeMarkerView</code>以及它們的子類別。
+			  </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><p>舉例來說，當使用JSP作為視圖層技術時，就可以使用<code class="classname">UrlBasedViewResolver</code>。
+        這個視圖解析器會將視圖名解析成URL，並將請求傳遞給RequestDispatcher來顯示視圖。
+        </p>
+<pre class="programlisting">&lt;bean id="viewResolver"
+      class="org.springframework.web.servlet.view.UrlBasedViewResolver"&gt;
+    &lt;property name="prefix" value="/WEB-INF/jsp/"/&gt;
+    &lt;property name="suffix" value=".jsp"/&gt;
+&lt;/bean&gt;</pre>
+<p>當返回的視圖名為<code class="literal">test</code>時，
+        這個視圖解析器將請求傳遞給<code class="classname">RequestDispatcher</code>，<code class="classname">RequestDispatcher</code>再將請求傳遞給<code class="literal">/WEB-INF/jsp/test.jsp</code>。
+        </p>
+<p>當在一個web應用中混合使用不同的視圖技術時，可以使用<code class="classname">ResourceBundleViewResolver</code>：</p>
+<pre class="programlisting">&lt;bean id="viewResolver"
+      class="org.springframework.web.servlet.view.ResourceBundleViewResolver"&gt;
+    &lt;property name="basename" value="views"/&gt;
+    &lt;property name="defaultParentView" value="parentView"/&gt;
+&lt;/bean&gt;</pre>
+<p><code class="classname">ResourceBundleViewResolver</code>通過basename所指定的<code class="classname">ResourceBundle</code>解析視圖名。
+        對每個待解析的視圖，ResourceBundle裡<code class="literal">的[視圖名].class</code>所對應的值就是實作該視圖的類別。
+        同樣，<code class="literal">[視圖名].url</code>所對應的值是該視圖所對應的URL。
+        從上面的例子裡能夠發現，可以指定一個parent view，其它的視圖都可以從parent view擴展。用這種方法，可以宣告一個預設的視圖。
+        </p>
+<p><span class="emphasis"><em>關於視圖快取記憶體的注意事項</em></span> － 繼承<code class="classname">AbstractCachingViewResolver</code>的解析器可以快取記憶體它曾經解析過的視圖。
+        當使用某些視圖技術時，這可以大幅度的提升性能。
+        也可以關掉快取記憶體功能，只要把<code class="literal">cache</code>屬性設成<code class="literal">false</code>就可以了。
+        而且，如果需要在系統運行時動態地更新某些視圖（比如，當一個Velocity模板被修改了），
+        可以調用<code class="literal">removeFromCache(String viewName, Locale loc)</code>方法來達到目的。
+        </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-viewresolver-chaining"></a>13.5.2.&#160;視圖解析鏈</h3></div></div></div>
+<p>Spring支持多個視圖解析器一起使用。可以把它們當作一個解析鏈。
+        這樣有很多好處，比如在特定情況下重新定義某些視圖。
+        定義視圖解析鏈很容易，只要在應用上下文中定義多個解析器就可以了。
+        必要時，也可以通過<code class="literal">order</code>屬性來宣告每個解析器的序列。
+        要記住的是，某個解析器的order越高, 它在解析鏈中的位置越靠後。
+        </p>
+<p>下面這個例子展示了一個套件含兩個解析器的解析鏈。
+        一個是<code class="classname">InternalResourceViewResolver</code>，這個解析器總是被自動的放到鏈的末端。
+        另一個是<code class="classname">XmlViewResolver</code>，它支持解析Excel視圖（而<code class="classname">InternalResourceViewResolver</code>不可以）。
+        </p>
+<pre class="programlisting">&lt;bean id="jspViewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver"&gt;
+  &lt;property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/&gt;
+  &lt;property name="prefix" value="/WEB-INF/jsp/"/&gt;
+  &lt;property name="suffix" value=".jsp"/&gt;
+&lt;/bean&gt;
+
+&lt;bean id="excelViewResolver" class="org.springframework.web.servlet.view.XmlViewResolver"&gt;
+  &lt;property name="order" value="1"/&gt;
+  &lt;property name="location" value="/WEB-INF/views.xml"/&gt;
+&lt;/bean&gt;
+
+<em class="lineannotation"><span class="lineannotation">&lt;!-- in <code class="literal">views.xml</code> --&gt;</span></em>
+
+&lt;beans&gt;
+  &lt;bean name="report" class="org.springframework.example.ReportExcelView"/&gt;
+&lt;/beans&gt;</pre>
+<p>如果某個解析器沒有找到合適的視圖，Spring會在上下文中尋找是否配置了其它的解析器。
+        如果有，它會繼續進行解析，否則，Srping會拋出一個<code class="classname">Exception</code>。
+        </p>
+<p>要記住，當一個視圖解析器找不到合適的視圖時，它<span class="emphasis"><em>可能</em></span> 返回null值。
+        但是，不是每個解析器都這麼做。這是因為，在某些情況下，解析器可能無法偵測出符合要求的視圖是否存在。
+        比如，<code class="classname">InternalResourceViewResolver</code>在內部調用了<code class="classname">RequestDispatcher</code>。
+        請求分發是檢查一個JSP檔案是否存在的唯一方法，不幸的是，這個方法只能用一次。
+        同樣的問題在<code class="classname">VelocityViewResolver</code>和其它解析器中也有。
+        當使用這些解析器時，最好仔細閱讀它們的Javadoc，看看需要的解析器是否無法發現不存在的視圖。
+        這個問題產生的副作用是，如果<code class="classname">InternalResourceViewResolver</code>解析器沒有放在鏈的末端，
+        <code class="classname">InternalResourceViewResolver</code>後面的那些解析器根本得不到使用，
+        因為<code class="classname">InternalResourceViewResolver</code><span class="emphasis"><em>總是</em></span>返回一個視圖！
+	  </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-redirecting"></a>13.5.3.&#160;重定向（Rediret）到另一個視圖</h3></div></div></div>
+<p>在前面我們提到過，一個控制器通常會返回視圖名，然後由視圖解析器解析到某種視圖實作。
+        對於像JSP這樣實際上由Servlet/JSP引擎處理的視圖，
+        我們通常使用<code class="classname">InternalResourceViewResolver</code>和<code class="classname">InternalResourceView</code>。
+        這種視圖實作最終會調用Servlet API的<code class="literal">RequestDispatcher.forward(..)</code>方法或<code class="literal">RequestDispatcher.include()</code>方法將使用者指向最終頁面。
+        對於別的視圖技術而言（比如Velocity、XSLT等等），視圖本身就會產生返回給使用者的內容。
+        </p>
+<p>有些時候，在視圖顯示以前，我們可能需要給使用者發一個HTTP redirect重定向指令。
+        比如，一個控制器成功的處理了一個表單提交（資料以HTTP POST的方式發送），它最終可能委託給另一個控制器來完成剩下的工作。
+        在這種情況下，如果我們使用內部forward，接手工作的那個控制器將會得到所有以POST方式提交的表單資料，
+        這可能會引起潛在的混淆，干擾那個控制器的正常工作。 
+        另一個在顯示視圖之前返回HTTP redirect的原因是這可以防止使用者重複提交同一表單。
+        具體一點講，瀏覽器先用<code class="literal">POST</code>的方式提交表單,然後它接收到重定向的指令，它繼續用<code class="literal">GET</code>的方式去下載新的頁面。
+        從瀏覽器的角度看，這個新的頁面不是<code class="literal">POST</code>的返回結果，而是<code class="literal">GET</code>的。
+        這樣，使用者不可能在點擊刷新的時候不小心再次提交表單，因為刷新的結果是再次用<code class="literal">GET</code> 去下載表單提交後的結果頁面，而不是重新提交初始的<code class="literal">POST</code>資料。
+        </p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="mvc-redirecting-redirect-view"></a>13.5.3.1.&#160;<code class="classname">RedirectView</code></h4></div></div></div>
+<p>在控制器中強制重定向的方法之一是讓控制器創建並返回一個Spring的<code class="classname">RedirectView</code>的實例。
+          在這種情況下，<code class="classname">DispatcherServlet</code>不會使用通常的視圖解析機制，
+          既然它已經拿到了一個（重定向）視圖，它就讓這個視圖去完成餘下的工作。
+          </p>
+<p><code class="classname">RedirectView</code>會調用<code class="literal">HttpServletResponse.sendRedirect()</code>方法，
+          其結果是給使用者的瀏覽器發回一個HTTP redirect。所有的模型屬性都被轉換成以HTTP請求的存取參數。
+          這意味著這個模型只能包含可以被簡便的轉換成string形式的HTTP請求存取參數的物件，比如String或者可以被轉換成String的型別。
+          </p>
+<p>如果使用<code class="classname">RedirectView</code>視圖，並且它是由控制器創建的，
+          重定向的URL最好是用Spring所提供的IoC功能注射到控制器中。
+          這樣這個URL就可以和視圖名一起在上下文中被宣告，而不是固化在控制器內。
+          </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="mvc-redirecting-redirect-prefix"></a>13.5.3.2.&#160;<code class="literal">redirect:</code>前綴</h4></div></div></div>
+<p>儘管使用<code class="classname">RedirectView</code>幫我們達到了目的，但是如果控制器產生<code class="classname">RedirectView</code>的話，
+          控制器不可避免地要知道某個請求的結果是讓使用者重定向到另一個頁面。這不是最佳的實作，因為這使得系統不同模組之間結合得過於緊密。
+          其實控制器不應該過問返回結果是如何產生的，通常情況下，它應該只關心注入給它的視圖名稱。
+          </p>
+<p>解決上述問題的方法是依靠<code class="literal">redirect:</code>前綴。
+          如果返回的視圖名包含redirect:前綴，<code class="classname">UrlBasedViewResolver</code> （以及它的子類別）
+          會知道系統要產生一個HTTP redirect。 視圖名其餘的部分會被當作重定向URL。
+          </p>
+<p>這樣做的最終結果跟控制器返回<code class="classname">RedirectView</code>是一樣的，但現在控制器只需要和邏輯上的視圖名打交道。
+        <code class="literal">redirect:/my/response/controller.html</code>這個邏輯視圖名中的URL是當前servlet context中的相對路徑。
+        與之相比，<code class="literal">redirect:http://myhost.com/some/arbitrary/path.html</code>中的URL是絕對路徑。 
+        重要的是，只要這個重定向視圖名和其他視圖名以相同的方式注入到控制器中，控制器根本不知道重定向是否發生。
+        </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="mvc-redirecting-forward-prefix"></a>13.5.3.3.&#160;<code class="literal">forward:</code>前綴</h4></div></div></div>
+<p>類似的，我們也可以使用包含有<code class="literal">forward:</code>前綴的視圖名。
+          這些視圖名會被<code class="classname">UrlBasedViewResolver</code>和它的子類別正確解析。
+          解析的內部實作是產生一個<code class="classname">InternalResourceView</code>，
+          這個視圖最終會調用<code class="literal">RequestDispatcher.forward()</code>方法，將forward視圖名的其餘部分作為URL。
+          所以，當使用<code class="classname">InternalResourceViewResolver</code>/<code class="classname">InternalResourceView</code>，
+          並且你所用的視圖技術是JSP時，你沒有必要使用這個前綴。
+          但是，當你主要使用其它的視圖技術，但仍需要對Servlet/JSP engine處理的頁面強制forward時，
+          這個forward前綴還是很有用的（但就這個問題而言，如果不想使用forward前綴，也可以使用視圖解析鏈）。
+		</p>
+<p>和<code class="literal">redirect:</code>前綴一樣，如果含有forward前綴的視圖名和其他視圖名一樣被注入控制器，
+          控制器根本不需要知道在處理響應的過程中是否發生任何特殊情況。
+          </p>
+</div>
+</div>
+</div></body>
+</html>

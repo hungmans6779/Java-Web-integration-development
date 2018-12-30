@@ -1,0 +1,96 @@
+
+
+
+************************************************************************************************************************************
+   【第二十章】Hibernate 入門     
+ 
+ 
+    建立資料庫 hibernate3.1 ，使用 UTF-8 寫程式。
+  create database hibernate3.1 character set utf8;
+  CREATE DATABASE 'hibernate3.11' DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+
+     
+   
+  Hibernate DateBase 設定：
+  Connection URL： jdbc:mysql://localhost:3306/hibernate3.11?characterEncoding=UTF-8
+  Driver Class： com.mysql.jdbc.Driver
+  
+  
+     ※ servlet：CatServlet  ->  DAO 層： BaseDAO 
+       
+  
+   《initAdd》forward => addCat.jsp
+  http://3w.eztravel.com.tw:8080/hibernate3.1/catServlet?action=initAdd&id=1
+        
+    《add》         forward => listCat.jsp
+  http://3w.eztravel.com.tw:8080/hibernate3.1/catServlet?action=add&motherId=1&name=Kevin1&description=Kevin1 boy cat. 
+        
+    《edit》      forward => addCat.jsp
+  http://3w.eztravel.com.tw:8080/hibernate3.1/catServlet?action=edit&id=5
+  
+    《save》      forward => listCat.jsp
+  http://3w.eztravel.com.tw:8080/hibernate3.1/catServlet?action=save&id=5&motherId=2&name=KevinUpdate&description=Kevin boy cat.       
+    
+    《view》      forward => viewCat.jsp
+  http://3w.eztravel.com.tw:8080/hibernate3.1/catServlet?action=view&id=5     
+        
+    《list》      forward => listCat.jsp
+  http://3w.eztravel.com.tw:8080/hibernate3.1/catServlet?action=list      
+  
+    《delete》 forward => listCat.jsp
+  http://3w.eztravel.com.tw:8080/hibernate3.1/catServlet?action=delete&id=6  
+  
+    《預訊沒有帶 action 的參數 》 forward => listCat.jsp
+  http://3w.eztravel.com.tw:8080/hibernate3.1/catServlet    
+   
+     
+************************************************************************************************************************************
+
+
+
+
+
+
+
+
+
+
+
+************************************************************************************************************************************
+  【第二十五章】Hibernate 高級查詢      
+         
+   《員工 Servlet》
+   http://3w.eztravel.com.tw:8080/hibernate3.1/servlet/EmployeeServlet?action=add
+   
+  《部門管理Servlet》
+  http://3w.eztravel.com.tw:8080/hibernate3.1/servlet/DepartmentServlet
+
+  http://3w.eztravel.com.tw:8080/hibernate3.1/listEmployee.jsp
+ 
+  http://3w.eztravel.com.tw:8080/hibernate3.1/addDepartment.jsp
+  http://3w.eztravel.com.tw:8080/hibernate3.1/listDepartment.jsp
+
+
+   《》
+   
+   《》
+   
+   《》
+   
+   《》
+ 
+   《》
+   
+   《》   
+    
+   
+************************************************************************************************************************************
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,86 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>4.4.&#160;ResourceLoader介面</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch04.html" title="第&#160;4&#160;章&#160;資源">
+<link rel="prev" href="ch04s03.html" title="4.3.&#160;內置 Resource 實作">
+<link rel="next" href="ch04s05.html" title="4.5.&#160;ResourceLoaderAware 介面">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="resources-resourceloader"></a>4.4.&#160;<code class="interfacename">ResourceLoader</code>介面</h2></div></div></div>
+<p>
+			<code class="interfacename">ResourceLoader</code> 介面由能返回(或者載入)<code class="interfacename">Resource</code> 實例的物件來實作。
+		</p>
+<pre class="programlisting">public interface ResourceLoader {
+    Resource getResource(String location);
+}</pre>
+<p>所有的application context都實作了 <code class="interfacename">ResourceLoader</code> 介面，
+			因此它們可以用來獲取<code class="interfacename">Resource</code> 實例。
+		</p>
+<p>當你調用特定application context的 <code class="methodname">getResource()</code> 方法，
+			而且資源路徑並沒有特定的前綴時，你將獲得與該application context相應的 <code class="interfacename">Resource</code> 型別。例如：假定下面的程式碼片斷是基於<code class="classname">ClassPathXmlApplicationContext</code> 實例上執行的：
+		</p>
+<pre class="programlisting">Resource template = ctx.getResource("some/resource/path/myTemplate.txt");</pre>
+<p>這將返回<code class="classname">ClassPathResource</code>；如果是基於<code class="classname">FileSystemXmlApplicationContext</code> 實例上執行的，那你將獲得<code class="classname">FileSystemResource</code>。而對於 <code class="classname">WebApplicationContext</code>
+你將獲得<code class="classname">ServletContextResource</code>，依此類別推。
+		</p>
+<p>這樣你可以在特定的application context中用串流行的方法載入資源。
+		</p>
+<p>另一方面，無論什麼型別的application context，
+			你可以通過使用特定的前綴 <code class="literal">classpath:</code> 強制使用<code class="classname">ClassPathResource</code>。
+		</p>
+<pre class="programlisting">Resource template = ctx.getResource("classpath:some/resource/path/myTemplate.txt");</pre>
+<p>同樣的，你可以用任何標準的 <code class="classname">java.net.URL</code> 前綴，強制使用 <code class="classname">UrlResource</code> ：
+		</p>
+<pre class="programlisting">Resource template = ctx.getResource("file:/some/resource/path/myTemplate.txt");</pre>
+<pre class="programlisting">Resource template = ctx.getResource("http://myhost.com/resource/path/myTemplate.txt");</pre>
+<p>下面的表格概觀了 <code class="classname">String</code> 到 <code class="interfacename">Resource</code> 的轉換規則：</p>
+<div class="table">
+<a name="resources-resource-strings"></a><p class="title"><b>表&#160;4.1.&#160;Resource strings</b></p>
+<div class="table-contents"><table summary="Resource strings" width="100%" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th align="center">前綴</th>
+<th align="center">例子</th>
+<th align="center">說明</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><p>classpath:</p></td>
+<td><p> <code class="literal">classpath:com/myapp/config.xml</code>
+			            </p></td>
+<td><p>從classpath中載入。</p></td>
+</tr>
+<tr>
+<td><p>file:</p></td>
+<td><p> <code class="literal">file:/data/config.xml</code>
+			            </p></td>
+<td><p>作為 <code class="classname">URL</code> 從檔案系統中載入。<sup>[<a name="id470894" href="#ftn.id470894">a</a>]</sup> </p></td>
+</tr>
+<tr>
+<td><p>http:</p></td>
+<td><p> <code class="literal">http://myserver/logo.png</code>
+			            </p></td>
+<td><p>作為 <code class="classname">URL</code> 載入。</p></td>
+</tr>
+<tr>
+<td><p>(none)</p></td>
+<td><p> <code class="literal">/data/config.xml</code> </p></td>
+<td><p> 根據
+			            <code class="interfacename">ApplicationContext</code> 進行判斷。 </p></td>
+</tr>
+</tbody>
+<tbody class="footnotes"><tr><td colspan="3"><div class="footnote"><p><sup>[<a name="ftn.id470894" href="#id470894">a</a>] </sup>參考標題為 <a href="ch04s07.html#resources-filesystemresource-caveats" title="4.7.3.&#160;FileSystemResource 說明">第&#160;4.7.3&#160;節 「<code class="classname">FileSystemResource</code> 說明」</a> 的章節。</p></div></td></tr></tbody>
+</table></div>
+</div>
+<br class="table-break">
+</div></body>
+</html>

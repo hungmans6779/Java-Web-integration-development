@@ -1,0 +1,348 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>13.12.&#160;基於註釋的控制器配置</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch13.html" title="第&#160;13&#160;章&#160;Web MVC framework Web框架">
+<link rel="prev" href="ch13s11.html" title="13.11.&#160;慣例優先原則（convention over configuration）">
+<link rel="next" href="ch13s13.html" title="13.13.&#160;更多資源">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="mvc-annotation"></a>13.12.&#160;基於註釋的控制器配置</h2></div></div></div>
+<p>現時對於一些型別的配置資料有一個趨勢，就是偏愛註釋方式而不是XML檔案。為了方便實作，Spring現在（從2.5開始）提供了使用註釋配置MVC框架下的元件的支持。</p>
+<p>Spring 2.5為MVC控制器引入了一種基於註釋的程式模型，在其中使用諸如<code class="interfacename">@RequestMapping</code>、<code class="interfacename">@RequestParam</code>、<code class="interfacename">@ModelAttribute</code>，等等。
+    這種註釋支持在Servlet MVC和Portlet MVC中均可使用。通過這種方式實作的控制器不必由特定的基類別繼承而來，或者實作特定的介面。
+    更進一步的，它們通常並不直接依賴於Servlet或Portlet API，雖然如果需要，它們可以方便的存取Servlet或Portlet的功能。</p>
+<div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">提示</h3>
+<p>Spring發行版本附帶了<span class="emphasis"><em>PetClinic</em></span>範例，它是一個在簡單的表單處理的上下文中，
+      利用了本節中說明的註釋支持的Web應用程序。
+      可以在「<code class="literal">samples/petclinic</code>」目錄中找到<span class="emphasis"><em>PetClinic</em></span>應用程序。</p>
+<p>另外一個建立在基於註釋的Web MVC上的範例應用程序，請見<span class="emphasis"><em>imagedb</em></span>。
+      這個範例集中在無狀態的multi-action控制器，包括多段檔案上傳的處理。
+      可以在「<code class="literal">samples/imagedb</code>」目錄找到<span class="emphasis"><em>imagedb</em></span>應用程序。</p>
+</div>
+<p>下面的章節記錄了這些註釋以及通常如何使用它們。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-ann-setup"></a>13.12.1.&#160;建立dispatcher實作註釋支持</h3></div></div></div>
+<p>只有對應的<code class="interfacename">HandlerMapping</code>（為了實作型別級別的註釋）和/或<code class="interfacename">HandlerAdapter</code>（為了實作方法級別的註釋）出現在dispatcher中時，
+      <span class="emphasis"><em><code class="interfacename">@RequestMapping</code>才會被處理。
+      </em></span>這在<code class="classname">DispatcherServlet</code>和<code class="classname">DispatcherPortlet</code>中都是缺省的行為。
+      </p>
+<p>然而，如果是在定義自己的<code class="interfacename">HandlerMappings</code>或<code class="interfacename">HandlerAdapters</code>，
+      就需要確保一個對應的自定義的<code class="classname">DefaultAnnotationHandlerMapping</code>和/或<code class="classname">AnnotationMethodHandlerAdapter</code>同樣被定義——假設想要使用<code class="interfacename">@RequestMapping</code>。</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"&gt;
+
+    &lt;bean class="org.springframework.web.servlet.mvc.DefaultAnnotationHandlerMapping"/&gt;
+
+    &lt;bean class="org.springframework.web.servlet.mvc.AnnotationMethodHandlerAdapter"/&gt;
+
+    ... (controller bean definitions) ...
+
+&lt;/beans&gt;
+</pre>
+<p>如果你想要自定義映射策略，顯式的定義一個<code class="classname">DefaultAnnotationHandlerMapping</code>和/或<code class="classname">AnnotationMethodHandlerAdapter</code>也有實際意義。
+      例如，指定一個自定義的<code class="interfacename">PathMatcher</code>或者<code class="interfacename">WebBindingInitializer</code>（見下面）。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-ann-controller"></a>13.12.2.&#160;使用<code class="interfacename">@Controller</code>定義一個控制器</h3></div></div></div>
+<p>註釋<code class="interfacename">@Controller</code>指明一個特定的類別承擔<span class="emphasis"><em>控制器</em></span>的職責，
+      而沒有擴展任何控制器基類別或者參考Servlet API的必要。當然，如果需要還是可以參考特定Servlet功能。</p>
+<p>註釋<code class="interfacename">@Controller</code>的基本目標是擔任所註釋的類別的原型的角色，指明它的職責。
+      Dispatcher將會在這樣被註釋的類別中掃瞄映射的方法，探測註釋<code class="interfacename">@RequestMapping</code>（見下一節）。
+      </p>
+<p>所註釋的控制器bean可以被顯式定義，這個過程是在dispatcher的上下文中使用一個標準的Spring bean定義完成的。
+      然而，<code class="interfacename">@Controller</code>原型也允許自動探測，就像Spring 2.5對探測元件的類別以及為它們自動註冊bean定義的普遍支持一樣。</p>
+<p>要實作對這樣的所註釋的控制器的自動探測，必須要向配置中加入元件掃瞄的部分。
+      通過使用在下面的XML片段中所展示出的<span class="emphasis"><em>spring-context</em></span> schema，這很容易實作：</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:p="http://www.springframework.org/schema/p" 
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans 
+        http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context-2.5.xsd"&gt;
+
+    &lt;context:component-scan base-package="org.springframework.samples.petclinic.web"/&gt;
+
+    ...
+
+&lt;/beans&gt;
+</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-ann-requestmapping"></a>13.12.3.&#160;使用<code class="interfacename">@RequestMapping</code>映射請求</h3></div></div></div>
+<p>註釋<code class="interfacename">@RequestMapping</code>被用於映射如「/editPet.do」這樣的URL到一個完整的類別或者一個特定的處理方法。
+      典型的，頂層的註釋映射一個特定的請求路徑（或者路徑模式）到一個表單控制器，另外的方法一級的註釋可以縮小這個主要映射的範圍，包括對於一個特定的HTTP請求方法（「GET/POST」）或者特定的HTTP請求參數。</p>
+<div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">提示</h3>
+<p><code class="interfacename">@RequestMapping</code>在型別一級也可以被用於<code class="interfacename">Controller</code>介面的普通實作。
+        在這種情況下，請求處理的程式碼會遵循傳統的<code class="literal">handleRequest</code>模樣，而控制器的映射將會通過一個<code class="interfacename">@RequestMapping</code>註釋體現。
+        這對於預先建構的<code class="interfacename">Controller</code>基類別，諸如<code class="classname">SimpleFormController</code>，也一樣有效。
+        </p>
+<p>在下面的討論中，我們將會關注基於通過註釋實作的處理方法的控制器。</p>
+</div>
+<p>下面是一個使用了這種註釋的表單控制器的例子，它選自PetClinic：</p>
+<pre class="programlisting">@Controller
+<span class="bold"><strong>@RequestMapping("/editPet.do")</strong></span>
+@SessionAttributes("pet")
+public class EditPetForm {
+
+	private final Clinic clinic;
+
+	@Autowired
+	public EditPetForm(Clinic clinic) {
+		this.clinic = clinic;
+	}
+
+	@ModelAttribute("types")
+	public Collection&lt;PetType&gt; populatePetTypes() {
+		return this.clinic.getPetTypes();
+	}
+
+	<span class="bold"><strong>@RequestMapping(method = RequestMethod.GET)</strong></span>
+	public String setupForm(@RequestParam("petId") int petId, ModelMap model) {
+		Pet pet = this.clinic.loadPet(petId);
+		model.addAttribute("pet", pet);
+		return "petForm";
+	}
+
+	<span class="bold"><strong>@RequestMapping(method = RequestMethod.POST)</strong></span>
+	public String processSubmit(@ModelAttribute("pet") Pet pet, BindingResult result, 
+			SessionStatus status) {
+		new PetValidator().validate(pet, result);
+		if (result.hasErrors()) {
+			return "petForm";
+		}
+		else {
+			this.clinic.storePet(pet);
+			status.setComplete();
+			return "redirect:owner.do?ownerId=" + pet.getOwner().getId();
+		}
+	}
+
+}
+</pre>
+<p>對於一個傳統的multi-action控制器，由於控制器會響應多個URL，URL就通常被直接映射到方法上。
+      下面是一個使用了<code class="classname">@RequestMapping</code>的multi-action控制器的例子，它選自PetClinic：</p>
+<pre class="programlisting">@Controller
+public class ClinicController {
+
+	private final Clinic clinic;
+
+	@Autowired
+	public ClinicController(Clinic clinic) {
+		this.clinic = clinic;
+	}
+
+	/**
+	 * Custom handler for the welcome view.
+	 * Note that this handler relies on the RequestToViewNameTranslator to
+	 * determine the logical view name based on the request URL: "/welcome.do"
+	 * -&gt; "welcome".
+	 */
+	<span class="bold"><strong>@RequestMapping("/welcome.do")</strong></span>
+	public void welcomeHandler() {
+	}
+
+	/**
+	 * Custom handler for displaying vets.
+	 * Note that this handler returns a plain {@link ModelMap} object instead of
+	 * a ModelAndView, thus leveraging convention-based model attribute names.
+	 * It relies on the RequestToViewNameTranslator to determine the logical
+	 * view name based on the request URL: "/vets.do" -&gt; "vets".
+	 *
+	 * @return a ModelMap with the model attributes for the view
+	 */
+	<span class="bold"><strong>@RequestMapping("/vets.do")</strong></span>
+	public ModelMap vetsHandler() {
+		return new ModelMap(this.clinic.getVets());
+	}
+
+	/**
+	 * Custom handler for displaying an owner.
+	 * Note that this handler returns a plain {@link ModelMap} object instead of
+	 * a ModelAndView, thus leveraging convention-based model attribute names.
+	 * It relies on the RequestToViewNameTranslator to determine the logical
+	 * view name based on the request URL: "/owner.do" -&gt; "owner".
+	 *
+	 * @param ownerId the ID of the owner to display
+	 * @return a ModelMap with the model attributes for the view
+	 */
+	<span class="bold"><strong>@RequestMapping("/owner.do")</strong></span>
+	public ModelMap ownerHandler(@RequestParam("ownerId") int ownerId) {
+		return new ModelMap(this.clinic.loadOwner(ownerId));
+	}
+
+}
+</pre>
+<p>
+      
+      使用<code class="classname">@RequestMapping</code>註釋的處理器方法允許具有非常靈活的外觀。
+      它們可以擁有下面型別的參數，在任意的順序下（除非是對於驗證結果，它需要緊跟在對應的命令物件後面，如果需要）：
+
+      </p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>請求和/或響應物件（Servlet API或者Portlet API）。
+          可以選擇任何特定的請求/響應型別，例如，ServletRequest/HttpServletRequest或者PortletRequest/ActionRequest/RenderRequest。
+          注意那個Portlet的例子裡，一個被顯式宣告了的action/render參數被用於映射特定的請求型別到一個處理方法（在沒有提供其他資訊來區分action和render requests的情況下）。</p></li>
+<li><p>Session物件（Servlet API或者Portlet API）：不管是HttpSession還是PortletSession。
+          一個此種型別的參數將會保證出現一個對應的Session。這樣就造成，這樣一個參數永遠也不可以是<code class="code">null</code>。
+          <span class="emphasis"><em>注意Session存取可以並不是執行緒安全的，特別是在Servlet環境中：如果允許多個請求同時存取一個Session，就考慮把<code class="classname">AnnotationMethodHandlerAdapter</code>的「synchronizeOnSession」旗標置為「true」</em></span></p></li>
+<li><p><code class="classname">org.springframework.web.context.request.WebRequest</code>或<code class="classname">org.springframework.web.context.request.NativeWebRequest</code>。
+          允許像存取請求/Session屬性一樣的存取一般的請求參數，而不是鎖定在原生的Servlet/Portlet API上。</p></li>
+<li><p><code class="classname">java.util.Locale</code>用於當前請求區域屬性（由可用的最接近的區域屬性解析器決定，也就是，
+          在Servlet環境中配置好的<code class="interfacename">LocaleResolver</code>以及在Portlet環境中的portal locale）。</p></li>
+<li><p><code class="classname">java.io.InputStream</code>/<code class="classname">java.io.Reader</code>用於存取請求的內容。
+          這將是Servlet/Portlet API暴露出的天然的InputStream/Reader。</p></li>
+<li><p><code class="classname">java.io.OutputStream</code>/<code class="classname">java.io.Writer</code>用於產生響應的內容。
+          這將是Servlet/Portlet API暴露出的天然的OutputStream/Writer。</p></li>
+<li><p>以<code class="classname">@RequestParam</code>註釋的參數用於存取特定的Servlet/Portlet請求參數。
+          參數的值將被轉換為宣告的方法參數型別。</p></li>
+<li><p><code class="interfacename">java.util.Map</code>/<code class="interfacename">org.springframework.ui.Model</code>/<code class="classname">org.springframework.ui.ModelMap</code>用於充實將被暴露到Web視圖的隱含模型。</p></li>
+<li><p>綁定參數到的命令/表單物件：帶有自定義的型別轉換的bean屬性或者域，依賴於<code class="classname">@InitBinder</code>方法和/或HandlerAdapter配置——參見<code class="classname">AnnotationMethodHandlerAdapter</code>的「<code class="literal">webBindingInitializer</code>」屬性。
+          這樣的命令物件，包括它們的驗證結果，將會暴露為模型屬性，預設的會在屬性註釋中使用非限定的命令類別名（例如，對於型別「mypackage.OrderAddress」使用「orderAddress」）。
+          為宣告一個特定的模型屬性名稱指定一個參數級別的<code class="classname">ModelAttribute</code>註釋。</p></li>
+<li><p><code class="classname">org.springframework.validation.Errors</code>/<code class="classname">org.springframework.validation.BindingResult</code>驗證結果用於前面的一個命令/表單物件（前面緊接的參數）。</p></li>
+<li><p><code class="classname">org.springframework.web.bind.support.SessionStatus</code>狀態處理用於把表單處理過程標記為已完成（觸發Session屬性的清理，這些Session屬性是在句柄型別級別由<code class="classname">@SessionAttributes</code>註釋指示出的）。</p></li>
+</ul></div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-ann-requestparam"></a>13.12.4.&#160;使用<code class="classname">@RequestParam</code>綁定請求參數到方法參數</h3></div></div></div>
+<p><code class="classname">@RequestParam</code>註釋是用於在控制器中綁定請求參數到方法參數。</p>
+<p>下面取自PetClinic實例程序的程式碼片段說明了這種用法：</p>
+<pre class="programlisting">@Controller
+@RequestMapping("/editPet.do")
+@SessionAttributes("pet")
+public class EditPetForm {
+
+    <em class="lineannotation"><span class="lineannotation">// ...</span></em>
+
+	@RequestMapping(method = RequestMethod.GET)
+	public String setupForm(<span class="bold"><strong>@RequestParam("petId") int petId</strong></span>, ModelMap model) {
+		Pet pet = this.clinic.loadPet(petId);
+		model.addAttribute("pet", pet);
+		return "petForm";
+	}
+
+    <em class="lineannotation"><span class="lineannotation">// ...</span></em>
+</pre>
+<p>使用這個註釋的參數預設是必需的，但是可以把<code class="interfacename">@RequestParam</code>的<code class="literal">required</code>屬性置為<code class="literal">false</code>從而讓這個參數可選（例如，<code class="literal">@RequestParam(value="id", required="false")</code>）。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-ann-modelattrib"></a>13.12.5.&#160;使用<code class="classname">@ModelAttribute</code>提供一個從模型到資料的連接</h3></div></div></div>
+<p><code class="classname">@ModelAttribute</code>在控制器中有兩種使用場景。
+      當作為一個方法參數時，<code class="classname">@ModelAttribute</code>用於映射一個模型屬性到特定的註釋的方法參數（見下面的<code class="literal">processSubmit()</code>方法）。
+      這是控制器獲得持有表單資料的物件參考的方法。另外，這個參數也可以被宣告為特定型別的表單支持物件，而不是一般的<code class="classname">java.lang.Object</code>，這就增加了型別安全性。</p>
+<p><code class="classname">@ModelAttribute</code>也用於在方法級別為模型提供<span class="emphasis"><em>參考資料</em></span>（見下面的<code class="literal">populatePetTypes()</code>方法）。
+      在這種用法中，方法編寫可以包含與上面描述的<code class="classname">@RequestMapping</code>註釋相同的型別。</p>
+<p><span class="emphasis"><em>注意：</em></span>使用<code class="classname">@ModelAttribute</code>註釋的方法將會在選定的使用<code class="classname">@RequestMapping</code>註釋的方法<span class="emphasis"><em>之前</em></span>執行。
+      它們有效的使用特定的屬性預先填充隱含的模型，這些屬性常常來自一個資料庫。
+      這樣一個屬性也就可以通過在選定的方法中使用<code class="classname">@ModelAttribute</code>註釋的句柄方法參數來存取了，潛在的可以應用綁定和驗證。</p>
+<p>下面的程式碼片段展示了此註釋的這兩種用法：</p>
+<pre class="programlisting">@Controller
+@RequestMapping("/editPet.do")
+@SessionAttributes("pet")
+public class EditPetForm {
+
+	<em class="lineannotation"><span class="lineannotation">// ...</span></em>
+
+	<span class="bold"><strong>@ModelAttribute("types")</strong></span>
+	public Collection&lt;PetType&gt; populatePetTypes() {
+		return this.clinic.getPetTypes();
+	}
+
+	@RequestMapping(method = RequestMethod.POST)
+	public String processSubmit(<span class="bold"><strong>@ModelAttribute("pet") Pet pet</strong></span>, BindingResult result,
+			SessionStatus status) {
+		new PetValidator().validate(pet, result);
+		if (result.hasErrors()) {
+			return "petForm";
+		}
+		else {
+			this.clinic.storePet(pet);
+			status.setComplete();
+			return "redirect:owner.do?ownerId=" + pet.getOwner().getId();
+		}
+	}
+
+}
+</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-ann-sessionattrib"></a>13.12.6.&#160;使用<code class="classname">@SessionAttributes</code>指定存儲在Session中的屬性</h3></div></div></div>
+<p>型別級別的<code class="classname">@SessionAttributes</code>註釋使用一個特定的句柄宣告Session屬性。
+      這通常會列出模型屬性的名稱，這些屬性應被透明的保存在Session或者對話存儲中，用於在後續的請求之間作為表單支持beans。</p>
+<p>下面的程式碼片段展示了此註釋的這種用法：</p>
+<pre class="programlisting">@Controller
+@RequestMapping("/editPet.do")
+<span class="bold"><strong>@SessionAttributes("pet")</strong></span>
+public class EditPetForm {
+    <em class="lineannotation"><span class="lineannotation">// ...</span></em>
+}
+</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-ann-webdatabinder"></a>13.12.7.&#160;自定義<code class="classname">WebDataBinder</code>初始化</h3></div></div></div>
+<p>為了通過Spring的<code class="classname">WebDataBinder</code>使用PropertyEditors等自定義請求參數綁定，可以或者使用<code class="interfacename">@InitBinder</code>——在控制器之內的註釋的方法，
+      或者通過提供一個定制的<code class="interfacename">WebBindingInitializer</code>把配置具體化。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="mvc-ann-initbinder"></a>13.12.7.1.&#160;使用<code class="interfacename">@InitBinder</code>自定義資料綁定</h4></div></div></div>
+<p>使用<code class="interfacename">@InitBinder</code>註釋控制器方法，可以在控制器類別內部直接配置Web資料綁定。
+        <code class="interfacename">@InitBinder</code>指定初始化<code class="classname">WebDataBinder</code>的方法，
+        後者被用於填充註釋的句柄方法的命令和表單物件參數。</p>
+<p>這個init-binder方法支持<code class="interfacename">@RequestMapping</code>支持的全部參數，除了命令/表單物件和對應的驗證結果物件。
+        Init-binder方法必須沒有返回值。因此，它們常被宣告為<code class="literal">void</code>。
+        典型的參數，包括 <code class="classname">WebDataBinder</code>以及<code class="interfacename">WebRequest</code>或者<code class="classname">java.util.Locale</code>，允許程式碼註冊上下文特定的編輯器。</p>
+<p>下面的例子說明了<code class="interfacename">@InitBinder</code>的用法，為所有的<code class="classname">java.util.Date</code>表單屬性配置一個<code class="classname">CustomDateEditor</code>。</p>
+<pre class="programlisting">@Controller
+public class MyFormController {
+
+    <span class="bold"><strong>@InitBinder</strong></span>
+    public void initBinder(WebDataBinder binder) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        dateFormat.setLenient(false);
+        binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, false));
+    }
+
+    <em class="lineannotation"><span class="lineannotation">// ...</span></em>
+}
+
+</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="mvc-ann-webbindinginitializer"></a>13.12.7.2.&#160;配置一個定制的<code class="interfacename">WebBindingInitializer</code></h4></div></div></div>
+<p>為了外化資料綁定初始化的過程，可以提供一個<code class="interfacename">WebBindingInitializer</code>介面的自定義實作。
+        通過為一個<code class="classname">AnnotationMethodHandlerAdapter</code>提供一個定制的bean配置可以使它啟用，這樣就覆寫了預設配置。</p>
+<p>下面取自PetClinic應用的例子展示了一個使用<code class="interfacename">WebBindingInitializer</code>介面的自定義實作的配置——<code class="classname">org.springframework.samples.petclinic.web.ClinicBindingInitializer</code>，
+        完成多個PetClinic控制器都需要的PropertyEditors的配置。</p>
+<pre class="programlisting">&lt;bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter"&gt;
+    &lt;property name="cacheSeconds" value="0" /&gt;
+    &lt;property name="webBindingInitializer"&gt;
+        &lt;bean class="org.springframework.samples.petclinic.web.ClinicBindingInitializer" /&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;
+</pre>
+</div>
+</div>
+</div></body>
+</html>

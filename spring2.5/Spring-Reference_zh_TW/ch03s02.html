@@ -1,0 +1,414 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>3.2.&#160;基本原理 - 容器和bean</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch03.html" title="第&#160;3&#160;章&#160;IoC(控制反轉)容器">
+<link rel="prev" href="ch03.html" title="第&#160;3&#160;章&#160;IoC(控制反轉)容器">
+<link rel="next" href="ch03s03.html" title="3.3.&#160;依賴">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="beans-basics"></a>3.2.&#160;基本原理 - 容器和bean</h2></div></div></div>
+<p>在Spring中，那些組成你應用程序的主體(backbone)及由Spring IoC<em class="firstterm">容器</em>所管理的物件，被稱之為<em class="firstterm">bean</em>。
+  簡單地講，bean就是由Spring<em class="firstterm">容器</em>初始化、裝配及管理的物件，除此之外，bean就與應用程序中的其他物件沒有什麼區別了。
+  而bean定義以及bean相互間的<em class="firstterm">依賴</em>關係將通過<em class="firstterm">配置元資料</em>來描述。</p>
+<div class="sidebar">
+<p class="title"><b>為什麼使用<span class="emphasis"><em>bean</em></span>?</b></p>
+<p>使用<span class="emphasis"><em>'bean'</em></span>這個名字而不是<span class="emphasis"><em>'元件'(component)</em></span> 或<span class="emphasis"><em>'物件'(object)</em></span>的動機
+   源於Spring框架本身(它產生的部分原因就是對Enterprise Java <span class="emphasis"><em>Beans</em></span>複雜性的一次解構)。 </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="beans-factory"></a>3.2.1.&#160;容器</h3></div></div></div>
+<p><code class="interfacename">org.springframework.beans.factory.BeanFactory</code>
+	 是Spring IoC<span class="emphasis"><em>容器</em></span>的實際代表者，IoC容器負責容納此前所描述的bean，並對bean進行管理。</p>
+<p>在Spring中，<code class="interfacename">BeanFactory</code>是IoC容器的核心介面。
+      它的職責包括：實例化、定位、配置應用程序中的物件及建立這些物件間的依賴。</p>
+<p>Spring為我們提供了許多易用的<code class="interfacename">BeanFactory</code>實作，
+	<code class="classname">XmlBeanFactory</code>就是最常用的一個。該實作將以XML方式描述組成應用的物件
+	以及物件間的依賴關係。<code class="classname">XmlBeanFactory</code>類別將獲取此XML<em class="firstterm">配
+	置元資料</em>，並用它來建構一個完全可配置的系統或應用。</p>
+<p>
+        </p>
+<div class="mediaobject" align="center">
+<img src="images/container-magic.png" align="middle"><div class="caption"><p>Spring IoC 容器</p></div>
+</div>
+<p>
+      </p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="beans-factory-metadata"></a>3.2.1.1.&#160;配置元資料</h4></div></div></div>
+<p>從上圖可以看到，Spring IoC容器將讀取<span class="emphasis"><em>配置元資料</em></span>；
+ 		 並通過它對應用中各個物件進行實例化、配置以及組裝。通常情況下我們使用簡單直觀
+ 		 的XML來作為配置元資料的描述格式。在XML配置元資料中我們可以對那些我們希望通過
+ 		 Spring IoC容器管理的bean進行<span class="emphasis"><em>定義</em></span>。</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>到目前為止，基於XML的元資料是最常用到的配置元資料格式。然而，它並
+    	<span class="emphasis"><em>不是</em></span>唯一的描述格式。Spring IoC容器在這一點上是<span class="emphasis"><em>
+    	完全</em></span>開放的。由於採用基於XML的配置元資料格式非常簡單， 因此
+    	本章節的大部分內容將採用該格式來說明Spring IoC容器的關鍵概念和功能</p>
+<p>同時你也可以在<a href="ch03s11.html" title="3.11.&#160;基於註釋（Annotation-based）的配置">第&#160;3.11&#160;節 「基於註釋（Annotation-based）的配置」</a>這一節中
+          看到Spring容器支持的另一種元資料格式的詳細內容。</p>
+</div>
+</div>
+<div class="sidebar">
+<p class="title"><b>多種資源</b></p>
+<p>Spring IoC容器可以通過多種途徑來載入配置元資料，比如本地檔案
+		系統、Java <code class="literal">CLASSPATH</code>等。</p>
+<p>對IoC容器基本原理的掌握將有利於我們對<a href="ch04.html" title="第&#160;4&#160;章&#160;資源">第&#160;4&#160;章 <i>資源</i></a>中
+		<code class="interfacename">Resource</code>抽象機制的理解。</p>
+</div>
+<p>在大多數的應用程序中，並不需要用顯式的程式碼去實例化一個或多個的Spring IoC
+	  容器實例。例如，在web應用程序中，我們只需要在<code class="literal">web.xml</code>中添加
+	  (大約)8 行簡單的XML描述符即可(參見<a href="ch03s08.html#context-create" title="3.8.5.&#160;ApplicationContext在WEB應用中的實例化">第&#160;3.8.5&#160;節 「<code class="interfacename">ApplicationContext</code>在WEB應用中的實例化」</a>)。</p>
+</div>
+<p>Spring IoC容器至少包含一個bean定義，但大多數情況下會有多個bean定義。當使用
+   基於XML的配置元資料時，將在頂層的<code class="literal">&lt;beans/&gt;</code>元素中配置一個
+   或多個<code class="literal">&lt;bean/&gt;</code>元素。</p>
+<p>bean定義與應用程序中實際使用的物件一一對應。通常情況下bean的定義包括：服務
+  層物件、資料存取層物件（DAO）、類似Struts <code class="interfacename">Action</code>的
+  表示層物件、Hibernate <code class="interfacename">SessionFactory</code>物件、JMS
+   <code class="interfacename">Queue</code>物件等等。通常bean的定義並不與容器中的領域
+   物件相同，因為領域物件的創建和載入必須依賴具體的DAO和商業邏輯。.</p>
+<p>以下是一個基於XML的配置元資料的基本結構：</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"&gt;
+
+  &lt;bean id="..." class="..."&gt;
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- collaborators and configuration for this bean go here --&gt;</span></em>
+  &lt;/bean&gt;
+
+  &lt;bean id="..." class="..."&gt;
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- collaborators and configuration for this bean go here --&gt;</span></em>
+  &lt;/bean&gt;
+
+  <em class="lineannotation"><span class="lineannotation">&lt;!-- more bean definitions go here --&gt;</span></em>
+
+&lt;/beans&gt;</pre>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="beans-factory-instantiation"></a>3.2.2.&#160;實例化容器</h3></div></div></div>
+<p>Spring IoC容器的實例化非常簡單，如下面的例子：</p>
+<pre class="programlisting">ApplicationContext context = new ClassPathXmlApplicationContext(
+        new String[] {"services.xml", "daos.xml"});
+
+<em class="lineannotation"><span class="lineannotation">// an <code class="interfacename">ApplicationContext</code> is also a <code class="interfacename">BeanFactory</code> (via inheritance)</span></em>
+BeanFactory factory = context;</pre>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="beans-factory-xml-import"></a>3.2.2.1.&#160;XML配置元資料的結構</h4></div></div></div>
+<p>將XML配置檔案分拆成多個部分是非常有用的。為了載入多個XML檔案產生一個
+		ApplicationContext實例，可以將檔案路徑作為字元串陣列傳給ApplicationContext建構器
+		。而bean factory將通過調用bean defintion reader從多個檔案中讀取bean定義。</p>
+<p>通常情況下，Spring團隊傾向於上述做法，因為這樣各個配置並不會查覺到它們
+		與其他配置檔案的組合。另外一種方法是使用一個或多個的<code class="literal">&lt;import/&gt;</code>元素
+		來從另外一個或多個檔案載入bean定義。所有的<code class="literal">&lt;import/&gt;</code>元素必
+		須在<code class="literal">&lt;bean/&gt;</code>元素之前完成bean定義的導入。 讓我們看個例子：</p>
+<pre class="programlisting">&lt;beans&gt;
+
+    &lt;import resource="services.xml"/&gt;
+    &lt;import resource="resources/messageSource.xml"/&gt;
+    &lt;import resource="/resources/themeSource.xml"/&gt;
+
+    &lt;bean id="bean1" class="..."/&gt;
+    &lt;bean id="bean2" class="..."/&gt;
+
+&lt;/beans&gt;</pre>
+<p>在上面的例子中，我們從3個外部檔案：<code class="literal">services.xml</code>、
+		<code class="literal">messageSource.xml</code>及<code class="literal">themeSource.xml</code>
+		來載入bean定義。這裡採用的都是相對路徑，因此，此例中的<code class="literal">services.xml
+		</code>一定要與導入檔案放在同一目錄或類別路徑，而<code class="literal">messageSource.xm
+		l</code>和<code class="literal">themeSource.xml</code>的檔案位置必須放在導入檔案所
+		在目錄下的<code class="literal">resources</code>目錄中。正如你所看到的那樣，開頭的斜槓
+		『/』實際上可忽略。因此不用斜槓『/』可能會更好一點。根據Spring XML配置檔案的
+		Schema(或DTD)，被導入檔案必須是完全有效的XML bean定義檔案，且根節點必須為
+		<code class="literal">&lt;beans/&gt;</code> 元素。</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="beans-definition"></a>3.2.3.&#160;多種bean</h3></div></div></div>
+<p>Spring IoC容器將管理一個或多個<span class="emphasis"><em>bean</em></span>，這些bean
+       將通過配置檔案中的bean定義被創建(在XML格式中為<code class="literal">&lt;bean/&gt;
+       </code>元素)。</p>
+<p>在容器內部，這些bean定義由<code class="interfacename">BeanDefinition</code>
+       物件來表示，該定義將包含以下資訊：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><span class="emphasis"><em>全限定類別名：</em></span>這通常就是已定義bean的實際實作類別。</p></li>
+<li><p>bean行為的定義，這些定義將決定bean在容器中的行為（作用域、生命週期回調等等）</p></li>
+<li><p>對其他bean的參考，這些參考bean也可以稱之為<span class="emphasis"><em>協作bean（collaborators）
+          </em></span> 或<span class="emphasis"><em>依賴bean（dependencies）</em></span>.</p></li>
+<li><p>創建bean實例時的其他配置設置。比如使用bean來定義連接池，可以通過屬性或者構
+          造參數指定連接數，以及連接池大小限制等。</p></li>
+</ul></div>
+<p>上述內容直接被翻譯為每個bean定義包含的一組properties。下面的表格列出了部分
+     內容的詳細連接：</p>
+<div class="table">
+<a name="beans-factory-bean-definition-tbl"></a><p class="title"><b>表&#160;3.1.&#160;bean定義</b></p>
+<div class="table-contents"><table summary="bean定義" border="1">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>名稱</th>
+<th>連接</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>class</td>
+<td>
+                <p>
+                  <a href="ch03s02.html#beans-factory-class" title="3.2.3.2.&#160;實例化bean">第&#160;3.2.3.2&#160;節 「實例化bean」</a>
+                </p>
+              </td>
+</tr>
+<tr>
+<td>name</td>
+<td>
+                <p>
+                  <a href="ch03s02.html#beans-beanname" title="3.2.3.1.&#160;bean的命名">第&#160;3.2.3.1&#160;節 「bean的命名」</a>
+                </p>
+              </td>
+</tr>
+<tr>
+<td>scope</td>
+<td>
+                <p>
+                  <a href="ch03s04.html" title="3.4.&#160;Bean的作用域">第&#160;3.4&#160;節 「Bean的作用域」</a>
+                </p>
+              </td>
+</tr>
+<tr>
+<td>constructor arguments</td>
+<td>
+                <p>
+                  <a href="ch03s03.html#beans-factory-collaborators" title="3.3.1.&#160;注入依賴">第&#160;3.3.1&#160;節 「注入依賴」</a>
+                </p>
+              </td>
+</tr>
+<tr>
+<td>properties</td>
+<td>
+                <p>
+                  <a href="ch03s03.html#beans-factory-collaborators" title="3.3.1.&#160;注入依賴">第&#160;3.3.1&#160;節 「注入依賴」</a>
+                </p>
+              </td>
+</tr>
+<tr>
+<td>autowiring mode</td>
+<td>
+                <p>
+                  <a href="ch03s03.html#beans-factory-autowire" title="3.3.5.&#160;自動裝配（autowire）協作者">第&#160;3.3.5&#160;節 「自動裝配（autowire）協作者」</a>
+                </p>
+              </td>
+</tr>
+<tr>
+<td>dependency checking mode</td>
+<td>
+                <p>
+                  <a href="ch03s03.html#beans-factory-dependencies" title="3.3.6.&#160;依賴檢查">第&#160;3.3.6&#160;節 「依賴檢查」</a>
+                </p>
+              </td>
+</tr>
+<tr>
+<td>lazy-initialization mode</td>
+<td>
+                <p>
+                  <a href="ch03s03.html#beans-factory-lazy-init" title="3.3.4.&#160;延遲初始化bean">第&#160;3.3.4&#160;節 「延遲初始化bean」</a>
+                </p>
+              </td>
+</tr>
+<tr>
+<td>initialization method</td>
+<td>
+                <p>
+                  <a href="ch03s05.html#beans-factory-lifecycle-initializingbean" title="3.5.1.1.&#160;初始化回調">第&#160;3.5.1.1&#160;節 「初始化回調」</a>
+                </p>
+              </td>
+</tr>
+<tr>
+<td>destruction method</td>
+<td>
+                <p>
+                  <a href="ch03s05.html#beans-factory-lifecycle-disposablebean" title="3.5.1.2.&#160;析構回調">第&#160;3.5.1.2&#160;節 「析構回調」</a>
+                </p>
+              </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><p>除了通過bean定義來描述要創建的指定bean的屬性之外，某些<code class="interfacename">
+	  BeanFactory</code>的實作也允許將那些非BeanFactory創建的、已有的使用者
+	  物件註冊到容器中，比如使用<code class="classname">DefaultListableBeanFactory</code>
+	  的<code class="methodname">registerSingleton(..)</code> 方法。不過大多數應用還是採用
+	  元資料定義為主。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="beans-beanname"></a>3.2.3.1.&#160;bean的命名</h4></div></div></div>
+<div class="sidebar">
+<p class="title"><b>bean命名約定</b></p>
+<p>bean的命名採用標準的Java命名約定，即小寫字母開頭，首字母大寫間隔
+		  的命名方式。如<code class="literal">accountManager</code>、 <code class="literal">accountService
+		  </code>、<code class="literal">userDao</code>及<code class="literal">loginController</code>，等等。</p>
+<p>對bean採用統一的命名約定將會使配置更加簡單易懂。而且在使用Spring AOP時
+		   ，如果要發通知(advice)給與一組名稱相關的bean時，這種簡單的命名方式將會令你受益匪淺。</p>
+</div>
+<p>每個bean都有一個或多個<code class="literal">id</code>(或稱之為標識符或名稱，在術語
+		上可以理解成一回事)。這些<code class="literal">id</code>在當前IoC容器中必須唯一。如果
+		一個bean有多個id，那麼其他的id在本質上將被認為是別名。</p>
+<p>當使用基於XML的配置元資料時，將通過<code class="literal">id</code>或<code class="literal">
+		 name</code>屬性來指定bean標識符。<code class="literal">id</code>屬性具有唯一性，
+		 而且是一個真正的XML ID屬性，因此其他xml元素在參考該id時，可以利用XML解析器的
+		 驗證功能。通常情況下最好為bean指定一個id。儘管XML規範規定了XML ID命名的有效
+		 字元，但是bean標識符的定義不受該限制，因為除了使用指定的XML字元來作為id，還可
+		 以為bean指定別名，要實作這一點可以在<code class="literal">name</code>屬性中使用逗號、
+		 冒號或者空格將多個id分隔。</p>
+<p>值得注意的是，為一個bean提供一個name並不是必須的，如果沒有指定，那麼容
+		器將為其產生一個惟一的name。對於不指定name屬性的原因我們會在後面介紹(比如
+		<a href="ch03s03.html#beans-inner-beans" title="3.3.2.3.&#160;內部bean">內部bean</a>就不需要)。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="beans-beanname-alias"></a>3.2.3.1.1.&#160;bean的別名</h5></div></div></div>
+<p>在對bean進行定義時，除了使用<code class="literal">id</code>屬性來指定名稱
+		  之外，為了提供多個名稱，需要通過<code class="literal">name</code>屬性來加以指定
+		  。而所有的這些名稱都指向同一個bean，在某些情況下提供別名非常有用，比如
+		  為了讓應用的每一個元件能更容易的對公共元件進行參考。</p>
+<p>然而，在定義bean時就指定所有的別名並不是總是恰當的。有時我們期望
+		  能在當前位置為那些在別處定義的bean引入別名。在XML配置檔案中，可用<code class="literal">
+		  &lt;alias/&gt;</code> 元素來完成bean別名的定義。如：</p>
+<pre class="programlisting">&lt;alias name="fromName" alias="toName"/&gt;</pre>
+<p>這裡如果在容器中存在名為<code class="literal">fromName</code>的bean定義，
+		  在增加別名定義之後，也可以用<code class="literal">toName</code>來參考。</p>
+<p>考慮一個更為具體的例子，元件A在XML配置檔案中定義了一個名為
+		  componentA-dataSource的DataSource bean。但元件B卻想在其XML檔案中
+		  以componentB-dataSource的名字來參考此bean。而且在主程序MyApp的XML配
+		  置檔案中，希望以myApp-dataSource的名字來參考此bean。最後容器載入三個
+		  XML檔案來產生最終的ApplicationContext，在此情形下，可通過在MyApp XML
+		  檔案中添加下列alias元素來實作：</p>
+<pre class="programlisting">&lt;alias name="componentA-dataSource" alias="componentB-dataSource"/&gt;
+&lt;alias name="componentA-dataSource" alias="myApp-dataSource" /&gt;</pre>
+<p>這樣一來，每個元件及主程序就可通過唯一名字來參考同一個資料源而互不干擾。</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="beans-factory-class"></a>3.2.3.2.&#160;實例化bean</h4></div></div></div>
+<div class="sidebar">
+<p class="title"><b>內部類別名</b></p>
+<p>如果需要你希望將一個<code class="literal">靜態</code>的內部類別配置為
+          一個bean的話，那麼內部類別的名字需要採用<span class="emphasis"><em>二進制</em></span>的寫法。</p>
+<p>比如說，在<code class="literal">com.example</code>包下有一個叫<code class="classname">
+          Foo</code>的類別，而<code class="classname">Foo</code>類別有一個<code class="literal">靜態
+          </code>的內部類別叫<code class="classname">Bar</code>，那麼在bean定義的時候，
+          <code class="literal">class</code>屬性必須這樣寫：</p>
+<p>
+            <code class="classname">com.example.Foo$Bar</code>
+          </p>
+<p>注意這裡我們使用了<code class="literal">$</code>字元將內部類別和外部類別進行分隔</p>
+</div>
+<p>從本質上來說，bean定義描述了如何創建一個或多個物件實例。當需要的時候，
+		容器會從bean定義列表中取得一個指定的bean定義，並根據bean定義裡面的配置元資料
+		使用反射機制來創建（或取得）一個實際的物件。</p>
+<p>當採用XML描述配置元資料時，將通過<code class="literal">&lt;bean/&gt;</code>元素的
+		<code class="literal">class</code>屬性來指定實例化物件的型別。<code class="literal">class</code>
+		 屬性 (對應<code class="interfacename">BeanDefinition</code>實例的<code class="classname">
+		 Class</code>屬性)通常是必須的(不過也有兩種例外的情形，見
+		 <a href="ch03s02.html#beans-factory-class-instance-factory-method" title="3.2.3.2.3.&#160;使用實例處理器方法實例化">第&#160;3.2.3.2.3&#160;節 「使用實例處理器方法實例化」</a>和
+		 <a href="ch03s06.html" title="3.6.&#160;bean定義的繼承">第&#160;3.6&#160;節 「bean定義的繼承」</a>)。class屬性主要有兩種用途
+		 ：在大多數情況下，容器將直接通過反射調用指定類別的建構器來創建bean(這有點類似於
+		 在Java程式碼中使用<span class="emphasis"><em>new</em></span>操作符)；在極少數情況下，容器將調用
+		 類別的<code class="literal">靜態</code><span class="emphasis"><em>處理器</em></span>方法來創建bean實例，class
+		 屬性將用來指定實際具有<code class="literal">靜態</code>處理器方法的類別(至於調用靜態處理器
+		 方法創建的物件型別是當前class還是其他的class則無關緊要)。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="beans-factory-class-ctor"></a>3.2.3.2.1.&#160;用建構器來實例化</h5></div></div></div>
+<p>當採用建構器來創建bean實例時，Spring對class並沒有特殊的要求，
+			我們通常使用的class都適用。也就是說，被創建的類別並不需要實作任何特定的
+			介面，或以特定的方式編碼，只要指定bean的class屬性即可。不過根據所採用
+			的IoC型別，class可能需要一個預設的空建構器。</p>
+<p>此外，IoC容器不僅限於管理JavaBean，它可以管理<span class="emphasis"><em>任意</em></span>
+		的類別。不過大多數使用Spring的人喜歡使用實際的JavaBean(具有預設的(無參)建構器
+		及setter和getter方法)，但在容器中使用非bean形式(non-bean style)的類別也是可
+		以的。比如遺留系統中的連接池，很顯然它與JavaBean規範不符，但Spring也能管理它。</p>
+<p>當使用基於XML的元資料配置檔案，可以這樣來指定bean類別：</p>
+<pre class="programlisting">&lt;bean id="exampleBean" class="examples.ExampleBean"/&gt;
+
+&lt;bean name="anotherExample" class="examples.ExampleBeanTwo"/&gt;</pre>
+<p>給建構函數指定參數以及為bean實例設置屬性將在隨後的
+		  <a href="ch03s03.html#beans-factory-collaborators" title="3.3.1.&#160;注入依賴">部分</a>中談及。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="beans-factory-class-static-factory-method"></a>3.2.3.2.2.&#160;使用靜態處理器方法實例化</h5></div></div></div>
+<p>當採用靜態處理器方法創建bean時，除了需要指定<code class="literal">class</code>
+		  屬性外，還需要通過<code class="literal">factory-method</code>屬性來指定創建bean實例
+		  的處理器方法。Spring將調用此方法(其可選參數接下來介紹)返回實例物件，就此而言，
+		  跟通過普通建構器創建類別實例沒什麼兩樣。</p>
+<p>下面的bean定義展示了如何通過處理器方法來創建bean實例。注意，此定義並
+		  未指定返回物件的型別，僅指定該類別包含的處理器方法。在此例中， <code class="methodname">
+		  createInstance()</code>必須是一個<span class="emphasis"><em>static</em></span>方法。</p>
+<pre class="programlisting">&lt;bean id="exampleBean"
+      class="examples.ExampleBean2"
+      factory-method="createInstance"/&gt;</pre>
+<p>給處理器方法指定參數以及為bean實例設置屬性將在隨後的部份中談及。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="beans-factory-class-instance-factory-method"></a>3.2.3.2.3.&#160;使用實例處理器方法實例化</h5></div></div></div>
+<p>與<a href="ch03s02.html#beans-factory-class-static-factory-method" title="3.2.3.2.2.&#160;使用靜態處理器方法實例化">
+		  使用靜態處理器方法實例化</a>類似，用來進行實例化的非靜態實例處理器方法位
+		  於另外一個bean中，容器將調用該bean的處理器方法來創建一個新的bean實例。為使
+		  用此機制，<code class="literal">class</code>屬性必須為空，而<code class="literal">factory-bean
+		  </code>屬性必須指定為當前(或其祖先)容器中包含處理器方法的bean的名稱，而該
+		  處理器bean的處理器方法本身必須通過<code class="literal">factory-method</code>屬性來設定。</p>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation">&lt;!-- the factory bean, which contains a method called <code class="methodname">createInstance()</code> --&gt;</span></em>
+&lt;bean id="serviceLocator" class="com.foo.DefaultServiceLocator"&gt;
+  <em class="lineannotation"><span class="lineannotation">&lt;!-- inject any dependencies required by this locator bean --&gt;</span></em>
+&lt;/bean&gt;
+
+<em class="lineannotation"><span class="lineannotation">&lt;!-- the bean to be created via the factory bean --&gt;</span></em>
+&lt;bean id="exampleBean"
+      factory-bean="serviceLocator"
+      factory-method="createInstance"/&gt;</pre>
+<p>雖然<a href="ch03s03.html#beans-factory-properties-detailed" title="3.3.2.&#160;依賴配置詳解">設置bean屬性
+		  </a>的機制仍然在這裡被提及，但隱式的做法是由處理器bean自己來管理以及通過依
+		  賴注入(DI)來進行配置。</p>
+</div>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>Spring文檔中的factory bean指的是配置在Spring容器中通過使用
+          <a href="ch03s02.html#beans-factory-class-instance-factory-method" title="3.2.3.2.3.&#160;使用實例處理器方法實例化">實例
+          </a>或 <a href="ch03s02.html#beans-factory-class-static-factory-method" title="3.2.3.2.2.&#160;使用靜態處理器方法實例化">
+          靜態</a>處理器方法創建物件的一種bean。而文檔中的<code class="interfacename">FactoryBean</code>
+           （注意首字母大寫）指的是Spring特有的<a href="ch03s07.html#beans-factory-extension-factorybean" title="3.7.3.&#160;使用FactoryBean定制實例化邏輯">
+           <code class="interfacename">FactoryBean</code></a>。</p>
+</div>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="beans-factory-client"></a>3.2.4.&#160;使用容器</h3></div></div></div>
+<p>從本質上講，<code class="interfacename">BeanFactory</code>僅僅只是一個
+	  維護bean定義以及相互依賴關係的高層級處理器介面。通過<code class="interfacename">BeanFactory
+	  </code>我們可以存取bean定義。下面的例子創建了一個bean處理器，此處理器
+	  將從xml檔案中讀取bean定義：</p>
+<pre class="programlisting">Resource res = new FileSystemResource("beans.xml");
+BeanFactory factory = new XmlBeanFactory(res);</pre>
+<p>基本上就這些了，接著使用<code class="methodname">getBean(String)</code>
+	  方法就可以取得bean的實例；<code class="interfacename">BeanFactory</code>
+	  提供的方法極其簡單。 <code class="interfacename">BeanFactory</code>介面提供
+	  了非常多的方法，但是對於我們的應用來說，最好永遠不要調用它們，當然也包括
+	  使用<code class="methodname">getBean(String)</code>方法，這樣可以避免我們對
+	  Spring API的依賴。</p>
+</div>
+</div></body>
+</html>

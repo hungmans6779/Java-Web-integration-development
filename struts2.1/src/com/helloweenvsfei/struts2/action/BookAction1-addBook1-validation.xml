@@ -1,0 +1,38 @@
+<!DOCTYPE validators PUBLIC
+"-//OpenSymphony Group//XWork Validator 1.0//EN"
+"http://www.opensymphony.com/xwork/xwork-validator-1.0.2.dtd">
+
+<validators>
+
+
+  <!-- 檢查書名 -->
+  <field name="book.name" >
+    <field-validator type="requiredstring" >   <!-- 必需的 -->
+      <param name="trim" >true</param>         <!-- 檢查時去掉前後空白 -->
+      <message>請輸入書籍名稱</message>         <!-- 提示資訊  -->
+    </field-validator>
+  </field>
+
+
+  <!-- 檢查作者，必須非空 -->  
+  <field name="book.author" >
+    <field-validator type="requiredstring" >   <!-- 必需的 -->
+      <message>請輸入書籍作者</message>         <!-- 提示資訊 -->
+    </field-validator>
+  </field>
+
+
+  <!-- 檢查出版日期 -->
+  <field name="book.publishedDate" >
+    <field-validator type="required" >
+       <message>請輸入出版日期</message>        <!-- 提示資訊 --> 
+    </field-validator>
+    <field-validator type="date" >             <!-- 檢查日期 -->
+      <param name="min" >1900-01-01</param>    <!-- 最大值 -->
+      <param name="max" >2200-01-01</param>    <!-- 最小值 -->
+      <message><![CDATA[ 日期格式必須位於 1900-01-01 與 2200-01-01 之間 ]]></message>
+    </field-validator>
+  </field>
+ 
+ 
+</validators>

@@ -1,0 +1,199 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>14.6.&#160;文檔視圖（PDF/Excel）</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch14.html" title="第&#160;14&#160;章&#160;整合視圖技術">
+<link rel="prev" href="ch14s05.html" title="14.5.&#160;XSLT">
+<link rel="next" href="ch14s07.html" title="14.7.&#160;JasperReports">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="view-document"></a>14.6.&#160;文檔視圖（PDF/Excel）</h2></div></div></div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="view-document-intro"></a>14.6.1.&#160;簡介</h3></div></div></div>
+<p>
+				對看模型資料輸出的使用者來說，返回一個HTML頁面並不總是最好的方法。
+				Spring簡化了根據模型資料動態輸出PDF文檔或Excel電子錶格的工作。
+				這些文檔即最終視圖，它們將以適當的內容型別用串流的形式從伺服器輸出，並在客戶端PC相應地啟動PDF或電子錶格瀏覽器（希望如此）。
+			</p>
+<p>
+				為了使用Excel視圖，你需要把'poi'資源庫加到classpath中；使用PDF的話需要iText.jar。它們都已經包含在Spring的主發行包裡。
+			</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="view-document-config"></a>14.6.2.&#160;配置和安裝</h3></div></div></div>
+<p>
+				基於文檔的視圖幾乎與XSLT視圖的處理方式相同。
+				下面的內容將在前文基礎上介紹，XSLT例子中的controller如何被用來渲染同一個的模型資料，分別產生PDF或Excel輸出（輸出文檔可以用Open Office瀏覽和編輯）。
+			</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="view-document-configviews"></a>14.6.2.1.&#160;文檔視圖定義</h4></div></div></div>
+<p>
+					首先，我們修改view.properties（或等價的xml檔案），增加兩種文檔型別的視圖定義。整個檔案現在看起來是這個樣子：
+					</p>
+<pre class="programlisting">
+						home.class=xslt.HomePage
+						home.stylesheetLocation=/WEB-INF/xsl/home.xslt
+						home.root=words
+
+						xl.class=excel.HomePage
+
+						pdf.class=pdf.HomePage
+					</pre>
+<p>
+					<span class="emphasis"><em>
+						如果你想在一個電子錶格模板基礎上添加模型資料，可以在視圖定義中為'url'屬性指定一個檔案位置。
+					</em></span>
+				</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="view-document-configcontroller"></a>14.6.2.2.&#160;Controller 程式碼</h4></div></div></div>
+<p>
+					這裡用的controller程式碼，除了視圖名以外，其他的與XSLT例子中的完全一樣。
+					當然，你可能有更聰明的做法，通過URL參數或其他方式選擇視圖名，這也證明了Spirng在控制器與視圖的解耦方面確實非常優秀！
+				</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="view-document-configsubclasses"></a>14.6.2.3.&#160;Excel視圖子類別</h4></div></div></div>
+<p>
+					和在XSLT例子中一樣，我們需要從適當的抽象類別擴展一個具體類別，以實作輸出文檔的行為。
+					對Excel來說，這意味著創建一個
+					<code class="literal">
+						org.springframework.web.servlet.view.document.AbstractExcelView
+					</code>
+					（使用POI）或
+					<code class="literal">
+						org.springframework.web.servlet.view.document.AbstractJExcelView
+					</code>
+					（使用JExcelApi）的子類別， 並實作
+					<code class="literal">buildExcelDocument</code>方法。
+				</p>
+<p>
+					下面是一段使用POI產生Excel視圖的完整程式碼，它從模型資料中取得詞語列表，把它顯示為電子錶格中第一欄內連續的行：
+
+					</p>
+<pre class="programlisting">
+						package excel;
+
+						// imports omitted for brevity
+
+						public class HomePage extends AbstractExcelView
+						{
+
+						protected void buildExcelDocument( Map model,
+						HSSFWorkbook wb, HttpServletRequest req,
+						HttpServletResponse resp) throws Exception {
+
+						HSSFSheet sheet; HSSFRow sheetRow; HSSFCell
+						cell;
+
+						// Go to the first sheet // getSheetAt: only if
+						wb is created from an existing document //sheet
+						= wb.getSheetAt( 0 ); sheet =
+						wb.createSheet("Spring");
+						sheet.setDefaultColumnWidth((short)12);
+
+						// write a text at A1 cell = getCell( sheet, 0,
+						0 ); setText(cell,"Spring-Excel test");
+
+						List words = (List ) model.get("wordList"); for
+						(int i=0; i &lt; words.size(); i++) { cell =
+						getCell( sheet, 2+i, 0 ); setText(cell, (String)
+						words.get(i));
+
+						} } }
+					</pre>
+<p>
+				</p>
+<p>
+					這是一個使用JExcelApi的版本，產生同樣的Excel檔案：
+					</p>
+<pre class="programlisting">
+						package excel;
+
+						// imports omitted for brevity
+
+						public class HomePage extends AbstractExcelView
+						{
+
+						protected void buildExcelDocument(Map model,
+						WritableWorkbook wb, HttpServletRequest request,
+						HttpServletResponse response) throws Exception {
+
+						WritableSheet sheet = wb.createSheet("Spring");
+
+						sheet.addCell(new Label(0, 0, "Spring-Excel
+						test");
+
+						List words = (List)model.get("wordList"); for
+						(int i = -; i &lt; words.size(); i++) {
+						sheet.addCell(new Label(2+i, 0,
+						(String)words.get(i)); } } }
+					</pre>
+<p>
+				</p>
+<p>
+					注意這些API間的差別。我們發現JExcelApi使用起來更直觀，而且在圖像處理方面更好。
+					但也發現使用JExcelApi處理大檔案時存在記憶體問題。
+				</p>
+<p>
+					如果你現在修改controller的程式碼，讓它返回名為
+					<code class="literal">xl</code>
+					的視圖（
+					<code class="literal">
+						return new ModelAndView("xl", map);
+					</code>
+					）， 然後再次運行你的應用，你會發現，當你請求同樣的頁面時，Excel電子錶格被創建出來並自動開始下載。
+				</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="view-document-configsubclasspdf"></a>14.6.2.4.&#160;PDF視圖子類別</h4></div></div></div>
+<p>
+					產生PDF版本的詞語列表就更簡單了。 現在，你創建一個
+					<code class="literal">
+						org.springframework.web.servlet.view.document.AbstractPdfView
+					</code>
+					的子類別，並實作
+					<code class="literal">buildPdfDocument()</code>方法，如下：
+					</p>
+<pre class="programlisting">
+						package pdf;
+
+						// imports omitted for brevity
+
+						public class PDFPage extends AbstractPdfView {
+
+						protected void buildPdfDocument( Map model,
+						Document doc, PdfWriter writer,
+						HttpServletRequest req, HttpServletResponse
+						resp) throws Exception {
+
+						List words = (List) model.get("wordList");
+
+						for (int i=0; i&lt;words.size(); i++) doc.add(
+						new Paragraph((String) words.get(i)));
+
+						} }
+					</pre>
+<p>
+					同樣地，修改controller，讓它返回名為
+					<code class="literal">pdf</code>
+					的視圖（
+					<code class="literal">
+						return new ModelAndView("pdf", map);
+					</code>
+					）， 運行應用並請求同樣的URL，這次將會打開一個PDF文檔，列出模型資料中的每個詞語。
+				</p>
+</div>
+</div>
+</div></body>
+</html>

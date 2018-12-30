@@ -1,0 +1,76 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>附錄&#160;B.&#160;Extensible XML authoring</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="prev" href="apas03.html" title="A.3.&#160;Setting up your IDE">
+<link rel="next" href="apbs02.html" title="B.2.&#160;Authoring the schema">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="appendix" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title">
+<a name="extensible-xml"></a>附錄&#160;B.&#160;Extensible XML authoring</h2></div></div></div>
+<div class="toc">
+<p><b>目錄</b></p>
+<dl>
+<dt><span class="section"><a href="apb.html#extensible-xml-introduction">B.1. Introduction</a></span></dt>
+<dt><span class="section"><a href="apbs02.html">B.2. Authoring the schema</a></span></dt>
+<dt><span class="section"><a href="apbs03.html">B.3. Coding a <code class="interfacename">NamespaceHandler</code></a></span></dt>
+<dt><span class="section"><a href="apbs04.html">B.4. Coding a <code class="interfacename">BeanDefinitionParser</code></a></span></dt>
+<dt><span class="section"><a href="apbs05.html">B.5. Registering the handler and the schema</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="apbs05.html#extensible-xml-registration-spring-handlers">B.5.1. <code class="filename">'META-INF/spring.handlers'</code></a></span></dt>
+<dt><span class="section"><a href="apbs05.html#extensible-xml-registration-spring-schemas">B.5.2. <code class="filename">'META-INF/spring.schemas'</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="apbs06.html">B.6. Using a custom extension in your Spring XML configuration</a></span></dt>
+<dt><span class="section"><a href="apbs07.html">B.7. Meatier examples</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="apbs07.html#extensible-xml-custom-nested">B.7.1. Nesting custom tags within custom tags</a></span></dt>
+<dt><span class="section"><a href="apbs07.html#extensible-xml-custom-just-attributes">B.7.2. Custom attributes on 'normal' elements</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="apbs08.html">B.8. Further Resources</a></span></dt>
+</dl>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="extensible-xml-introduction"></a>B.1.&#160;Introduction</h2></div></div></div>
+<p>Since version 2.0, Spring has featured a mechanism for schema-based extensions
+        to the basic Spring XML format for defining and configuring beans. This section is
+        devoted to detailing how you would go about writing your own custom XML bean definition
+        parsers and integrating such parsers into the Spring IoC container.</p>
+<p>To facilitate the authoring of configuration files using a schema-aware XML editor,
+    	Spring's extensible XML configuration mechanism is based on XML Schema. If you are
+    	not familiar with Spring's current XML configuration extensions that come with the
+    	standard Spring distribution, please first read the appendix entitled
+    	<a href="apa.html" title="附錄&#160;A.&#160;XML Schema-based configuration">附錄&#160;A, <i>XML Schema-based configuration</i></a>.</p>
+<p>Creating new XML configuration extensions can be done by following these (relatively)
+    	simple steps:</p>
+<p>
+    	    </p>
+<div class="orderedlist"><ol type="1">
+<li><p><a href="apbs02.html" title="B.2.&#160;Authoring the schema">Authoring</a> an XML schema to describe your custom element(s).</p></li>
+<li><p><a href="apbs03.html" title="B.3.&#160;Coding a NamespaceHandler">Coding</a> a custom <code class="interfacename">NamespaceHandler</code>
+                    implementation (this is an easy step, don't worry).</p></li>
+<li><p><a href="apbs04.html" title="B.4.&#160;Coding a BeanDefinitionParser">Coding</a> one or more <code class="interfacename">BeanDefinitionParser</code>
+                    implementations (this is where the real work is done).</p></li>
+<li><p><a href="apbs05.html" title="B.5.&#160;Registering the handler and the schema">Registering</a> the above artifacts with Spring (this too is an easy step).</p></li>
+</ol></div>
+<p>
+    	</p>
+<p>What follows is a description of each of these steps. For the example, we will create
+    	an XML extension (a custom XML element) that allows us to configure objects of the type
+    	<code class="classname">SimpleDateFormat</code> (from the <code class="literal">java.text</code> package)
+    	in an easy manner. When we are done, we will be able to define bean definitions of type
+    	<code class="classname">SimpleDateFormat</code> like this:</p>
+<pre class="programlisting">&lt;myns:dateformat id="dateFormat" 
+    pattern="yyyy-MM-dd HH:mm"
+    lenient="true"/&gt;
+</pre>
+<p><span class="emphasis"><em>(Don't worry about the fact that this example is very simple; much more
+        detailed examples follow afterwards. The intent in this first simple example is to walk
+        you through the basic steps involved.)</em></span></p>
+</div>
+</div></body>
+</html>

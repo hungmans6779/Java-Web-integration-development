@@ -1,0 +1,21 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>3.10.&#160;以J2EE RAR檔案的形式部署Spring ApplicationContext</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch03.html" title="第&#160;3&#160;章&#160;IoC(控制反轉)容器">
+<link rel="prev" href="ch03s09.html" title="3.9.&#160;粘合程式碼和可怕的singleton">
+<link rel="next" href="ch03s11.html" title="3.11.&#160;基於註釋（Annotation-based）的配置">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="beans-rar-deployment"></a>3.10.&#160;以J2EE RAR檔案的形式部署Spring ApplicationContext</h2></div></div></div>
+<p>自從Spring 2.5之後，我們就可以RAR檔案的形式部署Spring ApplicationContext，該檔案將應用上下文，所有需要的bean以及JARs檔案封裝到一個J2EE RAR部署單元中。這與引導啟動一個獨立的 ApplicationContext 是一樣的，只是它要寄居於J2EE環境內，以便能夠存取J2EE伺服器提供的基本功能。這種RAR的部署對於那些常見的應用場景準備以一種更加「自然」的方式去部署一個沒有頭(headless)的WAR檔案——就是說：一個沒有任何HTTP入口點，而只用於在J2EE環境中啟動一個Spring ApplicationContext的WAR檔案。</p>
+<p>RAR部署對於那些不需要任何HTTP入口點而僅包含訊息節點與任務安排等的應用上下文來說非常理想。在這樣的上下文中的Beans可以使用應用伺服器資源，例如JTA事務管理，綁定到JNDI的JDBC資料源，JMS ConnectionFactory實例，同時這些beans還可以註冊到平臺上的JMX伺服器——所有這些都通過Spring標準的事務管理與JNDI以及JMX支持的功能來實作的。應用元件也可以通過Spring的<code class="interfacename">TaskExecutor</code> 介面與應用伺服器的JCA WorkManager進行交互。</p>
+<p>查看<a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/jca/context/SpringContextResourceAdapter.html" target="_top">SpringContextResourceAdapter</a>類別的JavaDoc，以瞭解關於RAR部署的配置細節。</p>
+<p><span class="emphasis"><em>對於簡單的部署，您要做的事情如下：</em></span>將所有應用類別打包成RAR檔案（此檔案是標準的 JAR 檔案，只是擴展名不同），將所有需要的jars包添加到該RAR檔案的根目錄中，添加一個」META-INF/ra.xml「部署描述符（參見<code class="classname">SpringContextResourceAdapter</code>的JavaDoc）及相應的Spring XML bean定義檔案（典型情況下為"META-INF/applicationContext.xml"）最後把這個 RAR 檔案放到您的應用伺服器的部署目錄中！</p>
+<p><span class="emphasis"><em>注意：</em></span>這個RAR部署單元一般是自包含的；他們沒有將元件暴露給「外部」世界，甚至也沒有暴露給應用中的其他模組。我們一般使用JMS（多個模組共享）與基於RAR的ApplicationContext進行交互。例如調度任務，對新加入檔案系統的檔案作出反應（或者類似的）。實際上，如果需要考慮到外界的同步存取，它可以導出RMI端點，這個過程也同樣適用於同一台機器上的其他應用模組。</p>
+</div></body>
+</html>

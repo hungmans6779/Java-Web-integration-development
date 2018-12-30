@@ -1,0 +1,24 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>5.3.&#160;從錯誤程式碼到錯誤資訊</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch05.html" title="第&#160;5&#160;章&#160;校驗，資料綁定，BeanWrapper，與屬性編輯器">
+<link rel="prev" href="ch05s02.html" title="5.2.&#160;使用Spring的Validator介面進行校驗">
+<link rel="next" href="ch05s04.html" title="5.4.&#160;Bean處理和BeanWrapper">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="validation-conversion"></a>5.3.&#160;從錯誤程式碼到錯誤資訊</h2></div></div></div>
+<p>我們已經討論了資料綁定和校驗。最後我們來討論一下與校驗錯誤相對應的錯誤資訊輸出。在先前的範例中，我們對<code class="literal">name</code>和<code class="literal">age</code>欄位進行了校驗並發現了錯誤。如果我們想用<code class="literal">MessageSource</code>來輸出錯誤資訊，當某個欄位校驗出錯時（在這個例子中是name和age）我們輸出的是錯誤程式碼。無論你直接或者間接使用範例中的<code class="classname">ValidationUtils</code> 類別來調用<code class="interfacename">Errors</code>介面中<code class="literal">rejectValue</code>方法或者任何一個其它的<code class="literal">reject</code>方法，底層的實作不僅為你註冊了你傳入的程式碼，還同時為你註冊了許多額外的錯誤程式碼資訊。而你使用的<code class="interfacename">MessageCodesResolver</code>將決定究竟註冊什麼樣的錯誤程式碼。預設情況下，將會使用<code class="classname">DefaultMessageCodesResolver</code>。回到前面的例子，使用<code class="literal">DefaultMessageCodesResolver</code>，不僅會為你註冊你提供的錯誤程式碼資訊，同時還包含了你傳入到reject方法中的欄位資訊。所以在這個例子中，你通過<code class="literal">rejectValue("age", "too.darn.old")</code>來註冊一個欄位校驗錯誤。Spring不僅為你註冊了<code class="literal">too.darn.old</code>這個程式碼，同時還為你註冊了<code class="literal">too.darn.old.age</code>和<code class="literal">too.darn.old.age.int</code>來分別表示欄位名稱和欄位的型別。這種是現實為了方面開發者來定位錯誤資訊。</p>
+<p>
+			更多有關<code class="interfacename">MessageCodesResolver</code>的資訊以及預設的策略可以在線存取相應的JavaDocs：
+			<a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/validation/MessageCodesResolver.html" target="_top">				MessageCodesResolver
+			</a> 和
+			<a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/validation/DefaultMessageCodesResolver.html" target="_top">				DefaultMessageCodesResolver
+			</a>。
+		</p>
+</div></body>
+</html>

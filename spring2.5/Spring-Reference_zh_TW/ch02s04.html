@@ -1,0 +1,57 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>2.4.&#160;中間層</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch02.html" title="第&#160;2&#160;章&#160;Spring 2.0和 2.5的新特性">
+<link rel="prev" href="ch02s03.html" title="2.3.&#160;切面導向程式(AOP)">
+<link rel="next" href="ch02s05.html" title="2.5.&#160;Web層">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="new-in-2-middle-tier"></a>2.4.&#160;中間層</h2></div></div></div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="new-in-2-middle-tier-transaction-configuration"></a>2.4.1.&#160;在XML裡更為簡單的宣告性事務配置</h3></div></div></div>
+<p>Spring 2.0關於事務的配置方式發生了重大的變化。早先的1.2.x版本的配置方式仍然有效（並且受支持），但是新的方式明顯更加簡潔，並成為最推薦的方式。
+			Spring 2.0 同時提供了AspectJ切面資源庫，你可以使用它來產生更漂亮的事務性物件 - 甚至可以不是由Spring IoC容器產生的。</p>
+<p> Spring 2.5在裝載時植入外還支持方便的註釋驅動的事務管理，這是通過<code class="literal">context:load-time-weaver</code> 和<code class="literal">tx:annotation-driven mode="aspectj"</code>的聯合使用進行的。</p>
+<p>標題為 <a href="ch09.html" title="第&#160;9&#160;章&#160;事務管理">第&#160;9&#160;章 <i>事務管理</i></a> 的部分包含所有的細節。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="new-in-2-middle-tier-websphere"></a>2.4.2.&#160;對Websphere 事務管理的完整支持</h3></div></div></div>
+<p>Spring 2.5 明確支持IBM的WebSphere Application Server,特別是WebSphere's transaction manager. Transaction suspension(事務掛起）現在通過使用WebSphere新的<code class="interfacename">UOWManager</code> API得到了完整支持，此API在on WAS 6.0.2.19+ and 6.0.1.9+ 可用。</p>
+<p>因此如果你在WebSphere Application Server中運行基於Spring的應用程序，我們高度建議你使用Spring 2.5的<code class="classname">WebSphereUowTransactionManager</code>作為你選擇的<code class="interfacename">PlatformTransactionManager</code>。這也是 IBM官方的建議。</p>
+<p>要自動探測底層的JTA 事務平臺，可以使用Spring 2.5的新      <code class="literal">tx:jta-transaction-manager</code> 配置元素。它會自動探測BEA WebLogic和IBM WebSphere,註冊正確的<code class="interfacename">PlatformTransactionManager</code>。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="new-in-2-middle-tier-jpa"></a>2.4.3.&#160;JPA</h3></div></div></div>
+<p>Spring 2.0提供了JPA抽象層，在所起的作用與常規使用模式上，類似於Spring的JDBC抽象層。</p>
+<p>如果你對使用實作JPA作為自己持久層的基礎感興趣，標題為 <a href="ch12s06.html" title="12.6.&#160;JPA">第&#160;12.6&#160;節 「JPA」</a> 的部分專門描述了在這個領域Spring的支持與附加值。</p>
+<p>Spring 2.5對OpenJPA的支持升級到了OpenJPA 1.0，支持savepoint這樣的高層級特性。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="new-in-2-middle-tier-async-jms"></a>2.4.4.&#160;異步的JMS</h3></div></div></div>
+<p>在Spring 2.0之前，Spring的JMS的作用局限於發送訊息和<span class="emphasis"><em>同步</em></span>接收訊息。
+			這個功能（封裝在 <code class="classname">JmsTemplate</code> 類別中）當然是很好的，
+			但是，它沒有滿足<span class="emphasis"><em>異步</em></span>訊息接收的需要。</p>
+<p>Spring 2.0現在提供對異步訊息接收的完整支持。在標題為 <a href="ch19s04.html#jms-asynchronousMessageReception" title="19.4.2.&#160;異步接收 - 訊息驅動的POJO">第&#160;19.4.2&#160;節 「異步接收 - 訊息驅動的POJO」</a> 的部分有詳細的描述。</p>
+<p>在Spring 2.5中， JCA樣式的異步訊息監聽器設置也通過<code class="classname">GenericMessageEndpointManager</code>工具得到了支持。這是對標準JMS監聽器工具的補充，允許對ActionMQ和JORAM這些訊息broker進行更深入的整合。參見<a href="ch19s05.html" title="19.5.&#160;JCA訊息端點的支持">第&#160;19.5&#160;節 「JCA訊息端點的支持」</a>。</p>
+<p>Spring 2.5 還引入了一個XML namespace來簡化JMS配置，可以對大量監聽器進行簡明配置。這一命名空間支持標準的JMS監聽器和JCA setup樣式，在配置時只有很小的改變。參閱<a href="ch19s06.html" title="19.6.&#160;JMS命名空間支持">第&#160;19.6&#160;節 「JMS命名空間支持」</a>。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="new-in-2-middle-tier-jdbc"></a>2.4.5.&#160;JDBC</h3></div></div></div>
+<p>在Spring的JDBC支持資源庫中，有幾個小的(但同樣值得注意的)新類別。首先，<a href="ch11s02.html#jdbc-NamedParameterJdbcTemplate" title="11.2.2.&#160;NamedParameterJdbcTemplate類別"><code class="classname">NamedParameterJdbcTemplate</code></a>，
+			提供了在編寫JDBC語句時，對使用命名參數（與之相對的是編寫JDBC語句時只使用常規的佔位符（<code class="literal">'?'</code>））的支持。</p>
+<p>另一個新類別，<a href="ch11s02.html#jdbc-SimpleJdbcTemplate" title="11.2.3.&#160;SimpleJdbcTemplate類別"><code class="classname">SimpleJdbcTemplate</code></a>，
+			致力於在使用Java 5+ (Tiger)開發時更加簡單地使用<code class="classname">JdbcTemplate</code>。</p>
+<p> Spring 2.5顯著的擴充了<code class="classname">SimpleJdbcTemplate</code>的功能，引入了<code class="classname">SimpleJdbcCall</code> 和<code class="classname">SimpleJdbcInsert</code>操作物件。</p>
+</div>
+</div></body>
+</html>

@@ -1,0 +1,87 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>15.2.&#160;通用配置</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch15.html" title="第&#160;15&#160;章&#160;整合其它Web框架">
+<link rel="prev" href="ch15.html" title="第&#160;15&#160;章&#160;整合其它Web框架">
+<link rel="next" href="ch15s03.html" title="15.3.&#160;JavaServer Faces">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="webintegration-common"></a>15.2.&#160;通用配置</h2></div></div></div>
+<p>
+            在深入研究如何整合受支持的 Web 框架之前，讓我們先看看對<span class="emphasis"><em>所有</em></span>
+        	 Web 框架都適用的 Spring 配置。（這一節同樣適用於 Spring 自己的 Web 框架，SpringMVC）。
+        </p>
+<p>
+            在 Spring 所支持的輕量級應用模型中，有一個概念叫「分層架構」。在經典的分層架構中，
+        	Web 層只是很多層中的一層...它是伺服器端應用的一個入口，它將請求委派給定義在服務層的服務物件
+			（門面）以滿足業務用例需求（這些是表現層技術觸及不到的）。在 Spring 中，這些服務物件，以及其他的業務物件，
+        	資料存取物件等等，都存在於一個獨立的「businnes context」中，這個context<span class="emphasis"><em>不</em></span>含有任何 Web 
+			或者表現層的物件（表現層物件諸如 Spring MVC 控制器通常被配置於一個獨立的「presentation context」中）。
+        	這一節詳細介紹在一個應用中如何配置一個 Spring 容器（<code class="classname">WebApplicationContext</code>）來容納所有的「business beans」。
+        </p>
+<p>
+			現在進入細節部分...所有你需要做的就是在 Web 應用的 <code class="literal">web.xml</code> 檔案中宣告一個
+			<a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/web/context/ContextLoaderListener.html" target="_top"><code class="classname">ContextLoaderListener</code></a>，
+			並且在同一檔案裡增加一個 <code class="literal">contextConfigLocation</code> &lt;context-param/&gt; ，
+			這個宣告決定了哪些 Spring XML 配置檔案會被載入。
+		</p>
+<p>
+			以下是 &lt;listener/&gt; 的配置：
+		</p>
+<pre class="programlisting">&lt;listener&gt;
+    &lt;listener-class&gt;org.springframework.web.context.ContextLoaderListener&lt;/listener-class&gt;
+&lt;/listener&gt;</pre>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>
+				Listeners 是在 Servlet API 2.3 版本中才加入的；而 listener 的啟動順序在 Servlet 2.4 版本終於明確。
+				如果你使用只支持 Servlet 2.2 版本的容器，你可以通過純嵌入方式使用
+				<a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/web/context/ContextLoaderServlet.html" target="_top"><code class="classname">ContextLoaderServlet</code></a>
+				完成相同的功能(就啟動順序而言)。
+			</p>
+</div>
+<p>
+			以下是 &lt;context-param/&gt; 的配置：
+		</p>
+<pre class="programlisting">&lt;context-param&gt;
+    &lt;param-name&gt;contextConfigLocation&lt;/param-name&gt;
+    &lt;param-value&gt;/WEB-INF/applicationContext*.xml&lt;/param-value&gt;
+&lt;/context-param&gt;</pre>
+<p>
+			如果沒有指定 <code class="literal">contextConfigLocation</code> 的context參數，
+			<code class="classname">ContextLoaderListener</code>
+			將會尋找一個名為 <code class="literal">/WEB-INF/applicationContext.xml</code> 的檔案載入。
+			一旦context檔案被載入，Spring 通過檔案中 bean 的定義創建一個
+			<a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/web/context/WebApplicationContext.html" target="_top"><code class="classname">WebApplicationContext</code></a>
+			對象並且將它儲存在 Web 應用的 <span class="interface">ServletContext</span> 中。
+		</p>
+<p>
+			所有Java Web框架都建構在Servlet API之上，所以，可以使用下面的程式碼片斷存取這個
+			由 <code class="classname">ContextLoaderListener</code> 創建的<span class="interface">ApplicationContext</span>。
+		</p>
+<pre class="programlisting">WebApplicationContext ctx = WebApplicationContextUtils.getWebApplicationContext(servletContext);</pre>
+<p>
+			<a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/web/context/support/WebApplicationContextUtils.html" target="_top"><code class="classname">WebApplicationContextUtils</code></a>
+			這個類別提供了方便的功能，這樣你就不必去記 <span class="interface">ServletContext</span> 中屬性的名字。
+			它的 <span class="emphasis"><em>getWebApplicationContext()</em></span> 方法在
+			<code class="literal">WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE</code> 
+			這個鍵值不對應任何物件的時候將返回 <code class="literal">null</code>。
+			不過，為了避免在應用中得到 <code class="classname">NullPointerExceptions</code>
+			，我們推薦你使用 <code class="literal">getRequiredWebApplicationContext()</code> 方法。
+			這個方法在<span class="interface">ApplicationContext</span> 缺失的時候會拋出一個異常。
+		</p>
+<p>
+			一旦你獲得了一個 <code class="classname">WebApplicationContext</code> 的參考，
+			就可以通過 bean 的名字或型別來獲得它們。大多數開發人員通過名字獲得 bean，然後將它們轉換成相應的介面型別。
+		</p>
+<p>
+			幸運的是，這一節中的大多數框架都有更簡單的方法來查詢 bean。我們不僅僅可以更簡單地從 Spring 容器中
+			得到 bean，我們還可以在控制器中使用 Spring 依賴注入的特性。下面的幾個小節是每種框架整合策略的詳細描述。
+		</p>
+</div></body>
+</html>

@@ -1,0 +1,35 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>7.7.&#160;使用ProxyFactory通過程式創建AOP代理</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch07.html" title="第&#160;7&#160;章&#160;Spring AOP APIs">
+<link rel="prev" href="ch07s06.html" title="7.6.&#160;簡化代理定義">
+<link rel="next" href="ch07s08.html" title="7.8.&#160;操作被通知物件">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="aop-prog"></a>7.7.&#160;使用ProxyFactory通過程式創建AOP代理</h2></div></div></div>
+<p>使用Spring通過程式創建AOP代理是很容易的。這使你可以使用Spring AOP而不必依賴於Spring IoC。</p>
+<p>下面的清單顯示了如何使用一個攔截器和一個通知器來為一個目標物件來創建一個代理。目標物件實作的介面將被自動代理：</p>
+<p>
+        </p>
+<pre class="programlisting">ProxyFactory factory = new ProxyFactory(myBusinessInterfaceImpl);
+            factory.addInterceptor(myMethodInterceptor);
+            factory.addAdvisor(myAdvisor);
+        MyBusinessInterface tb = (MyBusinessInterface) factory.getProxy();</pre>
+<p>
+    </p>
+<p>第一步是創建一個型別為<code class="literal">org.springframework.aop.framework.ProxyFactory</code>的物件。
+    你可以像上面例子裡那樣使用一個目標物件來創建它，或者在一個可選的建構器裡說明需要被代理的介面。</p>
+<p>你可以添加攔截器或通知器，並在ProxyFactory的生命週期裡操作它們。如果你加入一個IntroductionInterceptionAroundAdvisor，你可以讓代理實作額外的介面。</p>
+<p>在ProxyFactory裡也有很方便的方法（繼承自<code class="classname">AdvisedSupport</code>）允許你加入其它的通知型別例如前置和異常通知。
+    AdvisedSupport是ProxyFactory 和ProxyFactoryBean的共同父類別。</p>
+<div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">提示</h3>
+<p>在大多數應用程序裡，把AOP代理的創建和IoC框架整合是最佳實踐。通常情況下我們推薦你在Java程式碼外進行AOP的配置。</p>
+</div>
+</div></body>
+</html>

@@ -1,0 +1,497 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>12.2.&#160;Hibernate</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch12.html" title="第&#160;12&#160;章&#160;使用ORM工具進行資料存取">
+<link rel="prev" href="ch12.html" title="第&#160;12&#160;章&#160;使用ORM工具進行資料存取">
+<link rel="next" href="ch12s03.html" title="12.3.&#160;JDO">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="orm-hibernate"></a>12.2.&#160;Hibernate</h2></div></div></div>
+<p>我們將首先從Hibernate3 （<a href="http://www.hibernate.org/" target="_top">http://www.hibernate.org/</a>）開始，通過講解Hibernate在Spring環境中的使用來闡述Spring框架對於O/R Mapping工具的整合方式。
+本章節將涉及到許多細節問題，並向你展示各種不同的DAO實作方式和事務劃分。這其中的絕大多數模式能夠被Spring支持的其他O/R Mapping工具所使用。
+這一章節的其他部分將為你講述其他的O/R Mapping技術，並給出一些簡短的例子。</p>
+<p><span class="emphasis"><em>注意：Spring2.5版本需要Hibernate3.1或更高版本，不再提供對Hibernate2.1與Hibernate3.0版本的支持。</em></span></p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="orm-resource-mngmnt"></a>12.2.1.&#160;資源管理</h3></div></div></div>
+<p>典型的業務程序經常會被重複的資源管理程式碼搞得混亂。很多項目都試圖創建自己的方案來解決這個問題，有時會為了程式方便而犧牲恰當的錯誤處理。
+對於恰當的資源管理，Spring提倡一種矚目而又簡潔的解決方案：使用模板化的IoC，諸如基礎建構類別、回調介面以及使用AOP攔截器。
+基礎建構類別負責恰當的資源處理，以及將特定的異常程式碼轉換為unchecked exception體系。Spring引進了DAO異常體系，可適用於任何資料存取策略。
+對於直接使用JDBC的情況，前面章節提到的 <code class="classname">JdbcTemplate</code> 類別負責處理connection，並正確地把 <code class="classname">SQLException</code> 轉換為 <code class="classname">DataAccessException</code> 體系，包括將與資料庫相關的SQL錯誤程式碼變成有意義的異常類別。
+Spring同時通過它們各自的事務管理器支持JTA和JDBC事務。</p>
+<p>Spring同樣也提供了對Hibernate和JDO的支持，包括 <code class="classname">HibernateTemplate</code> / <code class="classname">JdoTemplate</code> 類似於 <code class="classname">JdbcTemplate</code>，
+<code class="classname">HibernateInterceptor</code> / <code class="classname">JdoInterceptor</code> 以及一個 Hibernate / JDO 事務管理器。
+這樣做的主要目的是為了能夠清晰地劃分應用程序層次而不管使用何種資料存取和事務管理技術，從而降低各個應用程序物件之間的耦合。
+商業邏輯不再依賴於特定的資料存取與事務策略；不再有硬編碼的資源尋找、不再有難以替換的singletons、不再有使用者自定義的服務註冊。
+Spring提供了一個簡單且穩固的方案使得各種應用邏輯物件連接在一起，使這些物件可重用，並盡可能不依賴容器。
+所有的資料存取技術都能獨立使用，但是他們在Spring提供的基於XML配置且無需依賴Spring的普通JavaBean下會與application Context整合的更好。
+在典型的Spring應用程序中，很多重要的物件都是JavaBeans：資料存取template、資料存取物件（使用template）、事務管理器、商業邏輯物件（使用資料存取物件和事務管理器）、web視圖解析器、web控制器（使用業務服務）等等。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="orm-session-factory-setup"></a>12.2.2.&#160;在Spring容器中創建 <code class="interfacename">SessionFactory</code></h3></div></div></div>
+<p>為了避免硬編碼的資源尋找與應用程序物件緊密耦合，Spring允許你在Spring容器中以bean的方式定義諸如JDBC <code class="interfacename">DataSource</code>或者Hibernate <code class="interfacename">SessionFactory</code> 的資料存取資源。
+任何需要進行資源存取的應用程序物件只需要持有這些事先定義好的實例的參考（DAO定義在下一章節介紹），下面的程式碼演示如何創建一個JDBC <code class="classname">DataSource</code> 和Hibernate <code class="interfacename">SessionFactory</code>
+	  </p>
+<pre class="programlisting">&lt;beans&gt;
+
+  &lt;bean id="myDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close"&gt;
+    &lt;property name="driverClassName" value="org.hsqldb.jdbcDriver"/&gt;
+    &lt;property name="url" value="jdbc:hsqldb:hsql://localhost:9001"/&gt;
+    &lt;property name="username" value="sa"/&gt;
+    &lt;property name="password" value=""/&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="mySessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean"&gt;
+    &lt;property name="dataSource" ref="myDataSource"/&gt;
+    &lt;property name="mappingResources"&gt;
+      &lt;list&gt;
+        &lt;value&gt;product.hbm.xml&lt;/value&gt;
+      &lt;/list&gt;
+    &lt;/property&gt;
+    &lt;property name="hibernateProperties"&gt;
+      &lt;value&gt;
+        hibernate.dialect=org.hibernate.dialect.HSQLDialect
+      &lt;/value&gt;
+    &lt;/property&gt;
+  &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<p>將一個本地定義的，如Jakarta Commons DBCP的 <code class="classname">BasicDataSource</code> 切換為一個JNDI定位的DataSource（通常由應用程序伺服器管理），僅僅需要改變配置:</p>
+<pre class="programlisting">&lt;beans&gt;
+
+  &lt;bean id="myDataSource" class="org.springframework.jndi.JndiObjectFactoryBean"&gt;
+    &lt;property name="jndiName" value="java:comp/env/jdbc/myds"/&gt;
+  &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<p>通過使用Spring的 <code class="classname">JndiObjectFactoryBean</code> 來暴露和獲，你也可以存取一個JNDI定位的Hibernate <code class="interfacename">SessionFactory</code>。
+		當然，如果在EJB上下文之外，這是不必要的。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="orm-hibernate-template"></a>12.2.3.&#160;The <code class="classname">HibernateTemplate</code></h3></div></div></div>
+<p>對於特定的資料存取物件或業務物件的方法，基本的模板程式模型看起來像下面所示的程式碼那樣。
+		對於這些外部物件來說，沒有任何實作特定介面的約束，僅僅要求提供一個Hibernate <code class="interfacename">SessionFactory</code>。
+		它可以從任何地方得到，不過比較適宜的方法是從Spring的IoC容器中取得bean的參考：通過簡單的 <code class="literal">setSessionFactory(..)</code> 這個bean的setter方法。
+		下面的程式碼片段展示了在Spring容器中一個DAO的定義，它參考了上面定義的 <code class="interfacename">SessionFactory</code>，同時展示了一個DAO方法的具體實作。
+      </p>
+<pre class="programlisting">&lt;beans&gt;
+
+  &lt;bean id="myProductDao" class="product.ProductDaoImpl"&gt;
+    &lt;property name="sessionFactory" ref="mySessionFactory"/&gt;
+  &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<pre class="programlisting">public class ProductDaoImpl implements ProductDao {
+
+    private HibernateTemplate hibernateTemplate;
+
+    public void setSessionFactory(SessionFactory sessionFactory) {
+        this.hibernateTemplate = new HibernateTemplate(sessionFactory);
+    }
+
+    public Collection loadProductsByCategory(String category) throws DataAccessException {
+    	return this.hibernateTemplate.find("from test.Product product where product.category=?", category);
+    }
+}</pre>
+<p>除了很多類似上例中易用的方法外，<code class="classname">HibernateTemplate</code>類別提供了大量方法對應Hibernate <code class="interfacename">Session</code>介面中暴露的方法。當你需要使用的<code class="interfacename">Session</code>方法沒有在<code class="classname">HibernateTemplate</code>中提供時，可以通過下面提供的基於回調的方案來實作。</p>
+<pre class="programlisting">public class ProductDaoImpl implements ProductDao {
+
+    private HibernateTemplate hibernateTemplate;
+
+    public void setSessionFactory(SessionFactory sessionFactory) {
+        this.hibernateTemplate = new HibernateTemplate(sessionFactory);
+    }
+
+    public Collection loadProductsByCategory(final String category) throws DataAccessException {
+        return this.hibernateTemplate.execute(new HibernateCallback() {
+
+            public Object doInHibernate(Session session) {
+                Criteria criteria = session.createCriteria(Product.class);
+                criteria.add(Expression.eq("category", category));
+                criteria.setMaxResults(6);
+                return criteria.list();
+            }
+        };
+    }
+}</pre>
+<p>一個回調實作能夠有效地在任何Hibernate資料存取中使用。<code class="classname">HibernateTemplate</code> 會確保當前Hibernate的 <code class="interfacename">Session</code> 實例的正確打開和關閉，並直接參與到事務管理中去。
+		Template實例不僅是執行緒安全的，同時它也是可重用的。因而他們可以作為外部物件的實例變數而被持有。對於那些簡單的諸如find、load、saveOrUpdate或者delete操作的調用，<code class="classname">HibernateTemplate</code> 提供可選擇的快捷函數來替換這種回調的實作。
+		不僅如此，Spring還提供了一個簡便的 <code class="classname">HibernateDaoSupport</code> 基類別，這個類別提供了 <code class="methodname">setSessionFactory(..)</code> 方法來接受一個 <code class="interfacename">SessionFactory</code> 物件，同時提供了 <code class="methodname">getSessionFactory()</code> 和 <code class="methodname">getHibernateTemplate()</code> 方法給子類別使用。
+		綜合了這些，對於那些典型的業務需求，就有了一個非常簡單的DAO實作: </p>
+<pre class="programlisting">public class ProductDaoImpl extends HibernateDaoSupport implements ProductDao {
+
+    public Collection loadProductsByCategory(String category) throws DataAccessException {
+        return this.getHibernateTemplate().find(
+            "from test.Product product where product.category=?", category);
+    }
+}</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="orm-hibernate-daos"></a>12.2.4.&#160;不使用回調的基於Spring的DAO實作</h3></div></div></div>
+<p>作為不使用Spring的 <code class="classname">HibernateTemplate</code> 來實作DAO的替代解決方案，你依然可以用傳統的程式樣式來編寫你的資料存取程式碼。
+		無需將你的Hibernate存取程式碼包裹在一個回調中，只需符合Spring的通用的 <code class="classname">DataAccessException</code> 異常體系。
+		<code class="classname">HibernateDaoSupport</code> 基類別提供了存取與當前事務綁定的 <code class="interfacename">Session</code> 物件的函數，因而能保證在這種情況下異常的正確轉化。
+		類似的函數同樣可以在 <code class="classname">SessionFactoryUtils</code> 類別中找到，但他們以靜態方法的形式出現。
+		值得注意的是，通常將 '<code class="literal">false</code>' 作為參數值（表示是否允許創建）傳遞給 <code class="methodname">getSession(..)</code> 方法進行調用。
+		此時，整個調用將在同一個事務內完成（它的整個生命週期由事務控制，避免了關閉返回的 <code class="interfacename">Session</code> 的需要）。
+      </p>
+<pre class="programlisting">public class HibernateProductDao extends HibernateDaoSupport implements ProductDao {
+
+    public Collection loadProductsByCategory(String category) throws DataAccessException, MyException {
+        Session session = getSession(false);
+        try {
+            Query query = session.createQuery("from test.Product product where product.category=?");
+            query.setString(0, category);
+            List result = query.list();
+            if (result == null) {
+                throw new MyException("No search results.");
+            }
+            return result;
+        }
+        catch (HibernateException ex) {
+            throw convertHibernateAccessException(ex);
+        }
+    }
+}</pre>
+<p>這種直接使用Hibernate存取程式碼的好處在於它允許你在資料存取程式碼中拋出 <span class="emphasis"><em>任何</em></span> checked exception，而 <code class="classname">HibernateTemplate</code> 卻受限於回調中的unchecked exception。
+		注意，你通常可以將這些應用程序的異常處理推遲到回調函數之後，這樣，你依然可以正常使用 <code class="classname">HibernateTemplate</code>。
+		一般來說，<code class="classname">HibernateTemplate</code> 類別所提供的許多方法在許多情況下看上去更簡單和便捷。
+      </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="orm-hibernate-straight"></a>12.2.5.&#160;基於Hibernate3的原生API實作DAO</h3></div></div></div>
+<p>Hibernate3 引入了一個新的特性：「帶上下文環境的Session」。 這一特性使得Hibernate自身具備了每個事務綁定當前 <code class="interfacename">Session</code> 物件的功能。
+		這與Spring中每個Hibernate的 <code class="interfacename">Session</code> 與事務同步的功能大致相同。一個相應的基於原生的Hibernate API的DAO實作正如下例所示：
+      </p>
+<pre class="programlisting">public class ProductDaoImpl implements ProductDao {
+
+    private SessionFactory sessionFactory;
+
+    public void setSessionFactory(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
+    }
+
+    public Collection loadProductsByCategory(String category) {
+        return this.sessionFactory.getCurrentSession()
+                .createQuery("from test.Product product where product.category=?")
+                .setParameter(0, category)
+                .list();
+    }
+}</pre>
+<p>這種樣式與你在Hibernate文檔和範例中見到的非常類似，除了DAO實作類別中持有了一個 <code class="interfacename">SessionFactory</code> 的實例變數。
+		我們強烈推薦這種基於實例變數的DAO建構方式，而不是使用那種過去由Hibernate的範例程序中提到的 <code class="literal">靜態的</code>
+				<code class="classname">HibernateUtil</code> 類別。
+		（通常來說，不要在靜態變數中保存任何資源資訊除非 <span class="emphasis"><em>確實</em></span> 有這個必要）。
+      </p>
+<p>上述DAO遵循依賴注入模式：它如同使用Spring的 <code class="classname">HibernateTemplate</code> 進行程式那樣，適合在Spring IoC容器中進行配置。
+		當然，這樣的DAO還可以建立在一個普通的Java類別中（諸如在Unit Test中）: 僅僅需要初始化這個類別，
+		調用 <code class="methodname">setSessionFactory(..)</code> 方法設置你所期望的處理器資源。 以Spring的bean的定義方式，它看上去就像這樣：
+	  </p>
+<pre class="programlisting">&lt;beans&gt;
+
+  &lt;bean id="myProductDao" class="product.ProductDaoImpl"&gt;
+    &lt;property name="sessionFactory" ref="mySessionFactory"/&gt;
+  &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<p>這種DAO存取方式的主要優勢在於它僅僅依賴於Hibernate API本身而無需引入任何Spring的類別。
+		從無入侵性的角度來看，這一點非常吸引人。對於Hibernate開發人員來說也無疑更加自然。</p>
+<p>然而，這樣的DAO存取方式會拋出原生 <code class="classname">HibernateException</code> （這是一個無需宣告或捕獲的unchecked exception），
+		這意味著，DAO的調用者只能以致命的錯誤來處理這些異常，除非完全依賴Hibernate自身的異常體系。
+		因而，除非你將DAO的調用者綁定到具體的實作策略上去，否則你將無法捕獲特定的異常原因，諸如樂觀鎖異常。
+		這種折中平衡或許可以被接受，如果你的應用完全基於Hibernate或者無需進行特殊的異常處理。</p>
+<p>幸運的是，Spring的 <code class="classname">LocalSessionFactoryBean</code> 可以在任何Spring的事務管理策略下，
+	      提供對Hibernate的 <code class="methodname">SessionFactory.getCurrentSession()</code> 方法的支持，它將返回當前受Spring事務管理（甚至是 <code class="classname">HibernateTransactionManager</code> 管理的）的 <code class="interfacename">Session</code> 物件。
+		 當然，該函數的標準行為依然有效：返回當前與正在進行的JTA事務（無論是Spring的 <code class="classname">JtaTransactionManager</code>、EJB CMT或者普通的JTA）綁定的 <code class="interfacename">Session</code> 物件。
+      </p>
+<p>總體來說，DAO可以基於Hibernate3的原生API實作，同時，它依舊需要能夠參與到Spring的事務管理中。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="orm-hibernate-tx-programmatic"></a>12.2.6.&#160;程式式的事務劃分</h3></div></div></div>
+<p>我們可以在這些低層次的資料存取服務之上的應用程序進行更高層次的事務劃分，從而讓事務能夠橫跨多個操作。
+		這裡對於相關的商業邏輯物件同樣沒有實作介面的限制，它只需要一個Spring的 <code class="classname">PlatformTransactionManager</code>。
+		同SessionFactory一樣，它可以來自任何地方，但是最好是一個經由 <code class="methodname">setTransactionManager(..)</code> 方法注入的bean的參考，正如使用 <code class="methodname">setProductDao</code> 方法來設置 <code class="classname">productDAO</code> 一樣。
+		下面演示了在Spring的application context中定義一個事務管理器和一個業務物件，以及具體的業務方法實作：
+      </p>
+<pre class="programlisting">&lt;beans&gt;
+
+  &lt;bean id="myTxManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager"&gt;
+    &lt;property name="sessionFactory" ref="mySessionFactory"/&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="myProductService" class="product.ProductServiceImpl"&gt;
+    &lt;property name="transactionManager" ref="myTxManager"/&gt;
+    &lt;property name="productDao" ref="myProductDao"/&gt;
+  &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<pre class="programlisting">public class ProductServiceImpl implements ProductService {
+
+    private TransactionTemplate transactionTemplate;
+    private ProductDao productDao;
+
+    public void setTransactionManager(PlatformTransactionManager transactionManager) {
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
+    }
+
+    public void setProductDao(ProductDao productDao) {
+        this.productDao = productDao;
+    }
+
+    public void increasePriceOfAllProductsInCategory(final String category) {
+        this.transactionTemplate.execute(new TransactionCallbackWithoutResult() {
+
+                public void doInTransactionWithoutResult(TransactionStatus status) {
+                    List productsToChange = this.productDao.loadProductsByCategory(category);
+                    <em class="lineannotation"><span class="lineannotation">// do the price increase...</span></em>
+                }
+            }
+        );
+    }
+}</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="orm-hibernate-tx-declarative"></a>12.2.7.&#160;宣告式的事務劃分</h3></div></div></div>
+<p>作為可選方案，我們可以使用Spring宣告式的事務支持。宣告式的事務支持通過配置Spring容器中的AOP Transaction Interceptor來替換事務劃分的硬編碼。
+		這將使你可以從每個業務方法中重複的事務劃分程式碼中解放出來，真正專注於為你的應用添加有價值的商業邏輯程式碼。此外，類似傳播行為和隔離級別等事務語義能夠在配置檔案中改變，而不會影響具體的業務物件實作。
+      </p>
+<pre class="programlisting">&lt;beans&gt;
+
+  &lt;bean id="myTxManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager"&gt;
+    &lt;property name="sessionFactory" ref="mySessionFactory"/&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="myProductService" class="org.springframework.aop.framework.ProxyFactoryBean"&gt;
+    &lt;property name="proxyInterfaces" value="product.ProductService"/&gt;
+    &lt;property name="target"&gt;
+        &lt;bean class="product.DefaultProductService"&gt;
+            &lt;property name="productDao" ref="myProductDao"/&gt;
+        &lt;/bean&gt;
+    &lt;/property&gt;
+    &lt;property name="interceptorNames"&gt;
+      &lt;list&gt;
+        &lt;value&gt;myTxInterceptor&lt;/value&gt; <em class="lineannotation"><span class="lineannotation">&lt;!-- the transaction interceptor (configured elsewhere) --&gt;</span></em>
+      &lt;/list&gt;
+    &lt;/property&gt;
+  &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<pre class="programlisting">public class ProductServiceImpl implements ProductService {
+
+    private ProductDao productDao;
+
+    public void setProductDao(ProductDao productDao) {
+        this.productDao = productDao;
+    }
+
+    <em class="lineannotation"><span class="lineannotation">// notice the absence of transaction demarcation code in this method</span></em>
+    <em class="lineannotation"><span class="lineannotation">// Spring's declarative transaction infrastructure will be demarcating transactions on your behalf </span></em>
+    public void increasePriceOfAllProductsInCategory(final String category) {
+        List productsToChange = this.productDao.loadProductsByCategory(category);
+        <em class="lineannotation"><span class="lineannotation">// ...</span></em>
+    }
+}</pre>
+<p>Spring的 <code class="classname">TransactionInterceptor</code> 允許任何應用程序的checked exception在回調程式碼中拋出，而 <code class="classname">TransactionTemplate</code> 在回調中則嚴格要求被封裝成unchecked exception。
+<code class="classname">TransactionTemplate</code> 會在一個unchecked exception拋出時，或者當事務被應用程序通過 <code class="classname">TransactionStatus</code> 標記為rollback-only時觸發一個資料庫回滾操作。
+<code class="classname">TransactionInterceptor</code> 預設進行同樣的操作，但是它允許對每個方法配置自己的rollback策略。
+      </p>
+<p>下面列出的高層級別的宣告式的事務管理方案並沒有使用 <code class="classname">ProxyFactoryBean</code>，它將使那些大量的業務物件需要被納入到事務管理中時的配置變得非常簡單。
+      </p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>在你打算繼續閱讀下一部分之前，我們 <span class="emphasis"><em>強烈</em></span> 推薦你想去閱讀 <a href="ch09s05.html" title="9.5.&#160;宣告式事務管理">第&#160;9.5&#160;節 「宣告式事務管理」</a> 這一章節。</p>
+</div>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd
+       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd"&gt;
+
+  <em class="lineannotation"><span class="lineannotation">&lt;!-- <code class="interfacename">SessionFactory</code>, <code class="interfacename">DataSource</code>, etc. omitted --&gt;</span></em>
+
+  &lt;bean id="myTxManager" class="org.springframework.orm.hibernate3.HibernateTransactionManager"&gt;
+    &lt;property name="sessionFactory" ref="mySessionFactory"/&gt;
+  &lt;/bean&gt;
+  
+  &lt;aop:config&gt;
+    &lt;aop:pointcut id="productServiceMethods" expression="execution(* product.ProductService.*(..))"/&gt;
+    &lt;aop:advisor advice-ref="txAdvice" pointcut-ref="productServiceMethods"/&gt;
+  &lt;/aop:config&gt;
+
+  &lt;tx:advice id="txAdvice" transaction-manager="myTxManager"&gt;
+    &lt;tx:attributes&gt;
+      &lt;tx:method name="increasePrice*" propagation="REQUIRED"/&gt;
+      &lt;tx:method name="someOtherBusinessMethod" propagation="REQUIRES_NEW"/&gt;
+      &lt;tx:method name="*" propagation="SUPPORTS" read-only="true"/&gt;
+    &lt;/tx:attributes&gt;
+  &lt;/tx:advice&gt;
+
+  &lt;bean id="myProductService" class="product.SimpleProductService"&gt;
+    &lt;property name="productDao" ref="myProductDao"/&gt;
+  &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="orm-hibernate-tx-strategies"></a>12.2.8.&#160;事務管理策略</h3></div></div></div>
+<p><code class="classname">TransactionTemplate</code> 和 <code class="classname">TransactionInterceptor</code> 都將真正的事務處理委託給一個 <code class="classname">PlatformTransactionManager</code> 實例來處理。
+在Hibernate應用中，它可以是一個 <code class="classname">HibernateTransactionManager</code>（對於單獨一個的Hibernate <code class="interfacename">SessionFactory</code> 使用一個 <code class="classname">ThreadLocal</code> 的 <code class="interfacename">Session</code>）或一個 <code class="classname">JtaTransactionManager</code>（代理給容器的JTA子系統）。
+你甚至可以使用自定義的 <code class="classname">PlatformTransactionManager</code> 的實作。因而，在你的應用碰到了特定的分佈式事務的部署需求時（類似將原來的Hibernate事務管理轉變為JTA），僅僅需要改變配置而已：簡單將Hibernate的事務管理器替換成JTA事務實作。
+任何的事務劃分和資料存取的程式碼都無需因此而改變，因為他們僅僅使用了通用的事務管理API。</p>
+<p>對於橫跨多個Hibernate SessionFacotry的分佈式事務，只需簡單地將 <code class="classname">JtaTransactionManager</code> 同多個 <code class="classname">LocalSessionFactoryBean</code> 的定義結合起來作為事務策略。
+你的每一個DAO通過bean屬性得到各自的 <code class="interfacename">SessionFactory</code> 參考。如果所有的底層JDBC資料源都是支持事務的容器，那麼只要業務物件使用了 <code class="classname">JtaTransactionManager</code> 作為事務策略，它就可以橫跨多個DAO和多個session factories來劃分事務，而不需要做任何特殊處理。
+      </p>
+<pre class="programlisting">&lt;beans&gt;
+
+  &lt;bean id="myDataSource1" class="org.springframework.jndi.JndiObjectFactoryBean"&gt;
+    &lt;property name="jndiName value="java:comp/env/jdbc/myds1"/&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="myDataSource2" class="org.springframework.jndi.JndiObjectFactoryBean"&gt;
+    &lt;property name="jndiName" value="java:comp/env/jdbc/myds2"/&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="mySessionFactory1" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean"&gt;
+    &lt;property name="dataSource" ref="myDataSource1"/&gt;
+    &lt;property name="mappingResources"&gt;
+      &lt;list&gt;
+        &lt;value&gt;product.hbm.xml&lt;/value&gt;
+      &lt;/list&gt;
+    &lt;/property&gt;
+    &lt;property name="hibernateProperties"&gt;
+      &lt;value&gt;
+        hibernate.dialect=org.hibernate.dialect.MySQLDialect
+        hibernate.show_sql=true
+      &lt;/value&gt;
+    &lt;/property&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="mySessionFactory2" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean"&gt;
+    &lt;property name="dataSource" ref="myDataSource2"/&gt;
+    &lt;property name="mappingResources"&gt;
+      &lt;list&gt;
+        &lt;value&gt;inventory.hbm.xml&lt;/value&gt;
+      &lt;/list&gt;
+    &lt;/property&gt;
+    &lt;property name="hibernateProperties"&gt;
+      &lt;value&gt;
+        hibernate.dialect=org.hibernate.dialect.OracleDialect
+      &lt;/value&gt;
+    &lt;/property&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="myTxManager" class="org.springframework.transaction.jta.JtaTransactionManager"/&gt;
+
+  &lt;bean id="myProductDao" class="product.ProductDaoImpl"&gt;
+    &lt;property name="sessionFactory" ref="mySessionFactory1"/&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="myInventoryDao" class="product.InventoryDaoImpl"&gt;
+    &lt;property name="sessionFactory" ref="mySessionFactory2"/&gt;
+  &lt;/bean&gt;
+
+  <em class="lineannotation"><span class="lineannotation">&lt;!-- this shows the Spring 1.x style of declarative transaction configuration --&gt;</span></em>
+  <em class="lineannotation"><span class="lineannotation">&lt;!-- it is totally supported, 100% legal in Spring 2.x, but see also above for the sleeker, Spring 2.0 style --&gt;</span></em>
+  &lt;bean id="myProductService"
+      class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean"&gt;
+    &lt;property name="transactionManager" ref="myTxManager"/&gt;
+    &lt;property name="target"&gt;
+      &lt;bean class="product.ProductServiceImpl"&gt;
+        &lt;property name="productDao" ref="myProductDao"/&gt;
+        &lt;property name="inventoryDao" ref="myInventoryDao"/&gt;
+      &lt;/bean&gt;
+    &lt;/property&gt;
+    &lt;property name="transactionAttributes"&gt;
+      &lt;props&gt;
+        &lt;prop key="increasePrice*"&gt;PROPAGATION_REQUIRED&lt;/prop&gt;
+        &lt;prop key="someOtherBusinessMethod"&gt;PROPAGATION_REQUIRES_NEW&lt;/prop&gt;
+        &lt;prop key="*"&gt;PROPAGATION_SUPPORTS,readOnly&lt;/prop&gt;
+      &lt;/props&gt;
+    &lt;/property&gt;
+  &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<p><code class="classname">HibernateTransactionManager</code> 和 <code class="classname">JtaTransactionManager</code> 都允許恰當的JVM級別的Hibernate快取記憶體處理，而無需使用與容器相關的事務管理器或JCA連接器。（只要不是由EJB發起的事務）</p>
+<p>對於特定的 <code class="interfacename">DataSource</code>，<code class="classname">HibernateTransactionManager</code> 能夠為普通的JDBC存取程式碼提供Hibernate所使用的 <code class="interfacename">Connection</code>。
+		這一功能允許你可以完全混和使用Hibernate/JDBC進行資料存取而無需依賴JTA在高層次程式碼中進行事務劃分，只要你依然存取的是同一個資料庫！
+		<code class="classname">HibernateTransactionManager</code> 能夠自動地將Hibernate事務暴露為JDBC事務，如果你通過設置 <code class="interfacename">DataSource</code>來建立<code class="interfacename">SessionFactory</code> 物件（通過設置 <code class="classname">LocalSessionFactoryBean</code> 中的「dataSource」屬性）。
+		另外一種配置方法是通過設置 <code class="classname">HibernateTransactionManager</code> 的「dataSource」屬性，明確指定事務需要暴露的 <code class="interfacename">DataSource</code>。
+      </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="orm-hibernate-resources"></a>12.2.9.&#160;容器資源 vs 本地資源</h3></div></div></div>
+<p>Spring的資源管理允許你簡單地在一個JNDI的 <code class="interfacename">SessionFactory</code> 和一個本地的 <code class="interfacename">SessionFactory</code> 之間切換而無需更改任何一行應用程序程式碼。
+      	把資源定義放在容器中還是放在應用程序本地中主要是由使用的事務策略決定的。與Spring定義的本地 <code class="interfacename">SessionFactory</code> 相比，一個手工註冊的JNDI <code class="interfacename">SessionFactory</code> 並沒有體現出多大的優勢。
+	 	通過Hibernate的JCA連接器來部署一個 <code class="interfacename">SessionFactory</code> 提供了能使之參與到J2EE伺服器管理架構的增值服務，不過除此之外也並沒有增加實際的價值。
+      </p>
+<p>Spring對事務管理的支持有一個非常重要的好處：它不依賴於任何容器。使用非JTA的任何其他事務策略的配置，程序也能在獨立的測試環境下正常工作。
+		尤其對於那些典型的單資料庫事務情況下，這將是一個非常輕量級而又強大的JTA替代方案。當你使用一個本地的EJB SLSB來驅動事務時，即時你可能只存取一個資料庫而且僅僅通過CMT使用SLSB的宣告性事務，你仍然要依賴於EJB容器和JTA。
+		使用程式式JTA替換方案依然需要J2EE環境，JTA不僅對於JTA本身，還對於JNDI的 <code class="interfacename">DataSource</code> 實例引入了容器依賴。
+		對於非Spring環境的JTA驅動的Hibernate事務，你必須使用Hibernate JCA連接器或者額外的Hibernate事務程式碼及 <code class="interfacename">TransactionManagerLookup</code> 配置，來恰當地處理JVM級別的快取記憶體。
+      </p>
+<p>Spring驅動的事務管理與本地定義的 <code class="interfacename">SessionFactory</code> 能夠工作得非常好，就像使用本地的JDBC <code class="interfacename">DataSource</code> 一樣，當然前提必須是存取單個資料庫。
+		因此當你真正面對分佈式事務的需求時，可以馬上回到Spring的JTA事務。必須要注意，一個JCA連接器需要特定容器的部署步驟，而且首先容器要支持JCA。
+		這要比使用本地資源定義和Spring驅動事務來部署一個簡單的Web應用麻煩得多。而且你通常需要特定企業版本的容器，但是像類似WebLogic的Express版本並不提供JCA。
+		一個僅使用本地資源並且針對一個資料庫的事務操作的Spring應用將可以在任何一種J2EE的Web容器中工作（不需要JTA、JCA或者EJB），比如Tomcat、Resin甚至普通的Jetty。
+		除此之外，這樣的中間層可以在桌面應用或測試用例中被簡單地重用。
+	  </p>
+<p>考慮一下所有的情況：如果你不使用EJB，堅持使用本地 <code class="interfacename">SessionFactory</code> 以及Spring的 <code class="classname">HibernateTransactionManager</code> 或者 <code class="classname">JtaTransactionManager</code>，
+      	你將獲得包括適當的JVM級別上的快取記憶體以及分佈式事務在內的所有好處，而不會有任何容器部署的麻煩。通過JCA連接器的Hibernate的 <code class="interfacename">SessionFactory</code> 的JNDI註冊僅僅在EJB中使用會帶來好處。
+      </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="orm-hibernate-invalid-jdbc-access-error"></a>12.2.10.&#160;在應用伺服器中使用Hibernate的注意事項</h3></div></div></div>
+<p>在一些具有非常嚴格的 <code class="interfacename">XADataSource</code> 實作的JTA環境中（目前來說只是WebLogic和WebSphere的某些版本）當你將Hibernate配置成不感知JTA <code class="interfacename">PlatformTransactionManager</code> 物件時，容器可能會在應用伺服器日誌中報出一些警告和異常。
+		這些警告和異常通常會說：「正在被存取的連接不再有效，或者JDBC連接不再有效，可能由於事務不再處於啟動狀態」。下面是一個從WebLogic上拋出的異常：</p>
+<pre class="programlisting">java.sql.SQLException: The transaction is no longer active - status: 'Committed'.
+   No further JDBC access is allowed within this transaction.</pre>
+<p>這樣的錯誤警告很容易解決：只要簡單的把Hibernate配置成感知到JTA <code class="interfacename">PlatformTransactionManager</code> 實例的存在即可，同時將他們進行同步（與Spring同步）。可以有兩種方法達到這種效果：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>如果你已經在application context中定義並獲取了JTA <code class="interfacename">PlatformTransactionManager</code> 物件（或許來自通過 <code class="literal">JndiObjectFactoryBean</code> 得到的JNDI）並已經將它注入到類似Spring的 <code class="classname">JtaTransactionManager</code> 中，
+          	那麼最簡單的方式就是指定這個bean的參考作為 <code class="classname">LocalSessionFactoryBean</code> 的 <span class="emphasis"><em>jtaTransactionManager</em></span> 屬性。Spring將使這個物件被Hibernate所感知。
+          </p></li>
+<li><p>多數情況下，你還沒有得到JTA的 <code class="interfacename">PlatformTransactionManager</code> 實例（由於Spring的 <code class="classname">JtaTransactionManager</code> 能夠自己找到它），所以你需要自行配置Hibernate並直接尋找資源。
+			正如Hibernate文檔中提到的，這可以通過在Hibernate配置一個應用伺服器特定的 <code class="literal">TransactionManagerLookup</code> 類別來完成。
+          </p></li>
+</ul></div>
+<p>對於恰當的使用方法，你無需瞭解更多的東西。但是我們在這裡將描述一下，對於將Hibernate配置為感知或者不感知JTA的 <code class="interfacename">PlatformTransactionManager</code> 物件這兩種情況下，整個事務的執行順序。</p>
+<p>Hibernate被配置成不感知JTA <code class="interfacename">PlatformTransactionManager</code> 的情況下，當一個JTA事務提交時，整個事件的執行順序如下：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>JTA 事務提交</p></li>
+<li><p>Spring的 <code class="classname">JtaTransactionManager</code> 同步到JTA事務，它被JTA事務管理器通過調用 <span class="emphasis"><em>afterCompletion</em></span> 執行回調。</p></li>
+<li><p>在所有其他活動中，這將由Spring向Hibernate觸發一個回調，通過Hibernate的 <code class="literal">afterTransactionCompletion</code> 回調（用於清除Hibernate快取記憶體），然後緊跟著一個明確的Hibernate Session的 <code class="literal">close()</code> 調用。
+			這將使Hibernate試圖去關閉JDBC的Connection。</p></li>
+<li><p>在某些環境中，<code class="methodname">Connection.close()</code> 的調用將會觸發一個警告或者錯誤資訊。
+			這是由於特定的應用伺服器將不再考慮 <code class="interfacename">Connection</code> 的可用性，因為此時事務已經被提交了。</p></li>
+</ul></div>
+<p>在Hibernate被配置成感知JTA的 <code class="interfacename">PlatformTransactionManager</code> 的情況下，當一個JTA事務提交時，整個事件的執行順序如下：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>JTA 事務準備提交</p></li>
+<li><p>Spring的 <code class="classname">JtaTransactionManager</code> 同步到JTA事務，因而它被JTA事務管理器通過調用 <span class="emphasis"><em>beforeCompletion</em></span> 執行回調。</p></li>
+<li><p>Spring能感知到Hibernate自身被同步到JTA Transaction，因而表現得與先前那種情況有所不同。
+			假設Hibernate的 <code class="interfacename">Session</code> 需要被關閉，Spring將負責關閉它。</p></li>
+<li><p>JTA 事務提交</p></li>
+<li><p>Hibernate將與JTA transaction進行同步，因而它被JTA事務管理器通過調用 <span class="emphasis"><em>afterCompletion</em></span> 執行回調，並且適時地清除快取記憶體。</p></li>
+</ul></div>
+<p></p>
+</div>
+</div></body>
+</html>

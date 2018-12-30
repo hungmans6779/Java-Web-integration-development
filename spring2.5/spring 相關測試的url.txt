@@ -1,0 +1,39 @@
+
+
+
+  第31章 Spring 的 Web 模組
+
+Struts 1.x 的測試
+(1) 以採 Spring 提供的 ActionSupport 類別方式(不能完全使用Spring 所提供的所有功能)
+http://3w.eztravel.com.tw:8080/spring2.5/cat.do
+
+(2) 非使用 ActionSupport 類別方式(此範例可以完全使用Spring 所提供的所有功能)
+http://3w.eztravel.com.tw:8080/spring2.5/cat2.do
+ 
+ 
+Struts 2.x 的測試
+http://3w.eztravel.com.tw:8080/spring2.5/form/list.jsp
+
+
+
+
+
+ 
+ 第32章 Spring 的 MVC 模組
+http://3w.eztravel.com.tw:8080/spring2.5/cat.mvc?action=add&name=kevin1
+http://3w.eztravel.com.tw:8080/spring2.5/cat.mvc?action=list
+ 
+ 
+ 
+
+ 
+http://3w.eztravel.com.tw:8080/spring2.5/catMulti.mvc?action=add&name=kevin1
+http://3w.eztravel.com.tw:8080/spring2.5/catMulti.mvc
+ 
+ 
+
+ 
+  
+ 
+ 
+ 

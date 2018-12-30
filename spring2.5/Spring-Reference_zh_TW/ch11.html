@@ -1,0 +1,154 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>第&#160;11&#160;章&#160;使用JDBC進行資料存取</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="pt02.html" title="部分&#160;II.&#160;中間層資料存取">
+<link rel="prev" href="ch10s03.html" title="10.3.&#160;一致的DAO支持抽象類別">
+<link rel="next" href="ch11s02.html" title="11.2.&#160;利用JDBC核心類別控制JDBC的基本操作和錯誤處理">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="chapter" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title">
+<a name="jdbc"></a>第&#160;11&#160;章&#160;使用JDBC進行資料存取</h2></div></div></div>
+<div class="toc">
+<p><b>目錄</b></p>
+<dl>
+<dt><span class="section"><a href="ch11.html#jdbc-introduction">11.1. 簡介</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch11.html#jdbc-choose-style">11.1.1. 選擇一種工作模式</a></span></dt>
+<dt><span class="section"><a href="ch11.html#jdbc-packages">11.1.2. Spring JDBC包結構</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch11s02.html">11.2. 利用JDBC核心類別控制JDBC的基本操作和錯誤處理</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch11s02.html#jdbc-JdbcTemplate">11.2.1. <code class="classname">JdbcTemplate</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch11s02.html#jdbc-NamedParameterJdbcTemplate">11.2.2. <code class="classname">NamedParameterJdbcTemplate</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch11s02.html#jdbc-SimpleJdbcTemplate">11.2.3. <code class="classname">SimpleJdbcTemplate</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch11s02.html#jdbc-datasource">11.2.4. <code class="interfacename">DataSource</code>介面</a></span></dt>
+<dt><span class="section"><a href="ch11s02.html#jdbc-SQLExceptionTranslator">11.2.5. <code class="interfacename">SQLExceptionTranslator</code>介面</a></span></dt>
+<dt><span class="section"><a href="ch11s02.html#jdbc-statements-executing">11.2.6. 執行SQL語句</a></span></dt>
+<dt><span class="section"><a href="ch11s02.html#jdbc-statements-querying">11.2.7. 執行查詢</a></span></dt>
+<dt><span class="section"><a href="ch11s02.html#jdbc-updates">11.2.8. 更新資料庫</a></span></dt>
+<dt><span class="section"><a href="ch11s02.html#jdbc-auto-genereted-keys">11.2.9. 獲取自動產生的主鍵</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch11s03.html">11.3. 控制資料庫連接</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch11s03.html#jdbc-DataSourceUtils">11.3.1. <code class="classname">DataSourceUtils</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch11s03.html#jdbc-SmartDataSource">11.3.2. <code class="interfacename">SmartDataSource</code>介面</a></span></dt>
+<dt><span class="section"><a href="ch11s03.html#jdbc-AbstractDataSource">11.3.3. <code class="classname">AbstractDataSource</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch11s03.html#jdbc-SingleConnectionDataSource">11.3.4. <code class="classname">SingleConnectionDataSource</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch11s03.html#jdbc-DriverManagerDataSource">11.3.5. <code class="classname">DriverManagerDataSource</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch11s03.html#jdbc-TransactionAwareDataSourceProxy">11.3.6. <code class="classname">TransactionAwareDataSourceProxy</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch11s03.html#jdbc-DataSourceTransactionManager">11.3.7. <code class="classname">DataSourceTransactionManager</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch11s03.html#jdbc-NativeJdbcExtractor">11.3.8. NativeJdbcExtractor</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch11s04.html">11.4. JDBC批量操作</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch11s04.html#jdbc-advanced-classic">11.4.1. 使用JdbcTemplate進行批量操作</a></span></dt>
+<dt><span class="section"><a href="ch11s04.html#jdbc-advanced-simple">11.4.2. 使用SimpleJdbcTemplate進行批量操作</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch11s05.html">11.5. 通過使用SimpleJdbc類別簡化JDBC操作</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch11s05.html#jdbc-simple-jdbc-insert-1">11.5.1. 使用SimpleJdbcInsert插入資料</a></span></dt>
+<dt><span class="section"><a href="ch11s05.html#jdbc-simple-jdbc-insert-2">11.5.2. 使用SimpleJdbcInsert來獲取自動產生的主鍵</a></span></dt>
+<dt><span class="section"><a href="ch11s05.html#jdbc-simple-jdbc-insert-3">11.5.3. 指定SimpleJdbcInsert所使用的欄位</a></span></dt>
+<dt><span class="section"><a href="ch11s05.html#jdbc-simple-jdbc-parameters">11.5.4. 使用SqlParameterSource提供參數值</a></span></dt>
+<dt><span class="section"><a href="ch11s05.html#jdbc-simple-jdbc-call-1">11.5.5. 使用SimpleJdbcCall調用預儲程序</a></span></dt>
+<dt><span class="section"><a href="ch11s05.html#jdbc-simple-jdbc-call-2">11.5.6. 宣告SimpleJdbcCall使用的參數</a></span></dt>
+<dt><span class="section"><a href="ch11s05.html#jdbc-params">11.5.7. 如何定義SqlParameters</a></span></dt>
+<dt><span class="section"><a href="ch11s05.html#jdbc-simple-jdbc-call-3">11.5.8. 使用SimpleJdbcCall調用內置函數</a></span></dt>
+<dt><span class="section"><a href="ch11s05.html#jdbc-simple-jdbc-call-4">11.5.9. 使用SimpleJdbcCall返回的ResultSet/REF Cursor</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch11s06.html">11.6. 用Java物件來表達JDBC操作</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch11s06.html#jdbc-SqlQuery">11.6.1. <code class="classname">SqlQuery</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch11s06.html#jdbc-MappingSqlQuery">11.6.2. <code class="classname">MappingSqlQuery</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch11s06.html#jdbc-SqlUpdate">11.6.3. <code class="classname">SqlUpdate</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch11s06.html#jdbc-StoredProcedure">11.6.4. <code class="classname">StoredProcedure</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch11s06.html#jdbc-SqlFunction">11.6.5. <code class="classname">SqlFunction</code>類別</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch11s07.html">11.7. 參數和資料處理的基本原則</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch11s07.html#jdbc-type-information">11.7.1. 為參數設置SQL型別資訊</a></span></dt>
+<dt><span class="section"><a href="ch11s07.html#jdbc-lob">11.7.2. 處理BLOB 和 CLOB物件</a></span></dt>
+<dt><span class="section"><a href="ch11s07.html#jdbc-in-clause">11.7.3. 在IN語句中傳入一組參數值</a></span></dt>
+<dt><span class="section"><a href="ch11s07.html#jdbc-complex-types">11.7.4. 處理複雜型別的預儲程序調用</a></span></dt>
+</dl></dd>
+</dl>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="jdbc-introduction"></a>11.1.&#160;簡介</h2></div></div></div>
+<p>
+			Spring JDBC抽象框架所帶來的價值將在以下幾個方面得以體現：（註：使用了Spring JDBC抽象框架之後，應用開發人員只需要完成斜體字部分的編碼工作。）
+		</p>
+<div class="orderedlist"><ol type="1">
+<li><p>定義資料庫連接參數</p></li>
+<li><p>打開資料庫連接</p></li>
+<li><p><span class="emphasis"><em>宣告SQL語句</em></span></p></li>
+<li><p>預先編譯並執行SQL語句</p></li>
+<li><p>遍歷查詢結果（如果需要的話）</p></li>
+<li><p><span class="emphasis"><em>處理每一次遍歷操作</em></span></p></li>
+<li><p>處理拋出的任何異常</p></li>
+<li><p>處理事務</p></li>
+<li><p>關閉資料庫連接</p></li>
+</ol></div>
+<p>
+			Spring將替我們完成所有使用JDBC API進行開發的單調乏味的、底層細節處理工作。
+		</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jdbc-choose-style"></a>11.1.1.&#160;選擇一種工作模式</h3></div></div></div>
+<p>
+      	使用Spring進行基本的JDBC存取資料庫有多種選擇。Spring至少提供了三種不同的工作模式：JdbcTemplate, 一個在Spring2.5中新提供的SimpleJdbc類別能夠更好的處理資料庫元資料; 還有一種稱之為RDBMS Object的樣式的物件導向封裝方式, 有點類似於JDO的查詢設計。
+      	我們在這裡簡要列舉你採取某一種工作方式的主要理由. 不過請注意, 即使你選擇了其中的一種工作模式, 你依然可以在你的程式碼中混用其他任何一種模式以獲取其帶來的好處和優勢。
+      	所有的工作模式都必須要求JDBC 2.0以上的資料庫驅動的支持, 其中一些高層級的功能可能需要JDBC 3.0以上的資料庫驅動支持。
+      </p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>
+          	<span class="bold"><strong>JdbcTemplate</strong></span> - 這是經典的也是最常用的Spring對於JDBC存取的方案。這也是最低層級別的封裝, 其他的工作模式事實上在底層使用了JdbcTemplate作為其底層的實作基礎。JdbcTemplate在JDK 1.4以上的環境上工作得很好。
+          </p></li>
+<li><p>
+           		<span class="bold"><strong>NamedParameterJdbcTemplate</strong></span> - 對JdbcTemplate做了封裝，提供了更加便捷的基於命名參數的使用方式而不是傳統的JDBC所使用的「?」作為參數的佔位符。這種方式在你需要為某個SQL指定許多個參數時，顯得更加直觀而易用。該特性必須工作在JDK 1.4以上。
+           </p></li>
+<li><p>
+          		<span class="bold"><strong>SimpleJdbcTemplate</strong></span> - 這個類別結合了JdbcTemplate和NamedParameterJdbcTemplate的最常用的功能，同時它也利用了一些Java 5的特性所帶來的優勢，例如泛型、varargs和autoboxing等，從而提供了更加簡便的API存取方式。需要工作在Java 5以上的環境中。
+          </p></li>
+<li><p>
+          		<span class="bold"><strong>SimpleJdbcInsert 和 SimpleJdbcCall</strong></span> - 這兩個類別可以充分利用資料庫元資料的特性來簡化配置。通過使用這兩個類別進行程式，你可以僅僅提供資料庫表名或者預儲程序的名稱以及一個Map作為參數。其中Map的key需要與資料庫表中的欄位保持一致。這兩個類別通常和SimpleJdbcTemplate配合使用。這兩個類別需要工作在JDK 5以上，同時資料庫需要提供足夠的元資料資訊。
+          </p></li>
+<li><p>
+          	<span class="bold"><strong>RDBMS 物件包括MappingSqlQuery, SqlUpdate and StoredProcedure</strong></span> - 這種方式允許你在初始化你的資料存取層時創建可重用並且執行緒安全的物件。該物件在你定義了你的查詢語句，宣告查詢參數並編譯相應的Query之後被模型化。一旦模型化完成，任何執行函數就可以傳入不同的參數對之進行多次調用。這種方式需要工作在JDK 1.4以上。
+          </p></li>
+</ul></div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jdbc-packages"></a>11.1.2.&#160;Spring JDBC包結構</h3></div></div></div>
+<p>
+			Spring Framework的JDBC抽象框架由四個包構成：<code class="literal">core</code>、 <code class="literal">dataSource</code>、<code class="literal">object</code>以及<code class="literal">support</code>。
+	  </p>
+<p>
+			<code class="literal">org.springframework.jdbc.core</code>包由<code class="classname">JdbcTemplate</code>類別以及相關的回調介面（callback interface）和類別組成。
+			<code class="literal">org.springframework.jdbc.core.simple</code> 子包則包含了
+ <code class="classname">SimpleJdbcTemplate</code> 類別以及相關的<code class="classname">SimpleJdbcInsert</code> 類別和<code class="classname">SimpleJdbcCall</code> 類別。
+			<code class="literal">org.springframework.jdbc.core.namedparam</code> 子包則包含了<code class="classname">NamedParameterJdbcTemplate</code>	類別以及其相關的支持類別。
+	  </p>
+<p>
+		<code class="literal">org.springframework.jdbc.datasource</code>包提供了一些工具類別來簡化對<code class="interfacename">DataSource</code>的存取。同時提供了多種簡單的<code class="interfacename">DataSource</code>實作。這些實作可以脫離J2EE容器進行獨立測試和運行。
+      這些工具類別提供了一些靜態方法，允許你通過JNDI來獲取資料庫連接和關閉連接。同時支持綁定到當前執行緒的資料庫連接。例如使用<code class="classname">DataSourceTransactionManager</code>。
+      </p>
+<p>
+	  	接著<code class="literal">org.springframework.jdbc.object</code>包包含了一些類別，用於將RDBMS查詢、更新以及預儲程序表述為一些可重用的、執行緒安全的物件。這種方式通過JDO進行模型化，不過這些通過查詢返回的物件是與資料庫脫離的物件。 這種對於JDBC的高層次的封裝是基於<code class="literal">org.springframework.jdbc.core</code>包對JDBC的低層次封裝之上的。
+	  </p>
+<p>
+		最後，<code class="literal">org.springframework.jdbc.support</code>包定義了<code class="classname">SQLException</code>轉化類別以及一些其他的工具類別。
+		</p>
+<p>
+      在JDBC調用過程中所拋出的異常都會被轉化為在<code class="literal">org.springframework.dao</code>包中定義的異常。也就是說，凡是使用Spring的JDBC封裝層的程式碼無需實作任何JDBC或者RDBMS相關的異常處理。所有的這些被轉化的異常都是unchecked異常，因而也給了你一種額外的選擇，你可以抓住這些異常，從而轉化成其他型別的異常被允許調用者傳播。
+      </p>
+</div>
+</div>
+</div></body>
+</html>

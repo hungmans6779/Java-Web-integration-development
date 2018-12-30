@@ -1,0 +1,209 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>11.7.&#160;參數和資料處理的基本原則</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch11.html" title="第&#160;11&#160;章&#160;使用JDBC進行資料存取">
+<link rel="prev" href="ch11s06.html" title="11.6.&#160;用Java物件來表達JDBC操作">
+<link rel="next" href="ch12.html" title="第&#160;12&#160;章&#160;使用ORM工具進行資料存取">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="jdbc-parameter-handling"></a>11.7.&#160;參數和資料處理的基本原則</h2></div></div></div>
+<p>在Spring的JDBC框架的所有工作模式中貫徹了一些與參數和資料處理相關的基本原則。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jdbc-type-information"></a>11.7.1.&#160;為參數設置SQL型別資訊</h3></div></div></div>
+<p>多數情況下，Spring會根據傳入的參數值來設定相應的SQL型別。有時，我們有必要明確指定傳入參數所代表的SQL型別，這一點對於正確設置NULL值的時候可能比較有用。</p>
+<p>另外還有一些其他的不同方面的作用:</p>
+<div class="itemizedlist"><ul type="disc"><li><p>多數<code class="classname">JdbcTemplate</code>的update或者query方法會接收一個額外的int陣列構成的參數。
+          這個陣列需要提供的是使用<code class="classname">java.sql.Types</code>中所定義的SQL型別。而這個陣列中定義的型別需要與每個傳入的參數所對應。
+          </p></li></ul></div>
+<div class="itemizedlist"><ul type="disc"><li><p>你可以使用<code class="classname">SqlParameterValue</code>對參數進行額外的封裝從而包裹更多的參數資訊。通過傳入參數值和對應的SQL型別作為建構函數的參數，你可以創建這個類別的一個實例。
+          你也可以為numeric的值提供一些額外的精度要求。
+          </p></li></ul></div>
+<div class="itemizedlist"><ul type="disc"><li><p>對於那些使用命名參數的情況，你可以使用<code class="classname">SqlParameterSource</code>、<code class="classname">BeanPropertySqlParameterSource</code>或者<code class="classname">MapSqlParameterSource</code>類別。
+         他們都具備了為命名參數註冊SQL型別的功能。
+         </p></li></ul></div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jdbc-lob"></a>11.7.2.&#160;處理BLOB 和 CLOB物件</h3></div></div></div>
+<p>你可以在資料庫中存儲圖像、二進制物件或者大文本等物件。這些較大的二進制物件被稱之為BLOB型別，而對應的大文本物件被稱之為CLOB物件。
+			Spring允許你使用JdbcTemplate、更高層次封裝的RDBMS物件和SimpleJdbc類別對這些大物件進行操作。 所有的這些操作方式都實作了<code class="classname">LobHandler</code>介面來處理LOB型別的資料。
+			<code class="classname">LobHandler</code>介面提供了存取<code class="classname">LobCreator</code>的方法，通過調用<code class="classname">getLobCreator</code>，你可以創建一個新的LOB型別的資料。
+		</p>
+<p><code class="classname">LobCreator/LobHandler</code>介面針對LOB型別的資料操作提供了下列支持：</p>
+<p>
+      </p>
+<div class="itemizedlist"><ul type="disc"><li>
+<p>BLOB</p>
+<div class="itemizedlist"><ul type="circle">
+<li>
+<p>byte[] – getBlobAsBytes and setBlobAsBytes</p>
+<p>byte[] – getBlobAsBytes 和 setBlobAsBytes</p>
+</li>
+<li>
+<p>InputStream – getBlobAsBinaryStream and
+                setBlobAsBinaryStream</p>
+<p>InputStream – getBlobAsBinaryStream和setBlobAsBinaryStream</p>
+</li>
+</ul></div>
+</li></ul></div>
+<div class="itemizedlist"><ul type="disc"><li>
+<p>CLOB</p>
+<div class="itemizedlist"><ul type="circle">
+<li>
+<p>String – getClobAsString and setClobAsString</p>
+<p>String – getClobAsString和setClobAsString</p>
+</li>
+<li>
+<p>InputStream – getClobAsAsciiStream and
+                setClobAsAsciiStream</p>
+<p>InputStream – getClobAsAsciiStream和setClobAsAsciiStream</p>
+</li>
+<li>
+<p>Reader – getClobAsCharacterStream and
+                setClobAsCharacterStream</p>
+<p>Reader – getClobAsCharacterStream和setClobAsCharacterStream</p>
+</li>
+</ul></div>
+</li></ul></div>
+<p>
+        </p>
+<p>現在我們通過一個範例來展示如何創建一個BLOB資料並插入資料庫。稍後的例子，我們將展示如何從資料庫中將BLOB資料讀取出來。</p>
+<p>這個例子使用JdbcTemplate和一個AbstractLobCreatingPreparedStatementCallback的實作類別。
+			這裡唯一需要實作的方法就是"setValues"。在這個方法中，將提供一個LobCreator介面，被用作在你的插入語句中設置LOB欄位的值。
+		</p>
+<p>我們假設有一個變數叫做「lobHandler」已經被設置到<code class="classname">DefaultLobHandler</code>的實例中。當然，這是由注入完成的。
+		</p>
+<div class="programlistingco">
+<pre class="programlisting">final File blobIn = new File("spring2004.jpg");
+final InputStream blobIs = new FileInputStream(blobIn);
+final File clobIn = new File("large.txt");
+final InputStream clobIs = new FileInputStream(clobIn);
+final InputStreamReader clobReader = new InputStreamReader(clobIs);
+jdbcTemplate.execute(
+  "INSERT INTO lob_table (id, a_clob, a_blob) VALUES (?, ?, ?)",
+  new AbstractLobCreatingPreparedStatementCallback(lobhandler) {
+      protected void setValues(PreparedStatement ps, LobCreator lobCreator) 
+          throws SQLException {
+        ps.setLong(1, 1L);
+        lobCreator.setClobAsCharacterStream(ps, 2, clobReader, (int)clobIn.length());
+        lobCreator.setBlobAsBinaryStream(ps, 3, blobIs, (int)blobIn.length());
+      }
+  }
+);
+blobIs.close();
+clobReader.close();</pre>
+<div class="calloutlist"><table border="0" summary="Callout list">
+<tr>
+<td width="5%" valign="top" align="left"><img src="images/callouts/1.png" alt="1" border="0"></td>
+<td valign="top" align="left"><p>我們在這裡使用的lobHandler實作類別是一個普通的<code class="classname">DefaultLobHandler</code></p></td>
+</tr>
+<tr>
+<td width="5%" valign="top" align="left"><img src="images/callouts/2.png" alt="2" border="0"></td>
+<td valign="top" align="left"><p>使用<code class="classname">setClobAsCharacterStream</code>，我們傳入CLOB的內容</p></td>
+</tr>
+<tr>
+<td width="5%" valign="top" align="left"><img src="images/callouts/3.png" alt="3" border="0"></td>
+<td valign="top" align="left"><p>使用<code class="classname">setBlobAsBinartStream</code>，我們傳入BLOB的內容</p></td>
+</tr>
+</table></div>
+</div>
+<p>現在我們來示範從資料庫中讀取LOB資料。我們這裡再次使用JdbcTempate並使用相同的<code class="classname">DefaultLobHandler</code>實例。
+		</p>
+<div class="programlistingco">
+<pre class="programlisting">List l = jdbcTemplate.query("select id, a_clob, a_blob from lob_table",
+    new RowMapper() {
+      public Object mapRow(ResultSet rs, int i) throws SQLException {
+        Map results = new HashMap();
+        String clobText = lobHandler.getClobAsString(rs, "a_clob");
+        results.put("CLOB", clobText);
+        byte[] blobBytes = lobHandler.getBlobAsBytes(rs, "a_blob");
+        results.put("BLOB", blobBytes);
+        return results;
+      }
+    });
+</pre>
+<div class="calloutlist"><table border="0" summary="Callout list">
+<tr>
+<td width="5%" valign="top" align="left"><img src="images/callouts/2.png" alt="2" border="0"></td>
+<td valign="top" align="left"><p>使用<code class="classname">getClobAsString </code>獲取CLOB內容</p></td>
+</tr>
+<tr>
+<td width="5%" valign="top" align="left"><img src="images/callouts/3.png" alt="3" border="0"></td>
+<td valign="top" align="left"><p>使用<code class="classname">getBlobAsBytes</code>獲取BLOB內容</p></td>
+</tr>
+</table></div>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jdbc-in-clause"></a>11.7.3.&#160;在IN語句中傳入一組參數值</h3></div></div></div>
+<p>SQL標準允許基於一個帶參數列表的表達式進行查詢。一個典型的例子可能像這樣："select * from T_ACTOR where id in (1, 2, 3)"。
+			不過這種參數列表的方式並不能直接被JDBC標準所支持 - 因為並不存在這種宣告一個列表參數作為佔位符的方式。
+			你不得不為此寫多個佔位符來表示多個參數，或者當你知道佔位符的數量時，你可以動態建構SQL字元串。
+      <code class="classname">NamedParameterJdbcTemplate</code>和<code class="classname">SimpleJdbcTemplate</code>中所提供的命名參數的特性，採用的是後面一種做法。
+      當你傳入參數時，你需要傳入一個<code class="classname">java.util.List</code>型別，支持基本型別。而這個list將會在SQL執行時替換佔位符並傳入參數。
+      </p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>在使用IN語句時，當你傳入大批量的值時要小心，JDBC標準並不確保超過100個元素在IN語句中。
+        有不少資料庫可以超出這個值的限制，但是不同的資料庫會有不同的數量限制，比如Oracle的限制數量是1000個。
+        </p>
+</div>
+<p>除了基本型別之外，你還可以創建一個<code class="classname">java.util.List</code>的物件陣列，這可以讓你支持在IN表達式中編寫多重表達式，例如"select * from T_ACTOR where (id, last_name) in ((1,
+      'Johnson'), (2, 'Harrop'))". 當然，這樣做的前提是資料庫底層的語法支持。
+      </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jdbc-complex-types"></a>11.7.4.&#160;處理複雜型別的預儲程序調用</h3></div></div></div>
+<p>當調用預儲程序時，有時需要使用資料庫特定的複雜型別。為了適應這些型別，Spring提供了<code class="classname">SqlReturnType</code>類別來處理預儲程序的返回值，而使用<code class="classname">SqlTypeValue</code>來處理傳入的參數。
+		</p>
+<p>下面這個例子，將Oracle的STRUCT物件作為返回值，這是一個由使用者自定義的「ITEM_TYPE」。
+		<code class="classname">SqlReturnType</code>介面有唯一的方法「<code class="classname">getTypeValue</code>」需要被實作。而這個介面的實作將被用作<code class="classname">SqlOutParameter</code>宣告的一部分。
+		</p>
+<p>
+      </p>
+<pre class="programlisting">declareParameter(new SqlOutParameter("item", OracleTypes.STRUCT, "ITEM_TYPE",
+    new SqlReturnType() {
+      public Object getTypeValue(CallableStatement cs, int colIndx, int sqlType, String typeName) 
+          throws SQLException {
+        STRUCT struct = (STRUCT)cs.getObject(colIndx);
+        Object[] attr = struct.getAttributes();
+        TestItem item = new TestItem();
+        item.setId(((Number) attr[0]).longValue());
+        item.setDescription((String)attr[1]);
+        item.setExpirationDate((java.util.Date)attr[2]);
+        return item;
+      }
+    }));</pre>
+<p>
+			通過Java程式碼調用預儲程序使用<code class="classname">SqlTypeValue</code>來傳入一個<code class="classname">TestItem</code>作為參數。
+			<code class="classname">SqlTypeValue</code>介面有一個方法"<code class="classname">createTypeValue</code>"需要被實作。
+			一個活動的資料庫連接也同時被傳入，它將被用作創建資料庫特定的物件，類似<code class="classname">StructDescriptor</code>和<code class="classname">ArrayDescriptor</code> 
+			</p>
+<p>
+      </p>
+<pre class="programlisting">SqlTypeValue value = new AbstractSqlTypeValue() {
+  protected Object createTypeValue(Connection conn, int sqlType, String typeName) throws SQLException {
+    StructDescriptor itemDescriptor = new StructDescriptor(typeName, conn);
+    Struct item = new STRUCT(itemDescriptor, conn,
+        new Object[] {
+            testItem.getId(),
+            testItem.getDescription(),
+            new java.sql.Date(testItem.getExpirationDate().getTime())
+        });
+    return item;
+  }
+};</pre>
+<p>
+		這裡的<code class="classname">SqlTypeValue</code> 現在可以被加入到作為參數的Map中去，從而可以執行相應的預儲程序。
+	</p>
+</div>
+</div></body>
+</html>

@@ -1,0 +1,93 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>18.2.&#160;存取EJB</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch18.html" title="第&#160;18&#160;章&#160;Enterprise Java Beans (EJB) 整合">
+<link rel="prev" href="ch18.html" title="第&#160;18&#160;章&#160;Enterprise Java Beans (EJB) 整合">
+<link rel="next" href="ch18s03.html" title="18.3.&#160;使用Spring提供的輔助類別實作EJB元件">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="ejb-access"></a>18.2.&#160;存取EJB</h2></div></div></div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="ejb-access-concepts"></a>18.2.1.&#160;概念</h3></div></div></div>
+<p>要調用一個本地或者遠端無狀態session bean上的方法，客戶端程式碼必須進行JNDI尋找，以獲取(本地或遠端的)EJB Home物件，然後調用該物件的"create"方法，才能得到實際的(本地或遠端的)EJB物件。然後才能調用一個或者多個EJB元件的方法。</p>
+<p>為了避免重複的底層程式碼，很多EJB應用使用了服務定位器(Service Locator)和業務委託(Bussiness Delegate)模式，這樣比在客戶端程式碼中到處都進行JNDI尋找要好些，不過它們的常見實作都有嚴重的缺陷。例如：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>通常如果程式碼通過服務定位器或業務代理單件來使用EJB，則很難對其進行測試。</p></li>
+<li><p>如果只使用了服務定位器模式而不使用業務委託模式，應用程序程式碼仍然需要調用EJB Home元件的create方法，並且要處理由此產生的異常。這樣程式碼依然存在和EJB API的耦合併感染了EJB程式模型的複雜性。</p></li>
+<li><p>實作業務委託模式通常會導致大量的重複程式碼，因為對於EJB元件的同一個方法，我們不得不編寫很多方法去調用它。</p></li>
+</ul></div>
+<p>Spring的解決方式是允許使用者創建並使用程式碼量很少的業務委託代理物件，通常在Spring的容器裡配置。而不再需要編寫額外的服務定位器或JNDI尋找的程式碼，以及編碼的業務委託物件裡面的冗余方法，除非它們可以帶來實質性的好處。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="ejb-access-local"></a>18.2.2.&#160;存取本地的無狀態Session Bean(SLSB)</h3></div></div></div>
+<p>假設web控制器需要使用本地EJB元件。我們將遵循最佳實踐經驗，使用EJB的業務方法介面(Business Methods Interface)模式，這樣，這個EJB元件的本地介面將繼承一個不受EJB規範約束的業務方法介面。讓我們把這個業務方法介面稱為MyComponent。</p>
+<pre class="programlisting">public interface MyComponent {
+    ...
+}</pre>
+<p>使用業務方法介面模式的一個主要原因是為了保證本地介面和bean的實作類別之間的方法簽章自動同步。另外一個原因是它使得我們更容易改用基於POJO(簡單Java物件)的服務實作方式，只要這樣的改變是有意義的。當然，我們也需要實作本地Home介面，並提供一個Bean實作類別，用它來實作介面<code class="classname">SessionBean</code>和業務方法介面<code class="classname">MyComponent</code>。現在為了把Web層的控制器和EJB的實作連接起來，我們唯一要寫的Java程式碼就是在控制器上發佈一個型別為<code class="classname">MyComponent</code>的setter方法。這樣就可以把這個參考保存在控制器的一個實例變數中。</p>
+<pre class="programlisting">private MyComponent myComponent;
+
+public void setMyComponent(MyComponent myComponent) {
+    this.myComponent = myComponent;
+}</pre>
+<p>然後我們可以在控制器的任意業務方法裡面使用這個實例變數。假設我們現在從Spring容器獲得該控制器物件，我們就可以(在同一個上下文中)配置一個<code class="literal">LocalStatelessSessionProxyFactoryBean</code>的實例，作為EJB元件的代理物件。這個代理物件的配置，以及控制器屬性<code class="literal">myComponent</code>的設置是使用一個配置項完成的，如下所示：</p>
+<pre class="programlisting">&lt;bean id="myComponent"
+      class="org.springframework.ejb.access.LocalStatelessSessionProxyFactoryBean"&gt;
+  &lt;property name="jndiName" value="myJndiComponent"/&gt;
+  &lt;property name="businessInterface" value="com.mycom.MyComponent"/&gt;
+&lt;/bean&gt;
+
+&lt;bean id="myController" class="com.mycom.myController"&gt;
+  &lt;property name="myComponent" ref="myComponent"/&gt;
+&lt;/bean&gt;</pre>
+<p>這些看似簡單的程式碼背後有很多複雜的處理，受益於Spring的AOP框架，你甚至不必知道AOP概念，就可以享用它的成果。Bean <code class="literal">myComponent</code>的定義創建了一個EJB元件的代理物件，它實作了業務方法介面。這個EJB元件的本地Home物件在啟動的時候就被放到了快取記憶體中，所以只需要執行一次JNDI尋找。每當EJB元件被調用的時候，這個代理對象就調用本地EJB元件的<code class="literal">classname</code>方法，並調用EJB元件上相應的業務方法。</p>
+<p>
+				The <code class="literal">myController</code> bean definition sets the
+				<code class="literal">myComponent</code> property of the controller class to the
+				EJB proxy.
+			</p>
+<p>在Bean <code class="literal">myController</code>的定義中，控制器類別的屬性<code class="literal">myComponent</code>的值被設置為上述的EJB代理物件。</p>
+<p>
+      	另一種選擇（在這樣的代理定義很多時，更可取）是使用在Spring的"jee"命名空間下的<code class="literal">local-slsb</code>配置元素
+      </p>
+<pre class="programlisting">&lt;jee:local-slsb id="myComponent" jndi-name="myJndiComponent"
+      business-interface="com.mycom.MyComponent"/&gt;
+
+&lt;bean id="myController" class="com.mycom.myController"&gt;
+  &lt;property name="myComponent" ref="myComponent"/&gt;
+&lt;/bean&gt;</pre>
+<p>這種EJB元件存取機制大大簡化了應用程序程式碼：Web層(或其他EJB客戶端)的程式碼不再依賴於EJB元件的使用。如果我們想把這個EJB的參考替換為一個POJO，或者是模擬物件或其他測試樁架，我們只需要簡單地修改Bean <code class="literal">myComponent</code>的定義而不需修改任何Java程式碼，此外，我們也不必再在應用程序中編寫任何JNDI尋找或其它EJB相關的程式碼。</p>
+<p>在實際應用中的評測和經驗表明，這種方法（使用反射來調用目標EJB元件）的性能開銷很小，一般使用中幾乎覺察不出。雖然如此，仍請牢記不要調用細粒度EJB元件，因為應用伺服器中EJB的基礎框架畢竟會帶來性能損失。</p>
+<p>關於JNDI尋找有一點需要特別注意。在Bean容器中，這個類別通常最好用作單件(沒理由使之成為原型)。不過，如果這個Bean容器會預先實例化單件(XML <code class="classname">ApplicationContext</code>的幾種變體就會這樣)，並且它在EJB容器載入目標EJB前被載入，我們就會遇到問題。因為JNDI尋找會在該類別的init方法中被執行然後快取記憶體結果，但是此時EJB還沒有被綁定到目標位置。解決方案是不要預先實例化這個處理器物件，而讓它在第一次被用到的時候再創建。在XML容器中，這是通過屬性<code class="literal">lazy-init</code>來控制的。</p>
+<p>儘管大部分Spring的使用者不會對這些感興趣，但那些對EJB進行AOP程式工作的使用者需要看<code class="classname">LocalSlsbInvokerInterceptor</code>。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="ejb-access-remote"></a>18.2.3.&#160;存取遠端SLSB</h3></div></div></div>
+<p>基本上存取遠端EJB與存取本地EJB差別不大，只是前者使用的是<code class="classname">SimpleRemoteStatelessSessionProxyFactoryBean</code>或者<code class="literal">jee:remote-slsb</code>。當然，無論是否使用Spring，遠端調用的語義都相同；對於使用場景和錯誤處理來說，調用另一台計算機上的虛擬機器中物件的方法和本地調用會有所不同。</p>
+<p>相比不使用Spring方式的EJB客戶端相比，Spring的EJB客戶端有多個好處。通常如果要想能隨意的在本地和遠端EJB調用之間切換EJB客戶端程式碼，是會產生問題的。這是因為遠端介面的方法需要宣告他們拋出的<code class="classname">RemoteException</code>方法
+，然後客戶端程式碼必須處理這種異常，但是本地介面的方法卻不需要這樣。如果要把針對本地EJB的程式碼改為存取遠端EJB，就需要修改客戶端程式碼，增加處理遠端異常的程式碼，反之要麼保留這些用不上的遠端異常處理程式碼要麼就需要進行修改以去除這些異常處理程式碼。使用Spring的遠端EJB代理，我們就不再需要在業務方法介面和EJB的實作程式碼中宣告要拋出的<code class="classname">RemoteException</code>，而是定義一個相似的遠端介面，唯一不同就是它拋出的是<code class="classname">RemoteException</code>， 然後交給代理物件去動態的協調這兩個介面。也就是說，客戶端程式碼不再需要與
+<code class="classname">RemoteException</code>這個checked exception打交道，實際上在EJB調用中被拋出的<code class="classname">RemoteException</code>都將被以unchecked exception <code class="classname">RemoteAccessException</code>的方式重新拋出，它是<code class="classname">RuntimeException</code>的一個子類別。這樣目標服務就可以在本地EJB或遠端EJB(甚至POJO)之間隨意地切換，客戶端不需要關心甚至根本不會覺察到這種切換。當然，這些都是可選的，沒有什麼阻止你在你的業務介面中宣告<code class="classname">RemoteExceptions</code>異常。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="ejb-access-ejb2-ejb3"></a>18.2.4.&#160;Accessing EJB 2.x SLSBs versus EJB 3 SLSBs</h3></div></div></div>
+<p>
+         通過Spring可以透明的存取EJB2.X和EJB3的 Session bean。Spring的EJB存取器包含<code class="literal">jee:local-slsb</code>和<code class="literal">jee:remote-slsb</code>，可在運行時無縫連接實際元件。
+         如果是EJB 2.x形式的，這些存取器會調用home介面，如果是EJB3形式的並且沒有可用的home介面，就會直接調用元件。
+      </p>
+<p>
+        注意:即使是EJB3 session bean，你也完全可以使用<code class="classname">JndiObjectFactoryBean</code> / <code class="literal">jee:jndi-lookup</code>
+        因為很多可用的元件參考很多是暴露為JNDI尋找的。顯式的定義<code class="literal">jee:local-slsb</code>
+        / <code class="literal">jee:remote-slsb</code>尋找提供了一致性和更清楚的EJB存取配置。
+      </p>
+</div>
+</div></body>
+</html>

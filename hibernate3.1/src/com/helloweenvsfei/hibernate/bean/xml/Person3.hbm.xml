@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<!-- 類別所在的包名 -->    
+<hibernate-mapping package="com.helloweenvsfei.hibernate.bean.xml" >
+ 
+  <!-- 設定類別名與表名 --> 
+  <class name="com.helloweenvsfei.hibernate.bean.Person3" table="tb_person3" >
+    
+    
+    <!-- 主鍵屬性與列  -->
+    <!-- 
+        @Id                                             // 宣告主鍵
+        @GeneratedValue(strategy=GenerationType.AUTO)   // 宣告主鍵產生規則
+        private Integer id;
+    -->
+    <id name="id" column="id" >
+      <generator class="native" />
+    </id>
+   
+   
+    <!-- name 屬性 -->
+    <!-- 
+        private String name;
+    -->
+    <property name="name" />
+   
+   
+    <!-- 
+        bag 標籤設定List 類型屬性，cascade 設定串聯方式，lazy 設定載入方式，用 order-by 為查處的 email 按列排序。
+                     除此之外，還可以用where 設定載入 email 時的附屬條件(本例設定為只載入所有所含 '@' 的 email)。<key>指定外鍵列。  
+    -->
+    <bag name="emails" cascade="all" lazy="false" where="email like '%@%'" order-by="email" >
+      <key column="person_id" />                         <!-- 尋找依據  -->
+      <element type="string" column="email" ></element>  <!-- 字串 Email -->
+    </bag>
+   
+   
+  </class>
+ 
+</hibernate-mapping>              

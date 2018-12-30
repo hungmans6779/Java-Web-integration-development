@@ -1,0 +1,60 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>2.5.&#160;Web層</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch02.html" title="第&#160;2&#160;章&#160;Spring 2.0和 2.5的新特性">
+<link rel="prev" href="ch02s04.html" title="2.4.&#160;中間層">
+<link rel="next" href="ch02s06.html" title="2.6.&#160;其他">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="new-in-2-web"></a>2.5.&#160;Web層</h2></div></div></div>
+<p>在Spring 2.0里，web層支持得到了 <span class="emphasis"><em>充分地</em></span> 改進和擴展，在Spring 2.5中引入了基於註釋的controller。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="new-in-2-web-convention"></a>2.5.1.&#160;Spring MVC合理的預設值</h3></div></div></div>
+<p>對於很多項目而言，遵守建立好的規範，使用合理的預設值，是項目所必須的...
+			現在在SpringMVC裡，慣例優先（convention-over-configuration）的觀點有了明確的支持。
+			這就意味著當你為<code class="literal">控制器</code>和視圖建立一系列的命名規範時，你可以 <span class="emphasis"><em>充分</em></span> 減少XML配置的數量，包括設置處理映射、視圖解析、<code class="classname">ModelAndView</code>的實例等等。
+			對於開發快速原型來說，這有非常大的優勢，並且越過程式碼資源庫可以產生一定的連續性（通常是良好的）。</p>
+<p>在標題為 <a href="ch13s11.html" title="13.11.&#160;慣例優先原則（convention over configuration）">第&#160;13.11&#160;節 「慣例優先原則（convention over configuration）」</a> 的部分，可以發現對Spring MVC的慣例優先支持的詳細內容。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="new-in-2-web-portlet"></a>2.5.2.&#160;Portlet 框架</h3></div></div></div>
+<p>Spring 2.0 設計了一種概念上類似於Spring MVC框架的Porlet框架。標題為 <a href="ch16.html" title="第&#160;16&#160;章&#160;Portlet MVC框架">第&#160;16&#160;章 <i>Portlet MVC框架</i></a> 的部分可以找到詳細的介紹。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="new-in-2-web-annotations"></a>2.5.3.&#160;基於Annotation的控制器</h3></div></div></div>
+<p>Spring 2.5 為MVC 控制器引入了一種基於Annotation(註釋）的程式模型, 使用<code class="interfacename">@RequestMapping</code>,
+      <code class="interfacename">@RequestParam</code>, <code class="interfacename">@ModelAttribute</code>等等註釋。
+      對SevletMVC和PortletMVC來說，註釋都是支持的。用這種方式實作的Controller不需要顯式繼承基類別或者宣告介面了。更好的是，它們不再需要像通常那樣依賴於Servlet或Portlet API，雖然如果需要他們還是可以很容易的存取Servlet或者Portlet工具。
+      更多細節請參閱 <a href="ch13s12.html" title="13.12.&#160;基於註釋的控制器配置">第&#160;13.12&#160;節 「基於註釋的控制器配置」</a>。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="new-in-2-web-form-tags"></a>2.5.4.&#160;Spring MVC的表單標籤資源庫</h3></div></div></div>
+<p>Spring MVC豐富的JSP標籤資源庫 <span class="emphasis"><em>來自</em></span> JIRA，其中的絕大部分是Spring使用者（範圍很廣的使用者）通過投票方式產生的。</p>
+<p>Spring 2.0擁有一個豐富的JSP標籤資源庫，在使用Spring MVC時，編寫JSP頁面變得更加簡單；Spring團隊自信地認為它將滿足所有在JIRA上投票的開發人員的需要。在標題為 <a href="ch13s09.html" title="13.9.&#160;使用Spring的表單標籤資源庫">第&#160;13.9&#160;節 「使用Spring的表單標籤資源庫」</a> 的部分描述了新的標籤資源庫，標題為 <a href="ape.html" title="附錄&#160;E.&#160;spring-form.tld">附錄&#160;E, <i>spring-form.tld</i></a> 的附錄部分是對所有新標籤的快速指南。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="new-in-2-web-tiles2"></a>2.5.5.&#160;對Tiles 2 支持</h3></div></div></div>
+<p>Spring 2.5 加入了對tiles 2的支持,它是串流行的Tiles 模板框架的下一代。它接替了Spring對Tiles 1的正式支持，Strutcs 1.x包含Tiles 1。細節請參閱<a href="ch14s03.html" title="14.3.&#160;Tiles">第&#160;14.3&#160;節 「Tiles」</a>。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="new-in-2-web-jsf12"></a>2.5.6.&#160;對JSP 1.2支持</h3></div></div></div>
+<p>Spring 2.5 支持JSP 1.2，提供了<code class="classname">DelegatingVariableResolver</code>的一個變種，以<code class="classname">SpringBeanFacesELResolver</code>的形式。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="new-in-2-web-jaxws"></a>2.5.7.&#160;JAX-WS支持</h3></div></div></div>
+<p>Spring 2.5完全支持JAX-WS 2.0/2.1，它在Java 6和Java EE 5中內置。JAX-WS 是JAX-RPC的後繼者，允許存取基於WSDL/SOAP的web service，也可以存取JAX-WS樣式暴露的web service。</p>
+</div>
+</div></body>
+</html>

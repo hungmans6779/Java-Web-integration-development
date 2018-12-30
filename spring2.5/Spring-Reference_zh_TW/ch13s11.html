@@ -1,0 +1,188 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>13.11.&#160;慣例優先原則（convention over configuration）</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch13.html" title="第&#160;13&#160;章&#160;Web MVC framework Web框架">
+<link rel="prev" href="ch13s10.html" title="13.10.&#160;處理異常">
+<link rel="next" href="ch13s12.html" title="13.12.&#160;基於註釋的控制器配置">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="mvc-coc"></a>13.11.&#160;慣例優先原則（convention over configuration）</h2></div></div></div>
+<p>對於很多項目來說，嚴格遵從已有慣例和使用合理的缺省選項大概是這些項目需要的……現在Spring Web MVC明確的支持了這種慣例優先原則的主旨。
+    這意味著，如果建立了一套命名規範，諸如此類別，就可以<span class="emphasis"><em>顯著地</em></span>減少系統所需配置項目的數量，
+    來建立處理器映射、視圖解析器、<code class="classname">ModelAndView</code>實例，等等。
+    這為快速原型開發提供了很大方便。同時提供了一定程度的（通常是好事情）程式碼資源庫的一致性，進而可以從中選擇並發展為成型產品。
+    </p>
+<div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">提示</h3>
+<p>Spring分發版本包含了一個展現了慣例優先原則支持的Web應用程序，我們將在這一節描述這一原則。
+      這個應用程序可以在<code class="literal">samples/showcases/mvc-convention</code>目錄中找到。
+      </p>
+</div>
+<p>慣例優先原則支持體現在MVC的三個核心領域：模型、視圖和控制器。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-coc-ccnhm"></a>13.11.1.&#160;對控制器的支持：<code class="classname">ControllerClassNameHandlerMapping</code></h3></div></div></div>
+<p><code class="classname">ControllerClassNameHandlerMapping</code>類別是<code class="interfacename">HandlerMapping</code>介面的一個實作。
+      它使用慣例來確定請求的URL和用於處理它們的<code class="interfacename">Controller</code>實例間的映射關係。
+      </p>
+<p>舉個例子，考慮下面的（直觀的）<code class="interfacename">Controller</code>實作，
+      請特別注意這個類別的<span class="emphasis"><em>名稱</em></span>。
+      </p>
+<pre class="programlisting">public class <span class="bold"><strong>ViewShoppingCartController</strong></span> implements Controller {
+
+    public ModelAndView handleRequest(HttpServletRequest request, HttpServletResponse response) {
+        <em class="lineannotation"><span class="lineannotation">// the implementation is not hugely important for this example...</span></em>
+    }
+}</pre>
+<p>下面是與之伴隨的Spring Web MVC配置檔案的一個片段：</p>
+<pre class="programlisting">&lt;bean class="org.springframework.web.servlet.mvc.support.ControllerClassNameHandlerMapping"/&gt;
+                
+&lt;bean id="<span class="bold"><strong>viewShoppingCart</strong></span>" class="x.y.z.ViewShoppingCartController"&gt;
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- inject dependencies as required... --&gt;</span></em>
+&lt;/bean&gt;</pre>
+<p><code class="classname">ControllerClassNameHandlerMapping</code>在它的應用上下文中找出所有不同的處理器（handler）（或<code class="interfacename">Controller</code>）bean，
+      並去掉名稱中的<code class="literal">Controller</code>，來定義它的處理器映射。</p>
+<p>讓我們看更多的例子，這樣其中的中心思想就馬上就清楚了。</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><code class="classname">WelcomeController</code>映射到「<code class="literal">/welcome*</code>」請求URL</p></li>
+<li><p><code class="classname">HomeController</code>映射到「<code class="literal">/home*</code>」請求URL</p></li>
+<li><p><code class="classname">IndexController</code>映射到「<code class="literal">/index*</code>」請求URL</p></li>
+<li><p><code class="classname">RegisterController</code>映射到「<code class="literal">/register*</code>」請求URL</p></li>
+<li>
+<p><code class="classname">DisplayShoppingCartController</code>映射到「<code class="literal">/displayshoppingcart*</code>請求URL</p>
+<p><span class="emphasis"><em>（注意大小寫——全部小寫——對於駝峰式大小寫（第一個詞的首字母小寫，隨後的每個詞首字母大寫）的<code class="interfacename">Controller</code>類別名。）</em></span></p>
+</li>
+</ul></div>
+<p>當控制器是<code class="classname">MultiActionController</code>處理器類別時，產生的映射就（有一點點）更為複雜，但幸而沒有更難理解。
+      下面例子中的幾個<code class="interfacename">Controller</code>名字假設都是<code class="classname">MultiActionController</code>的實作。
+      </p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><code class="classname">AdminController</code>映射到「<code class="literal">/admin<span class="bold"><strong>/*</strong></span></code>」請求URL</p></li>
+<li><p><code class="classname">CatalogController</code>映射到「<code class="literal">/catalog<span class="bold"><strong>/*</strong></span></code>」請求URL</p></li>
+</ul></div>
+<p>如果遵循漂亮而且標準的規範把你的<code class="interfacename">Controller</code>實作命名為<code class="literal">xxx<span class="bold"><strong>Controller</strong></span></code>，
+      那麼<code class="classname">ControllerClassNameHandlerMapping</code>將使你免於忍受必須首先定義它們，
+      然後還要維護<span class="emphasis"><em>冗——長——的——</em></span><code class="classname">SimpleUrlHandlerMapping</code>（或者類似的東西）的枯燥。
+      </p>
+<p><code class="classname">ControllerClassNameHandlerMapping</code>是<code class="classname">AbstractHandlerMapping</code>的子類別，
+      從而使你能夠像對待大量其他<code class="interfacename">HandlerMapping</code>實作一樣的定義<code class="interfacename">HandlerInterceptor</code>實例和其他任何東西。
+      </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-coc-modelmap"></a>13.11.2.&#160;對模型的支持：<code class="classname">ModelMap</code>（<code class="classname">ModelAndView</code>）</h3></div></div></div>
+<p><code class="classname">ModelMap</code>類別首先是一個絢麗的<code class="interfacename">Map</code>實作，
+      它可以使新增的將要顯示在<code class="interfacename">View</code>中（或上）的物件也遵循同一命名規範。
+      考慮下面的<code class="interfacename">Controller</code>實作，注意物件被加入<code class="classname">ModelAndView</code>，
+      而並沒有指定任何名稱。</p>
+<pre class="programlisting">public class DisplayShoppingCartController implements Controller {
+
+    public ModelAndView handleRequest(HttpServletRequest request, HttpServletResponse response) {
+        
+        List cartItems = <em class="lineannotation"><span class="lineannotation">// get a <code class="interfacename">List</code> of <code class="classname">CartItem</code> objects</span></em>
+        User user = <em class="lineannotation"><span class="lineannotation">// get the <code class="classname">User</code> doing the shopping</span></em>
+        
+        ModelAndView mav = new ModelAndView("displayShoppingCart"); <em class="lineannotation"><span class="lineannotation">&lt;-- the logical view name</span></em>
+
+        mav.addObject(cartItems); <em class="lineannotation"><span class="lineannotation">&lt;-- look ma, no name, just the object</span></em>
+        mav.addObject(user); <em class="lineannotation"><span class="lineannotation">&lt;-- and again ma!</span></em>
+
+        return mav;
+    }
+}</pre>
+<p><code class="classname">ModelAndView</code>類別使用的<code class="classname">ModelMap</code>類別是一個自定義的<code class="interfacename">Map</code>的實作。
+      當有一個新物件加入的時候，它就被用於為這個物件自動產生一個鍵。
+      決定某個加入的物件的名字的策略是，當它是一個標量物件（scalar object），比如<code class="classname">User</code>時，
+      就使用這個物件所屬類別的簡短類別名。下面的幾個例子中，幾個為標量物件產生的名字被加入<code class="classname">ModelMap</code>實例中。</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>將會為一個新增的<code class="classname">x.y.User</code>實例產生「<code class="literal">user</code>」作為名稱</p></li>
+<li><p>將會為一個新增的<code class="classname">x.y.Registration</code>實例產生「<code class="literal">registration</code>」作為名稱</p></li>
+<li><p>將會為一個新增的<code class="classname">x.y.Foo</code>實例產生「<code class="literal">foo</code>」作為名稱</p></li>
+<li><p>將會為一個新增的<code class="classname">java.util.HashMap</code>實例產生「<code class="literal">hashMap</code>」作為名字（在這個情形下你可能想要讓名字更加明確一些，因為「<code class="literal">hashMap</code>不太直觀）。</p></li>
+<li><p>新增<code class="literal">null</code>將會導致拋出一個<code class="classname">IllegalArgumentException</code>。
+          如果正在加入的這個（或這些）對象可能潛在的是<code class="literal">null</code>的話，就要讓名字更明確一些。</p></li>
+</ul></div>
+<div class="sidebar">
+<p class="title"><b>什麼？不能自動產生複數？</b></p>
+<p>Spring Web MVC的慣例優先原則的支持內容中不包括自動產生複數。
+        這就是說，當加入一個<code class="classname">Person</code>物件的<code class="interfacename">List</code>到一個<code class="classname">ModelAndView</code>時，
+        不要指望產生的名字會是「people」。</p>
+<p>這是經過一系列討論之後作出的決定，最後「<span class="quote">最小驚訝原則（Principle of Least Surprise）</span>」勝出。</p>
+</div>
+<p>在加入一個<code class="interfacename">Set</code>、<code class="interfacename">List</code>或者物件陣列之後，
+      產生名稱的策略是深入這個集合，取出集合中第一個物件的簡短類別名，並使用這個名稱並在後面加上<code class="literal">List</code>。
+      一些例子將會讓集合的名稱產生方式更清晰……</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>將會為一個新增的套件含了一個或多個<code class="classname">x.y.User</code>元素的<code class="classname">x.y.User[]</code>實例產生「<code class="literal">userList</code>」作為名稱</p></li>
+<li><p>將會為一個新增的套件含了一個或多個<code class="classname">x.y.User</code>元素的<code class="classname">x.y.Foo[]</code>實例產生「<code class="literal">fooList</code>」作為名稱</p></li>
+<li><p>將會為一個新增的套件含了一個或多個<code class="classname">x.y.User</code>元素的<code class="classname">java.util.ArrayList</code>實例產生「<code class="literal">userList</code>」作為名稱</p></li>
+<li><p>將會為一個新增的套件含了一個或多個<code class="classname">x.y.Foo</code>元素的<code class="classname">java.util.HashSet</code>實例產生「<code class="literal">fooList</code>」作為名稱</p></li>
+<li><p>一個<span class="bold"><strong>空</strong></span><code class="classname">java.util.ArrayList</code>根本不會被加入（也就是說，<code class="methodname">addObject(..)</code>調用其實什麼都沒做）。</p></li>
+</ul></div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-coc-r2vnt"></a>13.11.3.&#160;對視圖的支持：<code class="interfacename">RequestToViewNameTranslator</code></h3></div></div></div>
+<p><code class="interfacename">RequestToViewNameTranslator</code>介面的功能是當沒有顯式的提供這樣一個邏輯視圖名稱的時候，
+      確定一個邏輯的<code class="interfacename">View</code>名稱。
+      這個介面只有一個實作，精明的命名為<code class="classname">DefaultRequestToViewNameTranslator</code>。
+      </p>
+<p>為了解釋<code class="classname">DefaultRequestToViewNameTranslator</code>將請求的URL映射到邏輯的視圖名的方式，
+      最好還是求助於一個例子。</p>
+<pre class="programlisting">public class RegistrationController implements Controller {
+                
+    public ModelAndView handleRequest(HttpServletRequest request, HttpServletResponse response) {
+        <em class="lineannotation"><span class="lineannotation">// process the request...</span></em>
+        ModelAndView mav = new ModelAndView();
+        <em class="lineannotation"><span class="lineannotation">// add <span class="bold"><strong>data</strong></span> as necessary to the model...</span></em>
+        return mav;
+        <em class="lineannotation"><span class="lineannotation">// notice that no <code class="interfacename">View</code> or logical view name has been set</span></em>
+    }
+}</pre>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN"
+        "http://www.springframework.org/dtd/spring-beans-2.0.dtd"&gt;
+&lt;beans&gt;
+
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- this bean with the well known name generates view names for us --&gt;</span></em>
+    &lt;bean id="viewNameTranslator" class="org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator"/&gt;
+
+    &lt;bean class="x.y.RegistrationController"&gt;
+        <em class="lineannotation"><span class="lineannotation">&lt;!-- inject dependencies as necessary --&gt;</span></em>
+    &lt;/bean&gt;
+    
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- maps request URLs to Controller names --&gt;</span></em>
+    &lt;bean class="org.springframework.web.servlet.mvc.support.ControllerClassNameHandlerMapping"/&gt;
+
+    &lt;bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver"&gt;
+        &lt;property name="prefix" value="/WEB-INF/jsp/"/&gt;
+        &lt;property name="suffix" value=".jsp"/&gt;
+    &lt;/bean&gt;
+
+&lt;/beans&gt;
+</pre>
+<p>請注意，在這個<code class="literal">handleRequest(..)</code>方法的實作中，
+      沒有在返回的<code class="classname">ModelAndView</code>上設置任何的<code class="interfacename">View</code>或者邏輯視圖名稱。
+      而是把從請求的URL產生一個<span class="emphasis"><em>邏輯視圖名稱</em></span>的任務交給了<code class="classname">DefaultRequestToViewNameTranslator</code>。
+      在上面這個<code class="classname">RegistrationController</code>與<code class="classname">ControllerClassNameHandlerMapping</code>聯合使用的例子中，
+      一個「<code class="literal">http://localhost/registration.html</code>」請求URL將會由<code class="classname">DefaultRequestToViewNameTranslator</code>產生一個「<code class="literal">registration</code>」邏輯視圖名稱。
+      這個邏輯視圖名稱接下來就會被<code class="classname">InternalResourceViewResolver</code> bean解析為「<code class="literal">/WEB-INF/jsp/registration.jsp</code>」視圖。
+      </p>
+<div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">提示</h3>
+<p>甚至不需要顯式的定義一個<code class="classname">DefaultRequestToViewNameTranslator</code> bean。
+        如果<code class="classname">DefaultRequestToViewNameTranslator</code>的缺省設置符合你的要求，
+        就可以依賴這樣一個事實，Spring Web MVC的<code class="classname">DispatcherServlet</code>將會在沒有顯式配置的情況下自動的產生這個類別的一個實例。
+        </p>
+</div>
+<p>當然，如果需要修改缺省設置，那麼就需要顯式的配置自己的<code class="classname">DefaultRequestToViewNameTranslator</code> bean。
+      關於可以設置的各種屬性的細節，請參閱<code class="classname">DefaultRequestToViewNameTranslator</code>的相當詳細的Javadoc。
+      </p>
+</div>
+</div></body>
+</html>

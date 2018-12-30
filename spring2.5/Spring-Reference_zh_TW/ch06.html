@@ -1,0 +1,165 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>第&#160;6&#160;章&#160;使用Spring進行切面導向程式（AOP）</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="pt01.html" title="部分&#160;I.&#160;核心技術">
+<link rel="prev" href="ch05s04.html" title="5.4.&#160;Bean處理和BeanWrapper">
+<link rel="next" href="ch06s02.html" title="6.2.&#160;@AspectJ支持">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="chapter" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title">
+<a name="aop"></a>第&#160;6&#160;章&#160;使用Spring進行切面導向程式（AOP）</h2></div></div></div>
+<div class="toc">
+<p><b>目錄</b></p>
+<dl>
+<dt><span class="section"><a href="ch06.html#aop-introduction">6.1. 簡介</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch06.html#aop-introduction-defn">6.1.1. AOP概念</a></span></dt>
+<dt><span class="section"><a href="ch06.html#aop-introduction-spring-defn">6.1.2. Spring AOP的功能和目標</a></span></dt>
+<dt><span class="section"><a href="ch06.html#aop-introduction-proxies">6.1.3. AOP代理</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch06s02.html">6.2. @AspectJ支持</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch06s02.html#aop-aspectj-support">6.2.1. 啟用@AspectJ支持</a></span></dt>
+<dt><span class="section"><a href="ch06s02.html#aop-at-aspectj">6.2.2. 宣告一個切面</a></span></dt>
+<dt><span class="section"><a href="ch06s02.html#aop-pointcuts">6.2.3. 宣告一個切入點（pointcut）</a></span></dt>
+<dt><span class="section"><a href="ch06s02.html#aop-advice">6.2.4. 宣告通知</a></span></dt>
+<dt><span class="section"><a href="ch06s02.html#aop-introductions">6.2.5. 引入（Introduction）</a></span></dt>
+<dt><span class="section"><a href="ch06s02.html#aop-instantiation-models">6.2.6. 切面實例化模型</a></span></dt>
+<dt><span class="section"><a href="ch06s02.html#aop-ataspectj-example">6.2.7. 例子</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch06s03.html">6.3. 基於Schema的AOP支持</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch06s03.html#aop-schema-declaring-an-aspect">6.3.1. 宣告一個切面</a></span></dt>
+<dt><span class="section"><a href="ch06s03.html#aop-schema-pointcuts">6.3.2. 宣告一個切入點</a></span></dt>
+<dt><span class="section"><a href="ch06s03.html#aop-schema-advice">6.3.3. 宣告通知</a></span></dt>
+<dt><span class="section"><a href="ch06s03.html#aop-schema-introductions">6.3.4. 引入</a></span></dt>
+<dt><span class="section"><a href="ch06s03.html#aop-schema-instatiation-models">6.3.5. 切面實例化模型</a></span></dt>
+<dt><span class="section"><a href="ch06s03.html#aop-schema-advisors">6.3.6. Advisor</a></span></dt>
+<dt><span class="section"><a href="ch06s03.html#aop-schema-example">6.3.7. 例子</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch06s04.html">6.4. AOP宣告樣式的選擇</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch06s04.html#aop-spring-or-aspectj">6.4.1. Spring AOP還是完全用AspectJ？</a></span></dt>
+<dt><span class="section"><a href="ch06s04.html#aop-ataspectj-or-xml">6.4.2. Spring AOP中使用@AspectJ還是XML？</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch06s05.html">6.5. 混合切面型別</a></span></dt>
+<dt><span class="section"><a href="ch06s06.html">6.6. 代理機制</a></span></dt>
+<dd><dl><dt><span class="section"><a href="ch06s06.html#aop-understanding-aop-proxies">6.6.1. 理解AOP代理</a></span></dt></dl></dd>
+<dt><span class="section"><a href="ch06s07.html">6.7. 以程式方式創建@AspectJ代理</a></span></dt>
+<dt><span class="section"><a href="ch06s08.html">6.8. 在Spring應用中使用AspectJ</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch06s08.html#aop-atconfigurable">6.8.1. 在Spring中使用AspectJ進行domain object的依賴注入</a></span></dt>
+<dt><span class="section"><a href="ch06s08.html#aop-ajlib-other">6.8.2. Spring中其他的AspectJ切面</a></span></dt>
+<dt><span class="section"><a href="ch06s08.html#aop-aj-configure">6.8.3. 使用Spring IoC來配置AspectJ的切面</a></span></dt>
+<dt><span class="section"><a href="ch06s08.html#aop-aj-ltw">6.8.4. 在Spring應用中使用AspectJ載入時織入（LTW）</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch06s09.html">6.9. 更多資源</a></span></dt>
+</dl>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="aop-introduction"></a>6.1.&#160;簡介</h2></div></div></div>
+<p><span class="emphasis"><em>切面導向程式</em></span>（AOP）通過提供另外一種思考程序結構的途經來彌補物件導向程式（OOP）的不足。在OOP中模組化的關鍵單元是類別（classes），而在AOP中模組化的單元則是<span class="emphasis"><em>切面</em></span>。切面能對關注點進行模組化，例如橫切多個型別和物件的事務管理。（在AOP術語中通常稱作<span class="emphasis"><em>橫切（crosscutting）</em></span>關注點。）</p>
+<p><span class="emphasis"><em>AOP框架</em></span>是Spring的一個重要組成部分。但是Spring IoC容器並不依賴於AOP，這意味著你有權利選擇是否使用AOP，AOP做為Spring IoC容器的一個補充,使它成為一個強大的中間件解決方案。
+		</p>
+<div class="sidebar">
+<p class="title"><b>Spring 2.0的AOP</b></p>
+<p>Spring 2.0允許使用者選擇使用更簡單、更強大的<a href="ch06s03.html" title="6.3.&#160;基於Schema的AOP支持">基於模式</a>或<a href="ch06s02.html" title="6.2.&#160;@AspectJ支持">@AspectJ註釋</a>的方式來自定義切面。這兩種樣式都支持全部類別型的通知(advice)和AspectJ的切入點語言，雖然實際上仍然使用Spring AOP進行織入（Weaving）。
+			</p>
+<p>
+			本章主要討論Spring 2.0對基於模式和基於@AspectJ的AOP支持。Spring 2.0完全保留了對Spring 1.2的向下相容，<a href="ch07.html" title="第&#160;7&#160;章&#160;Spring AOP APIs">下一章</a>將討論Spring 1.2 API所提供的底層的AOP支持。
+			</p>
+</div>
+<p>AOP在Spring Framework中的作用</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>提供宣告式企業服務，特別是為了替代EJB宣告式服務。最重要的服務是<a href="ch09s05.html" title="9.5.&#160;宣告式事務管理"><span class="emphasis"><em>宣告性事務管理</em></span></a>。</p></li>
+<li><p>允許使用者實作自定義切面，用AOP來完善OOP的使用。</p></li>
+</ul></div>
+<p class="remark"><i><span class="remark"><p>
+		如果你只打算使用通用的宣告式服務或者封裝好的宣告式中間件服務，例如緩衝池（pooling），那麼你不必與Spring AOP直接打交道，並且本章的大部分內容可以跳過了。
+		</p></span></i></p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="aop-introduction-defn"></a>6.1.1.&#160;AOP概念</h3></div></div></div>
+<p>
+			首先讓我們從一些重要的AOP概念和術語開始。這些術語不是Spring特有的。不過AOP術語並不是特別的直觀，如果Spring使用自己的術語，將會變得更加令人困惑。
+			</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>
+          <span class="emphasis"><em>切面（Aspect）</em></span>：一個關注點的模組化，這個關注點可能會橫切多個物件。事務管理是J2EE應用中一個關於橫切關注點的很好的例子。在Spring AOP中，切面可以使用<a href="ch06s03.html" title="6.3.&#160;基於Schema的AOP支持">基於模式</a>）或者基於<a href="ch06s02.html" title="6.2.&#160;@AspectJ支持">@Aspect註釋</a>的方式來實作。
+				  </p></li>
+<li><p><span class="emphasis"><em>連接點（Joinpoint）</em></span>：在程序執行過程中某個特定的點，比如某方法調用的時候或者處理異常的時候。在Spring AOP中，一個連接點<span class="emphasis"><em>總是</em></span>表示一個方法的執行。</p></li>
+<li><p><span class="emphasis"><em>通知（Advice）</em></span>：在切面的某個特定的連接點上執行的動作。其中包括了「around」、「before」和「after」等不同型別的通知（通知的型別將在後面部分進行討論）。許多AOP框架（包括Spring）都是以<span class="emphasis"><em>攔截器</em></span>做通知模型，並維護一個以連接點為中心的攔截器鏈。
+					</p></li>
+<li><p><span class="emphasis"><em>切入點（Pointcut）</em></span>：匹配連接點的斷言。通知和一個切入點表達式關聯，並在滿足這個切入點的連接點上運行（例如，當執行某個特定名稱的方法時）。切入點表達式如何和連接點匹配是AOP的核心：Spring缺省使用AspectJ切入點語法。
+					</p></li>
+<li><p><span class="emphasis"><em>引入（Introduction）</em></span>：用來給一個型別宣告額外的方法或屬性（也被稱為連接型別宣告（inter-type declaration））。Spring允許引入新的介面（以及一個對應的實作）到任何被代理的物件。例如，你可以使用引入來使一個bean實作<code class="literal">IsModified</code>介面，以便簡化快取記憶體機制。
+					</p></li>
+<li><p><span class="emphasis"><em>目標物件（Target Object）</em></span>：
+					被一個或者多個切面所通知的物件。也被稱做<span class="emphasis"><em>被通知（advised）</em></span>物件。
+					既然Spring AOP是通過運行時代理實作的，這個物件永遠是一個<span class="emphasis"><em>被代理（proxied）</em></span>物件。
+					</p></li>
+<li><p><span class="emphasis"><em>AOP代理（AOP Proxy）</em></span>：AOP框架創建的物件，用來實作切面契約（例如通知方法執行等等）。在Spring中，AOP代理可以是JDK動態代理或者CGLIB代理。
+					</p></li>
+<li><p><span class="emphasis"><em>織入（Weaving）</em></span>：把切面連接到其它的應用程序型別或者物件上，並創建一個被通知的物件。這些可以在編譯時（例如使用AspectJ編譯器），類別載入時和運行時完成。Spring和其他純Java AOP框架一樣，在運行時完成織入。
+					</p></li>
+</ul></div>
+<p>通知型別：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><span class="emphasis"><em>前置通知（Before advice）</em></span>：在某連接點之前執行的通知，但這個通知不能阻止連接點之前的執行串流程（除非它拋出一個異常）。
+					</p></li>
+<li><p><span class="emphasis"><em>後置通知（After returning advice）</em></span>：在某連接點正常完成後執行的通知：例如，一個方法沒有拋出任何異常，正常返回。
+					</p></li>
+<li><p><span class="emphasis"><em>異常通知（After throwing advice）</em></span>：在方法拋出異常退出時執行的通知。
+					</p></li>
+<li><p><span class="emphasis"><em>最終通知（After (finally) advice）</em></span>：當某連接點退出的時候執行的通知（不論是正常返回還是異常退出）。
+		  		</p></li>
+<li><p><span class="emphasis"><em>環繞通知（Around Advice）</em></span>：包圍一個連接點的通知，如方法調用。這是最強大的一種通知型別。環繞通知可以在方法調用前後完成自定義的行為。它也會選擇是否繼續執行連接點或直接返回它自己的返回值或拋出異常來結束執行。
+		  		</p></li>
+</ul></div>
+<p>環繞通知是最常用的通知型別。和AspectJ一樣，Spring提供全部類別型的通知，我們推薦你使用盡可能簡單的通知型別來實作需要的功能。例如，如果你只是需要一個方法的返回值來更新快取記憶體，最好使用後置通知而不是環繞通知，儘管環繞通知也能完成同樣的事情。用最合適的通知型別可以使得程式模型變得簡單，並且能夠避免很多潛在的錯誤。比如，你不需要在<code class="interfacename">JoinPoint</code>上調用用於環繞通知的<code class="literal">proceed()</code>方法，就不會有調用的問題。
+			</p>
+<p>在Spring 2.0中，所有的通知參數都是靜態型別，因此你可以使用合適的型別（例如一個方法執行後的返回值型別）作為通知的參數而不是使用<code class="classname">Object</code>陣列。
+			</p>
+<p> 通過切入點匹配連接點的概念是AOP的關鍵，這使得AOP不同於其它僅僅提供攔截功能的舊技術。 切入點使得通知可以獨立對應到物件導向的層次結構中。例如，一個提供宣告式事務管理			的環繞通知可以被應用到一組橫跨多個物件的方法上（例如服務層的所有業務操作）。
+	  </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="aop-introduction-spring-defn"></a>6.1.2.&#160;Spring AOP的功能和目標</h3></div></div></div>
+<p>
+			Spring AOP使用純Java實作。它不需要專門的編譯過程。Spring AOP不需要控制類別裝載器層次，因此它適用於J2EE web容器或應用伺服器。
+	  	</p>
+<p>
+			Spring目前僅支持使用方法調用作為連接點（join point）（在Spring bean上通知方法的執行）。雖然可以在不影響到Spring AOP核心API的情況下加入對成員變數攔截器支持，但Spring並沒有實作成員變數攔截器。如果你需要把對成員變數的存取和更新也作為通知的連接點，可以考慮其它的語言，如AspectJ。
+	  	</p>
+<p>
+			Spring實作AOP的方法跟其他的框架不同。Spring並不是要提供最完整的AOP實作（儘管Spring AOP有這個能力），相反的，它其實側重於提供一種AOP實作和Spring IoC容器之間的整合，用於說明解決在企業級開發中的常見問題。
+			</p>
+<p>因此，Spring的AOP功能通常都和Spring IoC容器一起使用。切面使用普通的bean定義語法來配置（儘管Spring提供了強大的"自動代理（autoproxying）"功能）：與其他AOP實作相比這是一個顯著的區別。有些事使用Spring AOP是無法輕鬆或者高效完成的，比如說通知一個細粒度的物件（例如典型的域物件）：這種時候，使用AspectJ是最好的選擇。不過經驗告訴我們，對於大多數在J2EE應用中適合用AOP來解決的問題，Spring AOP都提供了一個非常好的解決方案。
+			</p>
+<p>Spring AOP從來沒有打算通過提供一種全面的AOP解決方案來與AspectJ競爭。我們相信無論是基於代理（proxy-based）的框架如Spring AOP或者是成熟的框架如AspectJ都是很有價值的，他們之間應該是互補而不是競爭的關係。Spring 2.0可以無縫的整合Spring AOP，IoC和AspectJ，使得所有的AOP應用完全融入基於Spring的應用體系。這樣的整合不會影響Spring AOP API或者AOP Alliance API；Spring AOP保持了向下相容性。<a href="ch07.html" title="第&#160;7&#160;章&#160;Spring AOP APIs">下一章</a>會詳細討論Spring AOP的API。
+			</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>Spring Framework一個重要的原則就是<span class="emphasis"><em>無侵入性（non-invasiveness）</em></span>; 這個思想指你不應當被迫引入框架特定的類別和介面到你的業務/領域模型中。然而，Spring Framework在某些地方給你一個是否引入Spring框架特定依賴到你的程式碼的選項： 給你這個選項的理由是因為在特定的場景中它可能僅僅是容易閱讀或用這種方法編寫特定的功能塊。Spring Framework（幾乎）一直會為你提供這種選擇：從而使你能做出一個明智的決定，使它最適應你的特定用例或場景。</p>
+<p>你可以選擇AspectJ或者Spring AOP，以及選擇是使用@AspectJ註釋樣式還是Spring XML配置樣式。事實上本章選擇先介紹@AspectJ樣式的方法不應當被看作是這樣一個暗示：Spring小組喜歡@AspectJ註釋樣式更勝於Spring XML配置。</p>
+<p>在<a href="ch06s04.html" title="6.4.&#160;AOP宣告樣式的選擇">第&#160;6.4&#160;節 「AOP宣告樣式的選擇」</a>一章有對使用各個樣式理由的一個更全面的討論。</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="aop-introduction-proxies"></a>6.1.3.&#160;AOP代理</h3></div></div></div>
+<p>Spring缺省使用J2SE <span class="emphasis"><em>動態代理（dynamic proxies）</em></span>來作為AOP的代理。
+      這樣任何介面（或者介面集）都可以被代理。</p>
+<p>
+			Spring也可以使用CGLIB代理. 對於需要代理類別而不是代理介面的時候CGLIB代理是很有必要的。如果一個業務對象並沒有實作一個介面，預設就會使用CGLIB。作為導向介面程式的最佳實踐，業務物件通常都會實作一個或多個介面。但也有可能會<a href="ch06s06.html#aop-autoproxy-force-CGLIB">強制使用CGLIB</a>，在這種情況（希望不常有）下，你可能需要通知一個沒有在介面中宣告的方法，或者需要傳入一個代理物件給方法作為具體型別</p>
+<p>為了明白Spring AOP是<span class="emphasis"><em>基於代理（proxy-based）</em></span>的事實，請參閱<a href="ch06s06.html#aop-understanding-aop-proxies" title="6.6.1.&#160;理解AOP代理">第&#160;6.6.1&#160;節 「理解AOP代理」</a>。</p>
+</div>
+</div>
+</div></body>
+</html>

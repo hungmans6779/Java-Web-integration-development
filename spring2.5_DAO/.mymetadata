@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-module
+  type="WEB"
+  name="spring2.5_DAO"
+  id="myeclipse.1356316192787"
+  context-root="/spring2.5_DAO"
+  j2ee-spec="5.0"
+  archive="spring2.5_DAO.war">
+  <attributes>
+    <attribute name="webrootdir" value="WebRoot" />
+  </attributes>
+</project-module>
+

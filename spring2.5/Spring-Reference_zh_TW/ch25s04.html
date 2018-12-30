@@ -1,0 +1,80 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>25.4.&#160;Jakarta Commons Attributes整合</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch25.html" title="第&#160;25&#160;章&#160;註釋和源程式碼級的元資料支持">
+<link rel="prev" href="ch25s03.html" title="25.3.&#160;註釋">
+<link rel="next" href="ch25s05.html" title="25.5.&#160;元資料和Spring AOP自動代理">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="metadata-commons"></a>25.4.&#160;Jakarta Commons Attributes整合</h2></div></div></div>
+<p>
+			雖然為其他元資料提供者提供<code class="interfacename">org.springframework.metadata.Attributes</code>
+			介面的實作很簡單，但是目前Spring只支持Jakarta Commons Attributes。
+		</p>
+<p>
+			<span class="bold"><strong>Commons Attributes 2.2</strong></span>(<a href="http://jakarta.apache.org/commons/attributes/" target="_top">http://jakarta.apache.org/commons/attributes/</a>)是一個功能很強的元資料屬性解決方案。
+			它支持通過建構方法參數和JavaBean屬性來配置屬性，這為屬性定義提供了更好的自說明文檔。
+			(對JavaBean屬性的支持是在Spring小組的要求下添加的。) 
+		</p>
+<p>我們已經看到了兩個Commons Attributes的屬性定義的例子。讓我們大體上解釋一下： </p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>
+					<span class="emphasis"><em>屬性類別的名稱</em></span>。這可能是一個全限定名稱(fully qualified name, FQN)，
+					就像上面的那樣。如果相關的屬性類別已經被導入，就不需要FQN了。你也可以在屬性編譯器的設置中指定屬性的套件名。 
+				</p></li>
+<li><p>
+					<span class="emphasis"><em>任何必須的參數化。</em></span>可以通過建構方法參數或者JavaBean屬性完成。 
+				</p></li>
+</ul></div>
+<p>Bean的屬性可以是這樣的：</p>
+<pre class="programlisting">/**
+ * @@MyAttribute(myBooleanJavaBeanProperty=true)
+ */</pre>
+<p>可以把建構方法參數和JavaBean屬性結合在一起(就像在Spring IoC中一樣)。 </p>
+<p>由於Common Attributes沒有像Java 1.5中的屬性那樣和Java語言本身結合起來，
+		因此需要運行一個特定的<span class="emphasis"><em>屬性編譯</em></span>步驟作為整個建構過程的一部分。 </p>
+<p>為了在整個建構過程中運行Commmons Attributes，你需要做以下的事情： </p>
+<p>1. 複製一些必要的jar包到<code class="literal">$ANT_HOME/lib</code>。有四個必須的jar包，它們包含在Spring的發行包裡： </p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>Commons Attributes編譯器jar和API jar</p></li>
+<li><p>XDoclet中的xJavadoc.jar</p></li>
+<li><p>Jakarta Commons中的commons-collections.jar</p></li>
+</ul></div>
+<p>2. 把Commons Attributes的ant任務導入到你的項目建構文稿中去，像下面這樣： </p>
+<pre class="programlisting">&lt;taskdef resource="org/apache/commons/attributes/anttasks.properties"/&gt;</pre>
+<p>3. 接下來，定義一個屬性編譯任務，它將使用Commons Attributes的attribute-compiler任務來「編譯」源程式碼中的屬性。
+		這個過程將產生額外的程式碼至<code class="literal">destdir</code>屬性指定的位置。在這裡我們使用了一個臨時目錄來保存產生的檔案：</p>
+<pre class="programlisting">&lt;target name="compileAttributes"&gt;
+
+  &lt;attribute-compiler destdir="${commons.attributes.tempdir}"&gt;
+    &lt;fileset dir="${src.dir}" includes="**/*.java"/&gt;
+  &lt;/attribute-compiler&gt;
+
+&lt;/target&gt;</pre>
+<p>運行javac命令編譯源程式碼的編譯目標任務應該依賴於屬性編譯任務，還需要編譯屬性時產生至目標臨時目錄的源程式碼。
+		如果在屬性定義中有語法錯誤，通常都會被屬性編譯器捕獲到。但是，如果屬性定義在語法上似是而非，卻使用了一些非法的型別或類別名，
+		產生屬性類別的編譯可能會失敗。在這種情況下，你可以看看所產生的類別來確定錯誤的原因。 </p>
+<p class="remark"><i><span class="remark">Commons Attributes也提供對Maven的支持。請參考Commons Attributes的文檔得到進一步的資訊。 </span></i></p>
+<p>雖然屬性編譯的過程可能看起來複雜，實際上它是一次性的花銷。一旦被創建後，屬性的編譯是遞增式的，所以通常它不會明顯減慢整個建構過程。
+			一旦編譯過程建立起來後，你可能會發現本章中描述的屬性的使用將節省在其他方面的時間。 
+		</p>
+<p>如果需要屬性索引支持(目前只在Spring的以屬性為目標的web控制器中需要，下面會討論到)，你需要在包含編譯後的類別的jar檔案上執行一個額外的步驟。
+			在這步可選的步驟中，Commons Attributes將為你在源程式碼中定義的所有屬性創建一個索引，以便在運行時進行有效的尋找。 該步驟如下： 
+		</p>
+<pre class="programlisting">&lt;attribute-indexer jarFile="myCompiledSources.jar"&gt;
+    
+  &lt;classpath refid="master-classpath"/&gt;
+
+&lt;/attribute-indexer&gt;</pre>
+<p class="remark"><i><span class="remark">可以到Spring jPetStore例程下的<code class="literal">/attributes</code>目錄下察看它的建構過程。
+		你可以使用它裡面的建構文稿，並修改該文稿以適應你自己的項目。 </span></i></p>
+<p>如果你的單元測試依賴於屬性，盡量使它依賴於Spring Attributes抽象，而不是Commons Attributes。原因有兩點，
+		其一是為了更好的移植性 - 舉例來說，你的測試用例將來仍可以工作如果你轉換至Java 1.5的屬性 - 它簡化了測試。
+		其次，Commons Attributes是靜態的API，而Spring提供的是一個容易模擬的元資料介面。 </p>
+</div></body>
+</html>

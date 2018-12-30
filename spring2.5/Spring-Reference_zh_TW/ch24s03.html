@@ -1,0 +1,485 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>24.3.&#160;定義動態語言支持的bean</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch24.html" title="第&#160;24&#160;章&#160;動態語言支持">
+<link rel="prev" href="ch24s02.html" title="24.2.&#160;第一個範例">
+<link rel="next" href="ch24s04.html" title="24.4.&#160;場景">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="dynamic-language-beans"></a>24.3.&#160;定義動態語言支持的bean</h2></div></div></div>
+<p>
+			這一節描述了如何針對Spring所支持的動態語言定義受Spring所管理的bean。
+        </p>
+<p>
+			請注意本章不會解釋這些支持的動態語言的語法和用法。例如，如果你想在你的某個應用中使用Groovy來編寫類別，我們假設你已經瞭解Groovy這門語言。如果你需要瞭解和動態語言本身有關的更多細節，請參考本章末尾<a href="ch24s06.html" title="24.6.&#160;更多的資源">第&#160;24.6&#160;節 「更多的資源」</a>一節。
+        </p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="dynamic-language-beans-concepts"></a>24.3.1.&#160;公共概念</h3></div></div></div>
+<p>使用dynamic-language-backed bean要經過以下步驟：</p>
+<div class="orderedlist"><ol type="1">
+<li><p>編寫針對動態語言源碼的測試程式碼（這是理所應當的事情）</p></li>
+<li><p><span class="emphasis"><em>然後</em></span>編寫動態語言源碼 :)</p></li>
+<li><p>
+						在XML配置檔案中使用相應的<code class="literal">&lt;lang:language/&gt;</code>元素定義dynamic-language-backed bean。當然你也可以使用Spring API，以程式的方式來定義---本章並不會涉及到這種高層級的配置方式，你可以直接閱讀源碼來獲得相應的指示）。注意這是一個迭代的步驟。每一個動態語言的源檔案至少對應一個bean定義（同一個動態語言的源檔案當然可以在多個bean定義中參考）。
+					</p></li>
+</ol></div>
+<p>
+				前面兩步（測試並編寫動態語言源檔案）超出了本章的範疇。請參考你所選動態語言相關的語言規範或者參考手冊，並繼續開發你的動態語言的源檔案。不過你應該首先閱讀本章的剩下部分，因為Spring（動態語言支持）對動態語言源檔案的內容有一些（小小的）要求。
+			</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="dynamic-language-beans-concepts-xml-language-element"></a>24.3.1.1.&#160;<code class="literal">&lt;lang:language/&gt;</code> 元素</h4></div></div></div>
+<div class="sidebar">
+<p class="title"><b>XML Schema</b></p>
+<p>
+						本章的所有配置案例充分利用了Spring 2.0中新增的對XML Schema的支持。
+					</p>
+<p>
+					當然你可以繼續堅持在Spring XML配置檔案中使用老式的基於DTD的驗證方式，而不採用XML Schema，但是這樣你就會失去<code class="literal">&lt;lang:language/&gt;</code>元素提供的便利。例如，Spring測試套件中有一些例子是針對舊樣式的配置，這些例子並不需要基於XML Schema的驗證（非常詳細甚至冗長，而且並沒有隱藏任何Spring的底層實作）。</p>
+</div>
+<p>
+					最後一步包括如何定義dynamic-language-backed bean定義，每一個要配置的bean對應一個定義（這和普通的Javabean配置沒有什麼區別）。但是，對於容器中每一個需要實例化和配置的類別，普通的Javabean配置需要指定全限定名，對於dynamic language-backed bean則使用<code class="literal">&lt;lang:language/&gt;</code>元素取而代之。
+				</p>
+<p>每一種支持的語言都有對應的<code class="literal">&lt;lang:language/&gt;</code>元素</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><code class="literal">&lt;lang:jruby/&gt;</code>（JRuby）</p></li>
+<li><p><code class="literal">&lt;lang:groovy/&gt;</code>（Groovy）</p></li>
+<li><p><code class="literal">&lt;lang:bsh/&gt;</code>（BeanShell）</p></li>
+</ul></div>
+<p>
+					對於配置中可用的確切的屬性和子元素取決於具體定義bean的語言（後面和特定語言有關的章節會揭示全部內幕）。
+				</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="dynamic-language-refreshable-beans"></a>24.3.1.2.&#160;Refreshable bean</h4></div></div></div>
+<p>
+					Spring對動態語言支持中最引人注目的價值在於增加了對<em class="firstterm"> 'refreshable bean' </em>特徵的支持。
+				</p>
+<p>
+					refreshable bean是一種只有少量配置的dynamic-language-backed bean。dynamic-language-backed bean 可以監控底層源檔案的變化，一旦源檔案發生改變就可以自動重新載入（例如開發者編輯檔案並保存修改）。
+				</p>
+<p>
+					這樣就允許開發者在應用程序中部署任意數量的動態語言源檔案，並通過配置Spring容器來創建動態語言源檔案所支持的bean（使用本章所描述的機制）。以後如果需求發生改變，或者一些外部因素起了作用，這樣就可以簡單的編輯動態語言源檔案，而這些檔案中的變化會反射為bean的變化。而這些工作不需要關閉正在運行的應用（或者重新部署web應用）。dynamic-language-backed bean能夠自我修正，從已改變的動態語言源檔案中提取新的狀態和邏輯。
+				</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>注意，該特徵預設值為<span class="emphasis"><em>off（關閉）</em></span>。</p>
+</div>
+<p>
+					下面讓我們看一個例子，體驗一下使用refreshable bean是多麼容易的事情。首先要啟用refreshable bean特徵，只需要在bean定義的 <code class="literal">&lt;lang:language/&gt;</code>元素中指定<span class="emphasis"><em>一個</em></span>附加屬性。假設我們繼續使用前文中的 <a href="ch24s02.html" title="24.2.&#160;第一個範例">例子</a>，那麼只需要在Spring的XML配置檔案中進行如下修改以啟用refreshable bean：
+				</p>
+<pre class="programlisting">&lt;beans&gt;
+
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- this bean is now 'refreshable' due to the presence of the 'refresh-check-delay' attribute --&gt;</span></em>
+    &lt;lang:groovy id="messenger"
+          refresh-check-delay="5000" <em class="lineannotation"><span class="lineannotation">&lt;!-- switches refreshing on with 5 seconds between checks --&gt;</span></em>
+          script-source="classpath:Messenger.groovy"&gt;
+        &lt;lang:property name="message" value="I Can Do The Frug" /&gt;
+    &lt;/lang:groovy&gt;
+
+    &lt;bean id="bookingService" class="x.y.DefaultBookingService"&gt;
+        &lt;property name="messenger" ref="messenger" /&gt;
+    &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<p>
+					這就是所有你需要做的事情。 <code class="literal">'messenger'</code> bean定義中的<code class="literal">'refresh-check-delay'</code>屬性指定了刷新bean的時間間隔，在這個時間段內的底層動態語言源檔案的任何變化都會刷新到對應的bean上。通過給該屬性賦一個負值即可關閉該刷新行為。注意在預設情況下，該刷新行為是關閉的。如果你不需要該刷新行為，最簡單的辦法就是不要定義該屬性。
+                </p>
+<p>運行以下應用程序可以體驗refreshable特徵：請執行接下來這段程式碼中的<span class="emphasis"><em>'jumping-through-hoops-to-pause-the-execution'</em></span>小把戲。<code class="literal">System.in.read()</code>的作用是暫停程序的執行，這個時候去修改底層的動態語言源檔案，然後程序恢復執行的時候觸發dynamic-language-backed bean的刷新。</p>
+<pre class="programlisting">import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.scripting.Messenger;
+
+public final class Boot {
+
+    public static void main(final String[] args) throws Exception {
+
+        ApplicationContext ctx = new ClassPathXmlApplicationContext("beans.xml");
+        Messenger messenger = (Messenger) ctx.getBean("messenger");
+        System.out.println(messenger.getMessage());
+        // pause execution while I go off and make changes to the source file...
+        System.in.read();
+        System.out.println(messenger.getMessage());
+    }
+}</pre>
+<p>假設對於這個例子，所有調用<code class="interfacename">Messenger</code>實作中<code class="literal">getMessage()</code>方法的地方都被修改：比如將message用引號括起來。下面是我在程序執行暫停的時候對<code class="filename">Messenger.groovy</code>源檔案所做的修改：</p>
+<pre class="programlisting">package org.springframework.scripting
+
+class GroovyMessenger implements Messenger {
+
+    private String message = "Bingo"
+
+    public String getMessage() {
+        // change the implementation to surround the message in quotes
+        return "'" + this.message + "'"
+    }
+
+    public void setMessage(String message) {
+        this.message = message
+    }
+}</pre>
+<p>
+					在這段程序執行的時候，在輸入暫停之前的輸出是<code class="computeroutput">I Can Do The Frug</code>。在修改並保存了源檔案之後，程序恢復執行，再次調用dynamic-language-backed <code class="interfacename">Messenger</code>的<code class="literal">getMessage()</code>方法的結果為<code class="computeroutput">'I Can Do The Frug'</code> （注意新增的引號）。
+				</p>
+<p>
+					有一點很重要，如果上述對文稿的修改發生在<code class="literal">'refresh-check-delay'</code>值的時間範圍內並不會觸發刷新動作。同樣重要的是，修改文稿並不會馬上起作用，而是要到該動態語言實作的bean的相應的方法被調用時才有效。只有動態語言實作的bean的方法被調用的時候才會檢查底層源檔案是否修改了。刷新文稿產生的任何異常（例如發生編譯錯誤，或者文稿檔案被刪除了）都會在調用的程式碼中拋出一個<span class="emphasis"><em>致命</em></span>異常。
+				</p>
+<p>
+					前面描述的refreshable bean的行為並<span class="emphasis"><em>不</em></span>會作用於使用<code class="literal">&lt;lang:inline-script/&gt;</code>元素定義的動態語言源檔案（請參考<a href="ch24s03.html#dynamic-language-beans-inline" title="24.3.1.3.&#160;內置動態語言源檔案">第&#160;24.3.1.3&#160;節 「內置動態語言源檔案」</a>這一節）。而且它<span class="emphasis"><em>只</em></span>作用於那些可以檢測到底層源檔案發生改變的bean。例如，檢查檔案系統中的動態語言源檔案的最後修改日期。
+				</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="dynamic-language-beans-inline"></a>24.3.1.3.&#160;內置動態語言源檔案</h4></div></div></div>
+<p>
+					Spring動態語言支持還提供了直接在bean定義中直接嵌入動態語言源碼的功能。通過<code class="literal">&lt;lang:inline-script/&gt;</code>元素，可以在Spring的配置檔案中直接定義動態語言源檔案。下面的例子或許可以將嵌入文稿特徵表達的更清楚：
+		        </p>
+<pre class="programlisting">&lt;lang:groovy id="messenger"&gt;
+    &lt;lang:inline-script&gt;
+package org.springframework.scripting.groovy;
+
+import org.springframework.scripting.Messenger
+
+class GroovyMessenger implements Messenger {
+
+    String message
+}
+    &lt;/lang:inline-script&gt;
+    &lt;lang:property name="message" value="I Can Do The Frug" /&gt;
+&lt;/lang:groovy&gt;</pre>
+<p>
+					直接在Spring的配置檔案中定義動態語言源碼的是否是最佳實踐這個問題先放在一邊，<code class="literal">&lt;lang:inline-script/&gt;</code>元素在某些場景下還是相當有用的。例如，給Spring MVC的<code class="interfacename">Controller</code>快速添加一個Spring <code class="interfacename">Validator</code>實作。如果採用內置源碼的方式只需要片刻時間就可以搞定（請參見<a href="ch24s04.html#dynamic-language-scenarios-validators" title="24.4.2.&#160;Validator的文稿化">第&#160;24.4.2&#160;節 「Validator的文稿化」</a>這一節的範例）。
+				</p>
+<p>
+					下面這個例子是一個基於JRuby的bean，這個例子直接在Spring的XML配置檔案中定義了源碼，並使用了<code class="literal">inline:</code> 符號。（注意其中使用 &amp;lt;符號來表示<code class="literal">'&lt;'</code>字元。這個例子中如果在內置源碼周圍定義一個<code class="literal">&lt;![CDATA[]]&gt;</code>就更好了。）
+				</p>
+<pre class="programlisting">&lt;lang:jruby id="messenger" script-interfaces="org.springframework.scripting.Messenger"&gt;
+    &lt;lang:inline-script&gt;
+require 'java'
+
+include_class 'org.springframework.scripting.Messenger'
+
+class RubyMessenger &amp;lt; Messenger
+
+ def setMessage(message)
+  @@message = message
+ end
+
+ def getMessage
+  @@message
+ end
+ 
+end
+    &lt;/lang:inline-script&gt;
+    &lt;lang:property name="message" value="Hello World!" /&gt;
+&lt;/lang:jruby&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="dynamic-language-beans-ctor-injection"></a>24.3.1.4.&#160;理解dynamic-language-backed bean上下文中的建構器注入</h4></div></div></div>
+<p>
+					關於Spring動態語言支持有一個要點必須引起注意：目前對dynamic-language-backed bean還不可能提供建構器參數的支持（也就是說對於dynamic-language-backed bean的建構器注入無效）。
+					只是為了將建構器和屬性的特殊處理100％說清楚，下面混合了程式碼和配置的例子是無法運作的。
+				</p>
+<pre class="programlisting">// from the file 'Messenger.groovy'
+package org.springframework.scripting.groovy;
+
+import org.springframework.scripting.Messenger
+
+class GroovyMessenger implements Messenger {
+
+    GroovyMessenger() {}
+
+    // this constructor is not available for Constructor Injection
+    GroovyMessenger(String message) {
+        this.message = message;
+    }
+
+    String message
+
+    String anotherMessage
+}</pre>
+<pre class="programlisting">&lt;lang:groovy id="badMessenger"
+    script-source="classpath:Messenger.groovy"&gt;
+
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- this next constructor argument will *not* be injected into the <code class="classname">GroovyMessenger</code> --&gt;</span></em>
+    <em class="lineannotation"><span class="lineannotation">&lt;!--     in fact, this isn't even allowed according to the schema --&gt;</span></em>
+    &lt;constructor-arg value="<em class="lineannotation"><span class="lineannotation"><span class="bold"><strong>This will *not* work</strong></span></span></em>" /&gt;
+    
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- <span class="bold"><strong>only</strong></span> property values are injected into the dynamic-language-backed object --&gt;</span></em>
+    &lt;lang:property name="anotherMessage" value="Passed straight through to the dynamic-language-backed object" /&gt;
+
+&lt;/lang&gt;</pre>
+<p>
+				實際上這種局限性並沒有表現的那麼明顯，因為setter注入的方式是開發人員更青睞的方式（至於哪種注入方式更好，這個話題我們還是留到以後再討論吧）。
+				</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="dynamic-language-beans-jruby"></a>24.3.2.&#160;JRuby beans</h3></div></div></div>
+<div class="sidebar">
+<p class="title"><b>JRuby的依賴資源庫</b></p>
+<p>
+					Spring支持的JRuby文稿需要在你的應用程序的classpath中添加以下資源庫檔案。Spring在對JRuby文稿的支持的開發過程中正好選擇了依賴資源庫的某個特定版本，你可以選擇版本相對或舊或新的依賴資源庫）。
+			    </p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><code class="filename">jruby.jar</code></p></li>
+<li><p><code class="filename">cglib-nodep-2.1_3.jar</code></p></li>
+</ul></div>
+</div>
+<p>來自JRuby官方網頁...</p>「<span class="quote">
+				<span class="emphasis"><em>JRuby是Ruby語言的純Java實作。
+				</em></span>
+			</span>」<p>
+				Spring一直以來的崇尚的哲學是提供選擇性，因此Spring動態語言支持特徵也支持使用JRuby語言定義的bean。JRuby語言當然基於Ruby語言，支持內置正則表達式，塊（閉包），以及其他很多特徵，這些特徵對於某些域問題提供了解決方案，可以讓開發變的更容易。
+		    </p>
+<p>
+				Spring對JRuby動態語言支持的有趣的地方在於：對於<code class="literal">&lt;lang:ruby&gt;</code>元素<code class="literal">'script-interfaces'</code>屬性指定的介面，Spring為它們創建了JDK動態代理實作（這也是你使用JRuby實作的bean,必須為該屬性指定至少一個介面並程式實作的原因）。
+			</p>
+<p>
+				首先我們看一個使用基於JRuby的bean的可工作的完整範例。下面是使用JRuby實作的<code class="interfacename">Messenger</code>介面（本章之前定義過了，為了方便你閱讀，下面重複定義該介面）。
+			</p>
+<pre class="programlisting">package org.springframework.scripting;
+
+public interface Messenger {
+
+    String getMessage();
+}</pre>
+<pre class="programlisting">require 'java'
+
+class RubyMessenger
+    include org.springframework.scripting.Messenger
+
+    def setMessage(message)
+        @@message = message
+    end
+
+    def getMessage
+        @@message
+    end
+end
+
+# this last line is not essential (but see below)
+RubyMessenger.new</pre>
+<p>
+				下面是Spring的XML配置，其內容定義了<code class="classname">RubyMessenger</code>(JRuby bean)的實例。
+			</p>
+<pre class="programlisting">&lt;lang:jruby id="messageService"
+            script-interfaces="org.springframework.scripting.Messenger"
+            script-source="classpath:RubyMessenger.rb"&gt;
+    
+    &lt;lang:property name="message" value="Hello World!" /&gt;
+
+&lt;/lang:jruby&gt;</pre>
+<p>
+				注意JRuby源碼的最後一行（<code class="literal">'RubyMessenger.new'</code>）。在Spring動態語言支持的上下文之下使用JRuby的時候，我們鼓勵你實例化並返回一個JRuby類別的實例。如果你打算將其作為你的JRuby源碼的執行結果，並將其作為dynamic-language-backed bean，只需要簡單的實例化你的JRuby類別就可以達到這樣的效果，如下面源檔案的最後一行：
+	        </p>
+<pre class="programlisting">require 'java'
+
+include_class 'org.springframework.scripting.Messenger'
+
+# class definition same as above...
+
+# instantiate and return a new instance of the RubyMessenger class
+RubyMessenger.new</pre>
+<p>
+				如果你忘記了這點，並不代表以前所有的努力白費了，不過Spring會以反射的方式掃瞄你的JRuby的型別表示，並找出一個類別，然後進行實例化。這個過程的速度是相當快的，可能你永遠都不會感覺到延遲，但是只需要象前面的例子那樣在你的JRuby的文稿最後添加一行就可以避免這樣的事情，何樂而不為呢？如果不提供這一行，或者如果Spring在你的JRuby文稿中無法找到可以實例化的類別，JRuby的解釋器執行源碼結束後會立刻拋出<code class="classname">ScriptCompilationException</code>異常。下面的程式碼中可以立刻發現一些關鍵的文本資訊，這些文本資訊標識了導致異常的根本原因（如果Spring容器在創建的 dynamic-language-backed bean的時候拋出以下異常, 在相應的異常堆棧中會包括以下文本資訊，希望這些資訊能夠說明你更容易定位並矯正問題）:
+			</p>
+<code class="computeroutput">org.springframework.scripting.ScriptCompilationException: Compilation of JRuby script returned ''</code><p>
+				為了避免這種錯誤，將你打算用作JRuby-dynamic-language-backed bean(如前文所示)的類別進行實例化，並將其返回。請注意在JRuby文稿中實際上可以定義任意數目的類別和物件，重要的是整個源檔案應該返回一個物件(用於Spring的配置)。
+			</p>
+<p>
+				<a href="ch24s04.html" title="24.4.&#160;場景">第&#160;24.4&#160;節 「場景」</a> 這一節提供了一些場景，在這些場景下也許你會打算採用基於JRuby的bean.
+			</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="dynamic-language-beans-groovy"></a>24.3.3.&#160;Groovy beans</h3></div></div></div>
+<div class="sidebar">
+<p class="title"><b>Groovy依賴資源庫</b></p>
+<p>
+					Spring支持的Groovy文稿需要在你的應用程序的classpath中添加以下jar套件。
+			    </p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><code class="filename">groovy-1.0.jar</code></p></li>
+<li><p><code class="filename">asm-2.2.2.jar</code></p></li>
+<li><p><code class="filename">antlr-2.7.6.jar</code></p></li>
+</ul></div>
+</div>
+<p>來自Groovy官方網頁...</p>「<span class="quote">
+				<span class="emphasis"><em>Groovy是一門針對Java 2平臺的敏捷的動態語言，Python、Ruby、Smalltalk這類別語言中不少受人喜愛的特徵都被囊括其中，並以Java樣式的語法展現給Java開發者。
+				</em></span>
+			</span>」<p>
+				如果你是以從上到下的方式一直讀到這一章，你應該已經看到了一個Groovy-dynamic-language-backed bean的<a href="ch24s02.html" title="24.2.&#160;第一個範例">範例</a>。接下來我們來看另外一個例子(還是選自Spring的測試套件)。
+			</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>Groovy需要1.4以上的JDK。</p>
+</div>
+<pre class="programlisting">package org.springframework.scripting;
+
+public interface Calculator {
+
+    int add(int x, int y);
+}</pre>
+<p>
+				下面是使用Groovy實作的<code class="interfacename">Calculator</code>介面。
+            </p>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation">// from the file 'calculator.groovy'</span></em>
+package org.springframework.scripting.groovy
+
+class GroovyCalculator implements Calculator {
+
+    int add(int x, int y) {
+        x + y
+    }
+}</pre>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation">&lt;-- from the file 'beans.xml' --&gt;</span></em>
+&lt;beans&gt;
+    &lt;lang:groovy id="calculator" script-source="classpath:calculator.groovy"/&gt;
+&lt;/beans&gt;</pre>
+<p>
+				最後是一個小應用程序，用於測試上面的配置。
+			</p>
+<pre class="programlisting">package org.springframework.scripting;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public class Main {
+
+    public static void Main(String[] args) {
+        ApplicationContext ctx = new ClassPathXmlApplicationContext("beans.xml");
+        Calculator calc = (Calculator) ctx.getBean("calculator");
+        System.out.println(calc.add(2, 8));
+    }
+}</pre>
+<p>
+				運行上面的程序最終輸出結果（毫無疑問）為<code class="computeroutput">10</code>。（令人激動的例子，是吧？記住我們的目的是為了闡述概念。更複雜的例子請參考動態語言的範例項目，或者參考本章最後列出的<a href="ch24s04.html" title="24.4.&#160;場景">第&#160;24.4&#160;節 「場景」</a>）。
+			</p>
+<p>
+				有一點很重要,那就是你<span class="emphasis"><em>不要</em></span> 在一個Groovy源檔案中定義兩個以上的class。雖然Groovy允許這樣做，但是是一個很不好的實踐，為了保持一致性，你應該尊重標準的Java規範（至少作者是這樣認為的）：一個源檔案只定義一個(public)類別。
+			</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="dynamic-language-beans-groovy-customizer"></a>24.3.3.1.&#160;通過回調定制Groovy物件</h4></div></div></div>
+<p>
+					<code class="interfacename">GroovyObjectCustomizer</code>介面實際上是一個回調，
+          它允許你將附屬的創建邏輯添加到創建Groovy bean的過程中。
+          例如，該介面的實作能夠調用任何需要的初始化方法，
+          或者設置一些缺省的屬性值，或者指定自定義的<code class="classname">MetaClass</code>。
+				</p>
+<pre class="programlisting">public interface GroovyObjectCustomizer {
+
+   void customize(GroovyObject goo);
+}</pre>
+<p>
+				  Spring框架將會初始化Groovy bean範例，然後將已經創建的<code class="interfacename">GroovyObject</code>
+				  物件傳到到指定的<code class="interfacename">GroovyObjectCustomizer</code>介面。
+				  通過<code class="interfacename">GroovyObject</code>你可以做任意想做的事情。大部分
+				  人也許都想通過該回調傳入一個定制的<code class="classname">MetaClass</code>，下面你將看到一個這樣的例子。
+				</p>
+<pre class="programlisting">public final class SimpleMethodTracingCustomizer implements GroovyObjectCustomizer {
+
+   public void customize(GroovyObject goo) {
+      DelegatingMetaClass metaClass = new DelegatingMetaClass(goo.getMetaClass()) {
+
+         public Object invokeMethod(Object object, String methodName, Object[] arguments) {
+            System.out.println("Invoking '" + methodName + "'.");
+            return super.invokeMethod(object, methodName, arguments);
+         }
+      };
+      metaClass.initialize();
+      goo.setMetaClass(metaClass);
+   }
+}</pre>
+<p>
+				完整討論Groovy的元程式已經超出了本參考手冊的範疇。建議直接查閱Groovy參考手冊的有關章節，
+				或者通過在線查詢：目前有大量的關於這方面的文章。
+				如果你使用Spring 2.0的命名空間支持功能，使用<code class="interfacename">GroovyObjectCustomizer</code>將會變得非常簡單。
+				</p>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation">&lt;!-- define the <code class="interfacename">GroovyObjectCustomizer</code> just like any other bean --&gt;</span></em>
+&lt;bean id="tracingCustomizer" class="example.SimpleMethodTracingCustomizer" /&gt;
+
+   <em class="lineannotation"><span class="lineannotation">&lt;!-- ... and plug it into the desired Groovy bean via the '<code class="literal">customizer-ref</code>' attribute --&gt;</span></em>
+   &lt;lang:groovy id="calculator"
+      script-source="classpath:org/springframework/scripting/groovy/Calculator.groovy"
+      customizer-ref="tracingCustomizer" /&gt;</pre>
+<p>
+				如果你沒有使用Spring 2.0的命名空間支持，你仍然可以使用<code class="interfacename">GroovyObjectCustomizer</code>的功能。
+				</p>
+<pre class="programlisting">&lt;bean id="calculator" class="org.springframework.scripting.groovy.GroovyScriptFactory"&gt;
+      &lt;constructor-arg value="classpath:org/springframework/scripting/groovy/Calculator.groovy"/&gt;
+      <em class="lineannotation"><span class="lineannotation">&lt;!-- define the <code class="interfacename">GroovyObjectCustomizer</code> (as an inner bean) --&gt;</span></em>
+      &lt;constructor-arg&gt;
+         &lt;bean id="tracingCustomizer" class="example.SimpleMethodTracingCustomizer" /&gt;
+      &lt;/constructor-arg&gt;
+&lt;/bean&gt;
+
+&lt;bean class="org.springframework.scripting.support.ScriptFactoryPostProcessor"/&gt;</pre>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="dynamic-language-beans-bsh"></a>24.3.4.&#160;BeanShell beans</h3></div></div></div>
+<div class="sidebar">
+<p class="title"><b>BeanShell依賴資源庫</b></p>
+<p>
+					Spring支持的BeanShell文稿需要在你的應用程序的classpath中添加以下資源庫檔案。
+			    </p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><code class="filename">bsh-2.0b4.jar</code></p></li>
+<li><p><code class="filename">cglib-nodep-2.1_3.jar</code></p></li>
+</ul></div>
+<p>
+                所有這些資源庫檔案都可以在Spring-with-dependecies發佈包中獲取（當然這些在網上也可以免費獲得）。
+                </p>
+</div>
+<p>來自BeanShell官方網頁...</p>「<span class="quote">
+				<span class="emphasis"><em>BeanShell是一個用Java實作的小型免費嵌入式Java源碼解釋器，支持動態語言特徵。BeanShell動態執行標準的Java語法，並進行了擴展，帶來一些常見的文稿的便利，如在Perl和JavaScript中的寬鬆型別、命令、方法閉包等等。</em></span>
+			</span>」<p>
+				和Groovy相比，基於BeanShell的bean定義需要的配置要多一些。Spring對BeanShell動態語言支持的有趣的地方在於：對於<code class="literal">&lt;lang:bsh&gt;</code>元素的<code class="literal">'script-interfaces'</code>屬性指定的介面，Spring為它們創建了JDK動態代理實作（這也是你使用BeanShell實作的bean，<span class="emphasis"><em>必須</em></span>為該屬性指定至少一個介面並程式實作的原因）。這意味著所有調用 BeanShell-backed物件的方法，都要通過JDK動態代理調用機制。
+			</p>
+<p>
+				首先我們看一個使用基於BeanShell的bean的可工作的完整範例。它實作了本章之前定義的<code class="interfacename">Messenger</code>介面（為了方便閱讀，下面重複定義該介面）。
+			</p>
+<pre class="programlisting">package org.springframework.scripting;
+
+public interface Messenger {
+
+    String getMessage();
+}</pre>
+<p>Here is the BeanShell 'implementation' (the term is used loosely here) of the
+	        <code class="interfacename">Messenger</code> interface.</p>
+<p>下面是BeanShell的實作的<code class="interfacename">Messenger</code> 介面。</p>
+<pre class="programlisting">String message;
+
+String getMessage() {
+    return message;
+}
+
+void setMessage(String aMessage) {
+    message = aMessage;
+}</pre>
+<p>
+				下面的Spring XML定義了上述「類別」的一個「實例」（這裡對術語的使用非常的隨意）。
+			</p>
+<pre class="programlisting">&lt;lang:bsh id="messageService" script-source="classpath:BshMessenger.bsh"
+    script-interfaces="org.springframework.scripting.Messenger"&gt;
+
+    &lt;lang:property name="message" value="Hello World!" /&gt;
+&lt;/lang:bsh&gt;</pre>
+<p>
+				<a href="ch24s04.html" title="24.4.&#160;場景">第&#160;24.4&#160;節 「場景」</a>一節中提供了一些場景，在這樣的場景下你也許打算採用基於BeanShell的bean。
+			</p>
+</div>
+</div></body>
+</html>

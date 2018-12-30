@@ -1,0 +1,151 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>21.2.&#160;配置CCI</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch21.html" title="第&#160;21&#160;章&#160;JCA CCI">
+<link rel="prev" href="ch21.html" title="第&#160;21&#160;章&#160;JCA CCI">
+<link rel="next" href="ch21s03.html" title="21.3.&#160;使用Spring的 CCI存取支持">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="cci-config"></a>21.2.&#160;配置CCI</h2></div></div></div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="cci-config-connector"></a>21.2.1.&#160;連接器配置</h3></div></div></div>
+<p>使用JCA CCI的基礎資源是 <code class="interfacename">ConnectionFactory</code> 介面。
+   所用的連接器必須提供這個介面的一個實作。</p>
+<p>
+   為了使用連接器，可以把它部署到你的應用伺服器上，並從伺服器的JNDI環境（托管模式）取回 <code class="interfacename">ConnectionFactory</code>。
+   連接器必須打包為一個RAR檔案（resource adapte archive）並包含一個部署描述符檔案 <code class="filename">ra.xml</code> 。
+   部署時需要指定資源的實際名字。如果想通過Spring存取它，只要簡單地使用Spring的 <code class="classname">JndiObjectFactoryBean</code> 來通過JNDI名字獲取處理器。</p>
+<p>
+   使用連接器的另一種方法是把它嵌入到應用程序中（非托管模式（non-managed mode）），而不用在應用伺服器中部署並配置它。
+   Spring提供了通過已提供的 <code class="literal">FactoryBean</code>（<code class="classname">LocalConnectionFactoryBean</code>)）來將連接器配置成一個bean的可能。
+   在這種方式中，只需要把連接器類別資源庫放到classpath目錄下（不需要RAR檔案和 <code class="filename">ra.xml</code> 描述符）。
+   如果有必要的話，必須從連接器的RAR檔案解壓得到那個類別資源庫。</p>
+<p>
+   一旦存取 <code class="interfacename">ConnectionFactory</code> 實例，
+   就可以將它注入到元件。這些元件既可以用簡單的CCI API編碼，也可以利用Spring支持CCI存取的類別（比如，<code class="classname">CciTemplate</code>）。
+   </p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>
+		當在非托管模式（non-managed mode）下使用連接器時，將無法使用全局事務，
+		因為該資源從不會被加入或刪除到當前執行緒的當前全局事務中。該資源根本不知道任何可能正在運行的全局的J2EE事務。
+		</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="cci-config-connectionfactory"></a>21.2.2.&#160;在Spring中配置<code class="interfacename">ConnectionFactory</code></h3></div></div></div>
+<p>
+   為了創建到 EIS 的連接，如果處於托管模式（managed mode），你需要從應用伺服器獲取一個 <code class="interfacename">ConnectionFactory</code> ，
+   或者當你在非托管模式（non-managed mode）時直接從Spring去獲取。</p>
+<p>在托管模式（managed mode）下，你可以從JNDI存取 <code class="interfacename">ConnectionFactory</code>，
+   它的屬性將被配置在應用伺服器中。</p>
+<pre class="programlisting">&lt;bean id="eciConnectionFactory" class="org.springframework.jndi.JndiObjectFactoryBean"&gt;
+ &lt;property name="jndiName" value="eis/cicseci"/&gt;
+&lt;/bean&gt;</pre>
+<p>
+	 在非托管模式（non-managed mode）下，你必須在Spring配置中將你要用的 <code class="interfacename">ConnectionFactory</code> 配置為一個JavaBean。
+	<code class="classname">LocalConnectionFactoryBean</code> 類別提供這種配置樣式，把 <code class="classname">ManagedConnectionFactory</code> 傳入到你的連接器的實作中，
+	暴露應用級的CCI <code class="interfacename">ConnectionFactory</code>。
+	 </p>
+<pre class="programlisting">&lt;bean id="eciManagedConnectionFactory" class="com.ibm.connector2.cics.ECIManagedConnectionFactory"&gt;
+ &lt;property name="serverName" value="TXSERIES"/&gt;
+ &lt;property name="connectionURL" value="tcp://localhost/"/&gt;
+ &lt;property name="portNumber" value="2006"/&gt;
+&lt;/bean&gt;
+
+&lt;bean id="eciConnectionFactory" class="org.springframework.jca.support.LocalConnectionFactoryBean"&gt;
+ &lt;property name="managedConnectionFactory" ref="eciManagedConnectionFactory"/&gt;
+&lt;/bean&gt;</pre>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>
+	你不能直接實例化一個指定的 <code class="interfacename">ConnectionFactory</code> 介面。
+	你需要為連接器實作相應的 <code class="classname">ManagedConnectionFactory</code> 介面，這個介面是JCA SPI規範的一部分。
+	</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="cci-config-cci-connections"></a>21.2.3.&#160;配置CCI連接</h3></div></div></div>
+<p>
+   JCA CCI允許開發者使用自己的連接器的 <code class="interfacename">ConnectionSpec</code> 介面實作來配置到 EIS 的連接。
+   為了配置該連接的屬性，需要用一個指定的 <code class="classname">ConnectionSpecConnectionFactoryAdapter</code> 適配器來封裝目標連接處理器。
+   因此，特定的 <code class="interfacename">ConnectionSpec</code> 介面可以用 <code class="literal">connectionSpec</code> 屬性來配置（作為一個內部bean）。
+  </p>
+<p>這個屬性不是必需的，因為CCI <code class="interfacename">ConnectionFactory</code> 介面定義了兩個不同的方法來獲取 CCI 連接。
+   <code class="interfacename">ConnectionSpec</code> 的一些屬性常常可以被配置在應用伺服器中（托管模式（managed mode））
+   或相關的本地 <code class="classname">ManagedConnectionFactory</code> 實作。
+  </p>
+<pre class="programlisting">public interface ConnectionFactory implements Serializable, Referenceable {
+ ...
+ Connection getConnection() throws ResourceException;
+ Connection getConnection(ConnectionSpec connectionSpec) throws ResourceException;
+ ...
+}</pre>
+<p>
+   Spring提供了 <code class="classname">ConnectionSpecConnectionFactoryAdapter</code> 適配器，
+	 允許你指定一個 <code class="interfacename">ConnectionSpec</code> 介面的實例, 供給定處理器的所有操作使用。
+   如果指定了適配器的 <code class="literal">connectionSpec</code> 屬性，適配器就使用沒有參數的 <code class="literal">getConnection</code> 變數，
+   而不是有 <code class="interfacename">ConnectionSpec</code> 參數的變數。</p>
+<pre class="programlisting">&lt;bean id="managedConnectionFactory"
+  class="com.sun.connector.cciblackbox.CciLocalTxManagedConnectionFactory"&gt;
+ &lt;property name="connectionURL" value="jdbc:hsqldb:hsql://localhost:9001"/&gt;
+ &lt;property name="driverName" value="org.hsqldb.jdbcDriver"/&gt;
+&lt;/bean&gt;
+
+&lt;bean id="targetConnectionFactory"
+  class="org.springframework.jca.support.LocalConnectionFactoryBean"&gt;
+ &lt;property name="managedConnectionFactory" ref="managedConnectionFactory"/&gt;
+&lt;/bean&gt;
+
+&lt;bean id="connectionFactory"
+  class="org.springframework.jca.cci.connection.ConnectionSpecConnectionFactoryAdapter"&gt;
+ &lt;property name="targetConnectionFactory" ref="targetConnectionFactory"/&gt;
+ &lt;property name="connectionSpec"&gt;
+  &lt;bean class="com.sun.connector.cciblackbox.CciConnectionSpec"&gt;
+   &lt;property name="user" value="sa"/&gt;
+   &lt;property name="password" value=""/&gt;
+  &lt;/bean&gt;
+ &lt;/property&gt;
+&lt;/bean&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="cci-config-single-connection"></a>21.2.4.&#160;使用一個 CCI 單連接</h3></div></div></div>
+<p>
+   如果想使用一個 CCI 單連接，Spring提供一個額外的 <code class="interfacename">ConnectionFactory</code> 適配器來管理它。
+   <code class="classname">SingleConnectionFactory</code> 適配器類別將延遲打開一個單獨的連接並在應用程序銷毀這個bean的時候關閉它。
+   這個類別將暴露出特殊 <code class="interfacename">Connection</code> 的相應代理，並共享同一個底層的物理連接。
+   </p>
+<pre class="programlisting">&lt;bean id="eciManagedConnectionFactory"
+  class="com.ibm.connector2.cics.ECIManagedConnectionFactory"&gt;
+ &lt;property name="serverName" value="TEST"/&gt;
+ &lt;property name="connectionURL" value="tcp://localhost/"/&gt;
+ &lt;property name="portNumber" value="2006"/&gt;
+&lt;/bean&gt;
+
+&lt;bean id="targetEciConnectionFactory"
+  class="org.springframework.jca.support.LocalConnectionFactoryBean"&gt;
+ &lt;property name="managedConnectionFactory" ref="eciManagedConnectionFactory"/&gt;
+&lt;/bean&gt;
+
+&lt;bean id="eciConnectionFactory"
+  class="org.springframework.jca.cci.connection.SingleConnectionFactory"&gt;
+ &lt;property name="targetConnectionFactory" ref="targetEciConnectionFactory"/&gt;
+&lt;/bean&gt;</pre>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>這個 <code class="interfacename">ConnectionFactory</code> 適配器不能直接用 <code class="interfacename">ConnectionSpec</code> 配置。
+	如果需要特定 <code class="interfacename">ConnectionSpec</code> 的單一連接，那麼可以用 <code class="classname">SingleConnectionFactory</code> 與之通信的中間 <code class="classname">ConnectionSpecConnectionFactoryAdapter</code> 適配器。
+    </p>
+</div>
+</div>
+</div></body>
+</html>

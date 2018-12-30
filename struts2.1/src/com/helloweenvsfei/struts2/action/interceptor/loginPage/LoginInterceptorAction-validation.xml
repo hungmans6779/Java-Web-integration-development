@@ -1,0 +1,26 @@
+<!DOCTYPE validators PUBLIC
+"-//OpenSymphony Group//XWork Validator 1.0//EN"
+"http://www.opensymphony.com/xwork/xwork-validator-1.0.2.dtd">
+
+<validators>
+
+
+  <!-- 檢查帳號 -->
+  <field name="account" >
+    <field-validator type="requiredstring" >    <!-- 必需的 -->
+      <param name="trim" >true</param>          <!-- 檢查時去掉前後空白 -->
+      <message>請輸入帳號</message>             <!-- 提示資訊  -->
+    </field-validator>
+  </field>
+
+
+  <!-- 檢查密碼，必須非空 -->  
+  <field name="password" >
+    <field-validator type="requiredstring" >   <!-- 必需的 -->
+      <param name="trim" >true</param>         <!-- 檢查時去掉前後空白 -->
+      <message>請輸入密碼</message>            <!-- 提示資訊 -->
+    </field-validator>
+  </field>
+ 
+ 
+</validators>

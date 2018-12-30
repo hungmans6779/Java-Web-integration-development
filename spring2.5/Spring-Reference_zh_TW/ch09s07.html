@@ -1,0 +1,22 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>9.7.&#160;選擇程式式事務管理還是宣告式事務管理</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch09.html" title="第&#160;9&#160;章&#160;事務管理">
+<link rel="prev" href="ch09s06.html" title="9.6.&#160;程式式事務管理">
+<link rel="next" href="ch09s08.html" title="9.8.&#160;與特定應用伺服器整合">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="tx-decl-vs-prog"></a>9.7.&#160;選擇程式式事務管理還是宣告式事務管理</h2></div></div></div>
+<p>當你只有很少的事務操作時，程式式事務管理通常比較合適。例如，如果你有一個Web應用，其中只有特定的更新操作有事務要求，
+	你可能不願使用Spring或其他技術設置事務代理。這種情況下，使用 <code class="classname">TransactionTemplate</code> <span class="emphasis"><em>可能</em></span> 是個好辦法。
+	只有程式式事務管理才能顯式的設置事務名稱。
+	</p>
+<p>另一方面，如果你的應用中存在大量事務操作，那麼宣告式事務管理通常是值得的。它將事務管理與商業邏輯分離，
+	而且在Spring中配置也不難。使用Spring，而不是EJB CMT，宣告式事務管理在配置上的成本極大地降低了。</p>
+</div></body>
+</html>

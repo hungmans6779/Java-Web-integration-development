@@ -1,0 +1,29 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>3.13.&#160;註冊一個LoadTimeWeaver</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch03.html" title="第&#160;3&#160;章&#160;IoC(控制反轉)容器">
+<link rel="prev" href="ch03s12.html" title="3.12.&#160;對受管元件的Classpath掃瞄">
+<link rel="next" href="ch04.html" title="第&#160;4&#160;章&#160;資源">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="context-load-time-weaver"></a>3.13.&#160;註冊一個<code class="interfacename">LoadTimeWeaver</code></h2></div></div></div>
+<p>Spring 2.5引入的<code class="literal">context</code>名字空間提供了一個<code class="literal">load-time-weaver</code>元素。</p>
+<pre class="programlisting">&lt;beans ...&gt;
+     
+     &lt;context:load-time-weaver/&gt;
+     
+&lt;/beans&gt;</pre>
+<p>在一個基於XML的Spring配置檔案中加入這個元素能為<code class="interfacename">ApplicationContext</code>
+    啟動一個Spring <code class="interfacename">LoadTimeWeaver</code>。
+    那個<code class="interfacename">ApplicationContext</code>中的任何bean都可以實作
+    <code class="interfacename">LoadTimeWeaverAware</code>，從而收到一個載入時織入器(load-time weaver)的實例。
+    這在與<a href="ch12s06.html" title="12.6.&#160;JPA">Spring JPA支持</a>結合時特別有用，JPA類別轉換需要載入時織入。
+    請查看<code class="classname">LocalContainerEntityManagerFactoryBean</code>的Javadoc以獲得詳細資訊。
+    想要更多地瞭解AspectJ載入時織入的話，請參考<a href="ch06s08.html#aop-aj-ltw" title="6.8.4.&#160;在Spring應用中使用AspectJ載入時織入（LTW）">第&#160;6.8.4&#160;節 「在Spring應用中使用AspectJ載入時織入（LTW）」</a>。</p>
+</div></body>
+</html>

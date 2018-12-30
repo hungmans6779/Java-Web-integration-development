@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<!-- 類別所在的包名 -->    
+<hibernate-mapping package="com.helloweenvsfei.hibernate.bean.xml" >
+
+  <class name="com.helloweenvsfei.hibernate.bean.Customer" table="tb_customer" >
+    
+    <!-- 
+      @Id                                            // id 設定
+      @GeneratedValue(strategy=GenerationType.AUTO)  // 主鍵產生規則設定
+      private Integer id;                          
+    -->
+    <id name="id" column="id" >
+      <generator class="native" />
+    </id>
+    
+    
+    <!-- 
+      private String name;                            // name 使用預設設定
+    -->
+    <property name="name" />
+    
+    
+    <!-- 
+      @OneToOne                                       // 宣告一對一關聯性
+      @PrimaryKeyJoinColumn                           // 一對一實體的主鍵相同
+      private Address address;                        // 位址屬性
+    -->
+    <one-to-one name="address" ></one-to-one>
+    
+    
+  </class>
+  
+</hibernate-mapping>  

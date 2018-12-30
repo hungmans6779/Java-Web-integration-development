@@ -1,0 +1,5 @@
+eclipse.preferences.version=1
+encoding//src/com/webservice/xfire/HelloWebServiceClient.java=UTF-8
+encoding//src/com/webservice/xfire/auth/HelloWebServiceAuthClient.java=UTF-8
+encoding//src/com/webservice/xfire/dthp/HelloWebServiceDTHPClient.java=UTF-8
+encoding//src/com/webservice/xfire/signature/HelloWebServiceSignatureClient.java=UTF-8

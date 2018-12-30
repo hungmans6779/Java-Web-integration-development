@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://xfire.codehaus.org/config/1.0">
+
+
+
+  <!-- 《一般呼叫》 -->
+  <service>
+    
+    <!-- 服務名稱：HelloWebService -->
+	<name>HelloWebService</name>
+	
+	<!-- 服務介面類別 --> 
+	<serviceClass>com.webservice.xfire.IHelloWebService</serviceClass>
+	
+	<!-- 實現服務介面類別 -->
+	<implementationClass>com.webservice.xfire.HelloWebServiceImpl</implementationClass>
+
+	<!-- 綁定服務 -->
+	<style>wrapped</style>
+	<use>literal</use>
+	<scope>application</scope>
+	
+  </service>
+	
+	
+  
+  
+  
+  
+  
+  <!-- 《Web 服務安全》SOAP Header 中進行身份驗證  -->
+  <service>
+  
+    <!-- 服務名稱：HelloWebServiceAuth -->
+  	<name>HelloWebServiceAuth</name>
+  	
+  	<!-- 服務介面類別 --> 
+  	<serviceClass>com.webservice.xfire.IHelloWebServiceAuth</serviceClass>
+  	
+  	<!-- 實現服務介面類別 -->
+  	<implementationClass>com.webservice.xfire.HelloWebServiceAuthImpl</implementationClass>
+
+    <!-- 增加接收訊息 inHandler 處理 -->
+    <inHandlers>
+      <handler handlerClass="com.webservice.auth.AuthenticationHandler" />
+    </inHandlers>
+      	
+  	<!-- 綁定服務 -->
+  	<style>wrapped</style>
+  	<use>literal</use>
+  	<scope>application</scope>
+  	
+  </service>
+  
+  
+  
+  
+  
+  
+  
+  <!-- 《WS-Security》進行身份證驗證  -->
+  <!--
+       設定 WSS4JInHandler 屬性，與用戶端設定 WSS4JOutHandler 屬性要對應。尤其是根據使用者名稱取密碼時要使用同一個 passwordCallbackClass 的Handler。
+    如果用戶端攜帶的使用者名稱不存在，則會拋出例外。
+    另外，除了取出對應的使用者和密碼外，還需要一個認證身份的 ValidateUserTokenHandler。
+    
+    org.codehaus.xfire.security.wss4j.WSS4JOutHandler：負責解析 WS-Security 規範的資訊
+    org.codehaus.xfire.util.dom.DOMOutHandler：負責將 DOM 轉化成 StAX
+    
+    org.codehaus.xfire.security.wss4j.WSS4JInHandler：負責解析 WS-Security 規範的資訊
+    org.codehaus.xfire.util.dom.DOMInHandler：負責將 StAX 轉化成 DOM
+  -->
+  <service>
+  
+    <!-- 服務名稱：HelloWebServiceDTHP -->
+  	<name>HelloWebServiceDTHP</name>
+  	
+  	<!-- 服務介面類別 --> 
+  	<serviceClass>com.webservice.xfire.IHelloWebServiceDTHP</serviceClass>
+  	 
+  	<!-- 實現服務介面類別 -->
+  	<implementationClass>com.webservice.xfire.HelloWebServiceDTHPImpl</implementationClass>
+  	
+  	
+  	<inHandlers>
+  	  
+  	  <!-- 負責將 StAX 轉化為 DOM 解析 -->
+  	  <handler handlerClass="org.codehaus.xfire.util.dom.DOMInHandler" />
+  	  
+  	  
+  	  <!-- 負責解析 WS-Security 規範的資訊(開始)  -->
+  	  <bean id="org.codehaus.xfire.security.wss4j.WSS4JInHandler" class="org.codehaus.xfire.security.wss4j.WSS4JInHandler" xmlns="" >
+  	    
+  	    <!-- 設定 InHandler 屬性 -->
+  	    <property name="properties">
+  	      <props>
+  	      
+  	        <!-- 設定認證類別 -->
+  	        <prop key="action" >UsernameToken</prop>
+  	        
+  	        <!-- 設定根據使用者名稱查詢出對應的密碼回檔方法  -->
+  	        <prop key="passwordCallbackClass" >com.webservice.dthp.PasswordHandler</prop>
+  	        
+  	      </props>
+  	    </property>     
+  	  </bean>
+  	  <!-- 負責解析 WS-Security 規範的資訊(結束)  -->
+  	   
+  	    
+  	  <!-- 驗證使用者身份 -->
+  	  <handler handlerClass="com.webservice.dthp.ValidateUserTokenHandler" />
+  	   
+  	</inHandlers>
+  	
+  	
+  	<!-- 綁定服務 -->
+  	<style>wrapped</style>
+  	<use>literal</use>
+  	<scope>application</scope>
+  	
+  </service>
+  
+ 
+  
+ 
+
+  <!-- 
+    數位簽章(Signature)：
+    使用使用者名稱/密碼 雖然可以驗證 SOAP 請求封包發送者的身份實現授權存取，但是也有其局限性：
+    ● 服務端無法保證封包在傳輸過程中沒有被篡改，駭客可以截取使用了 UsernameToken 的 SOAP 封包並在篡改後再發送給服務端，
+       這樣就會使 SOAP 封包的完整性遭受破壞。
+    ● 僅使用 UsernameToken 的 SOAP ，用戶端使用者可以抵賴自己的操作行為，因為駭客確實可以透過一些方法（如鍵盤監聽、暴力破解等）獲得使用者的密碼。
+    
+    而數位簽章方式則可以解決以上的問題，保證交易的完整性和不可抵賴性。用戶端透過私密金鑰對 SOAP 封裝進行數位簽章，由於私密金鑰只為個人擁有，
+    因此不可抵賴到了保證。數位簽章其實是使用了私密金鑰對封包的摘要進行加密，只有封包在傳輸過程中不被篡改，接收端在進行數位簽章驗證時才可能成功，
+    因此完整性又得到了保證。
+  
+    如何使用數位憑證的方式實現安全驗證：
+    可以使用 JDK 附帶的 KeyTool 工具建立金鑰對和數位憑證，分別為服務端和用戶端建立 RSA 金錀對，並產生各自的 X509 數位憑證(包含公開金錀和數位簽章)。
+    服務端和用戶端擁有各自的金鑰庫JKS 檔案，服務端的金錀庫儲存服務端的金鑰對和用戶端的數位憑證，而用戶端的金鑰庫儲存用戶端的金錀對和服務端的數位憑證。 
+  -->
+  <service>
+  
+    <!-- 服務名稱：HelloWebServiceSignature -->
+  	<name>HelloWebServiceSignature</name>
+  	  
+  	<!-- 服務介面類別 --> 
+  	<serviceClass>com.webservice.xfire.IHelloWebServiceSignature</serviceClass>
+  	
+  	<!-- 實現服務介面類別 -->
+  	<implementationClass>com.webservice.xfire.HelloWebServiceSignatureImpl</implementationClass>
+  	
+  	<!-- 設定 InHandler 屬性 -->
+  	<inHandlers>
+  	  
+  	  <handler handlerClass="org.codehaus.xfire.util.dom.DOMInHandler" />
+  	  
+  	  <bean id="org.codehaus.xfire.security.wss4j.WSS4JInHandler" class="org.codehaus.xfire.security.wss4j.WSS4JInHandler"  xmlns="" >
+  	    <property name="properties" >
+  	      <props>
+			<!-- 設定認證類型為數位憑證 -->
+			<prop key="action" >Signature</prop>
+						
+			<!-- 設定數位馮證屬性  -->
+			<prop key="signaturePropFile" >META-INF/xfire/insecurity.properties</prop>
+                  		
+			<!-- 設定根據使用者名稱查詢出對應的密碼回檔方法  -->
+			<prop key="passwordCallbackClass" >com.webservice.signature.PasswordHandler</prop>
+		  
+		  </props>
+  	    </property>  
+  	  </bean>
+  	  
+  	  <!-- 驗證使用者身份  -->
+  	  <handler handlerClass="com.webservice.signature.ValidateUserTokenHandler" />
+  	  
+  	</inHandlers>
+    
+    <!-- 綁定服務 -->
+  	<style>wrapped</style>
+  	<use>literal</use>
+  	<scope>application</scope>
+  </service>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <!-- 
+    加密(Encryption)：
+        雖然透過數位簽章解決了完整性和不可抵賴性的安全問題，但訊息還是以明文的方式進行發送，在傳輸過程中，
+    訊息體的內容有可能被監視，保密性得不到保證。
+        如果報文體中包含了一些敏感的內容，則發送者希望封包的內容能以加密的方式進行傳輸，防止窺視。
+    透過 SOAP 報文體進行加密，即可解決保密性的問題。
+    在 XFire 中對 SOAP 報文體進行加密解密需要解決的主要問題就是註冊相應的 Handler，並為其提供相應的存取金鑰的資訊。
+  -->
+  <service>
+  	
+  	<!-- 服務名稱：HelloWebServiceEnc -->
+  	<name>HelloWebServiceEnc</name>
+  	
+  	<!-- 服務介面類別 --> 
+  	<serviceClass>com.webservice.xfire.IHelloWebServiceEnc</serviceClass>
+  	
+  	<!-- 實現服務介面類別 -->
+  	<implementationClass>com.webservice.xfire.HelloWebServiceEncImpl</implementationClass>
+  
+  
+    <inHandlers>
+    
+      <handler handlerClass="org.codehaus.xfire.util.dom.DOMInHandler" />
+  	  
+  	  <bean id="org.codehaus.xfire.security.wss4j.WSS4JInHandler" class="org.codehaus.xfire.security.wss4j.WSS4JInHandler"  xmlns="" >
+      
+        <!-- 設定 InHandler 屬性 -->      
+        <property name="properties" >
+          
+          <props>
+          
+       	    <!-- 設定認證類型為數位憑證 -->
+			<prop key="action" >Encrypt</prop>
+						
+			<!-- 設定數位馮證屬性  -->
+			<prop key="decryptionPropFile" >META-INF/xfire/insecurity.properties</prop>
+                  		
+			<!-- 設定根據使用者名稱查詢出對應的密碼回檔方法  -->
+			<prop key="passwordCallbackClass" >com.webservice.encrypt.PasswordHandler</prop>
+		  
+          </props>
+          
+       </property>  
+            
+      </bean>
+      
+      
+      <!-- 驗證使用者身份  -->
+  	  <handler handlerClass="com.webservice.encrypt.ValidateUserTokenHandler" />
+  	  	   
+   </inHandlers>
+  
+
+  	<style>wrapped</style>
+  	<use>literal</use>
+  	<scope>application</scope>
+ 
+  </service>
+  
+  
+    
+  
+  
+ </beans>

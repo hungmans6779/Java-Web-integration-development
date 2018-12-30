@@ -1,0 +1,68 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>B.4.&#160;Coding a BeanDefinitionParser</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="apb.html" title="附錄&#160;B.&#160;Extensible XML authoring">
+<link rel="prev" href="apbs03.html" title="B.3.&#160;Coding a NamespaceHandler">
+<link rel="next" href="apbs05.html" title="B.5.&#160;Registering the handler and the schema">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="extensible-xml-parser"></a>B.4.&#160;Coding a <code class="interfacename">BeanDefinitionParser</code></h2></div></div></div>
+<p>A <code class="interfacename">BeanDefinitionParser</code> will be used if the
+		<code class="interfacename">NamespaceHandler</code> encounters an XML element of the type
+		that has been mapped to the specific bean definition parser (which is <code class="literal">'dateformat'</code>
+		in this case). In other words, the <code class="interfacename">BeanDefinitionParser</code> is
+		responsible for parsing <span class="emphasis"><em>one</em></span> distinct top-level XML element defined in the
+		schema. In the parser, we'll have access to the XML element (and thus it's subelements too)
+		so that we can parse our custom XML content, as can be seen in the following example:</p>
+<pre class="programlisting">package org.springframework.samples.xml;
+
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.xml.AbstractSingleBeanDefinitionParser;
+import org.springframework.util.StringUtils;
+import org.w3c.dom.Element;
+
+import java.text.SimpleDateFormat;
+
+public class SimpleDateFormatBeanDefinitionParser extends AbstractSingleBeanDefinitionParser { <a name="extensible-xml-parser-simpledateformat-co-1"></a><img src="images/callouts/1.png" alt="1" border="0">
+
+   protected Class getBeanClass(Element element) {
+      return SimpleDateFormat.class; <a name="extensible-xml-parser-simpledateformat-co-2"></a><img src="images/callouts/2.png" alt="2" border="0">
+   }
+
+   protected void doParse(Element element, BeanDefinitionBuilder bean) {
+      <em class="lineannotation"><span class="lineannotation">// this will never be null since the schema explicitly requires that a value be supplied</span></em>
+      String pattern = element.getAttribute("pattern");
+      bean.addConstructorArg(pattern);
+
+      <em class="lineannotation"><span class="lineannotation">// this however is an optional property</span></em>
+      String lenient = element.getAttribute("lenient");
+      if (StringUtils.hasText(lenient)) {
+         bean.addPropertyValue("lenient", Boolean.valueOf(lenient));
+      }
+   }
+}</pre>
+<div class="calloutlist"><table border="0" summary="Callout list">
+<tr>
+<td width="5%" valign="top" align="left">
+<a href="#extensible-xml-parser-simpledateformat-co-1"><img src="images/callouts/1.png" alt="1" border="0"></a> </td>
+<td valign="top" align="left"><p>We use the Spring-provided <code class="classname">AbstractSingleBeanDefinitionParser</code>
+			    to handle a lot of the basic grunt work of creating a <span class="emphasis"><em>single</em></span>
+			    <code class="interfacename">BeanDefinition</code>.</p></td>
+</tr>
+<tr>
+<td width="5%" valign="top" align="left">
+<a href="#extensible-xml-parser-simpledateformat-co-2"><img src="images/callouts/2.png" alt="2" border="0"></a> </td>
+<td valign="top" align="left"><p>We supply the <code class="classname">AbstractSingleBeanDefinitionParser</code> superclass
+			    with the type that our single <code class="interfacename">BeanDefinition</code> will represent.</p></td>
+</tr>
+</table></div>
+<p>In this simple case, this is all that we need to do. The creation of our single
+		<code class="interfacename">BeanDefinition</code> is handled by the <code class="classname">AbstractSingleBeanDefinitionParser</code>
+		superclass, as is the extraction and setting of the bean definition's unique identifier.</p>
+</div></body>
+</html>

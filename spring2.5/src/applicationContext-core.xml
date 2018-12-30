@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+	xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+
+
+  <!-- 攔截器對象  -->
+  <bean id="methodBeforeAdviceImpl" class="com.helloweenvsfei.core.filter.MethodBeforeAdviceImpl" ></bean>
+  
+  <!-- 配置欄截器。(用的是Spring 的元件) -->
+  <bean id="theAdvisor" class="org.springframework.aop.support.NameMatchMethodPointcutAdvisor" >
+    
+    <!-- 攔截器對象 -->
+    <property name="advice" >
+      <ref local="methodBeforeAdviceImpl" />   <!-- 攔截器物件 -->
+    </property>
+    <!-- 
+                也可以使用下列的方式 
+      <property name="advice" rel="methodBeforeAdviceImpl" /> 
+    -->
+    
+    <!-- 攔截所有的方法 -->
+    <property name="mappedName" value="*" ></property>
+		
+  </bean>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <!-- DAO 物件 -->
+  <bean id="daoImpl" class="com.helloweenvsfei.core.dao.impl.DaoImpl" /> 
+
+  <!-- Service 實例  -->
+  <bean id="serviceImpl" class="com.helloweenvsfei.core.service.impl.ServiceImpl" >
+    <property name="dao" ><ref bean="daoImpl" /></property>
+    <!-- 
+                也可以使用下列的方式
+      <property name="dao" ref="daoImpl" ></property>
+     -->
+  </bean>
+  
+  
+  <!-- 代理類別 Spring 的元件  -->
+  <bean id="service" class="org.springframework.aop.framework.ProxyFactoryBean" >
+    <!-- 攔截器  -->
+    <property name="interceptorNames" value="theAdvisor" ></property>
+    
+    <!-- 被攔截器的物件 -->
+    <property name="target" ref="serviceImpl" ></property>  
+  </bean>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close" >
+    <property name="driverClassName" value="${jdbc.driverClassName}" />
+    <property name="url"             value="${jdbc.url}"             />
+    <property name="username"        value="${jdbc.username}"        />
+    <property name="password"        value="${jdbc.password}"        />
+  </bean>
+
+  <bean id="jdbc"
+        class="org.springframework.beans.factory.config.PropertyOverrideConfigurer" >
+    <property name="location" value ="classpath:jdbc.properties" />
+  </bean>
+
+
+ 
+  <bean id="whatsTheNameBean" class="com.helloweenvsfei.core.aware.WhatsTheNameBean" />
+    
+  <bean id="a" class="com.helloweenvsfei.core.aware.A" ></bean>
+  <bean id="b" class="com.helloweenvsfei.core.aware.B" scope="prototype" ></bean>
+ 
+ 
+ 
+ 
+ 
+
+   <!-- InitializingBean 介面執行初始化的方法 -->
+   <bean id="initialBean01" class="com.helloweenvsfei.core.other.InitializingBean01" ></bean>
+
+   <bean id="initialBean02" class="com.helloweenvsfei.core.other.InitializingBean02" init-method="afterPropertiesSet" ></bean>
+
+
+
+   
+
+   <!-- DisposableBean 介面執行銷毀的方法  -->   
+   <bean id="disposableBean01" class="com.helloweenvsfei.core.other.DisposableBean01" >
+      <property name="message" value="(01)I'm property message..." />
+   </bean>
+
+   <bean id="disposableBean02" class="com.helloweenvsfei.core.other.DisposableBean02"  destroy-method="destroy" >
+      <property name="message" value="(02)I'm property message..." />
+   </bean>
+
+
+
+
+
+   <!-- PropertyOverrideConfigurer 屬性覆蓋器  -->
+   <bean class="org.springframework.beans.factory.config.PropertyOverrideConfigurer" >
+     <property name="location" value="classpath:propertyOverrideHolder.properties" />
+   </bean>
+   <bean id="student" class="com.helloweenvsfei.core.other.PropertyOverrideConfigurer01" >
+     <property name="name"  value="賽亞人"                />
+     <property name="age"   value="${student.age}"       />
+     <property name="birth" value="${student.birth}"     />
+   </bean>
+
+   <bean id="kevin" class="com.helloweenvsfei.core.other.PropertyOverrideConfigurer02" >
+     <property name="name"  value="kevin"                />
+     <property name="age"   value="${kevin.age}"       />
+     <property name="birth" value="${kevin.birth}"     />
+   </bean>
+   
+ 
+   
+</beans>

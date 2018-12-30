@@ -1,0 +1,92 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>14.2.&#160;JSP和JSTL</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch14.html" title="第&#160;14&#160;章&#160;整合視圖技術">
+<link rel="prev" href="ch14.html" title="第&#160;14&#160;章&#160;整合視圖技術">
+<link rel="next" href="ch14s03.html" title="14.3.&#160;Tiles">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="view-jsp"></a>14.2.&#160;JSP和JSTL</h2></div></div></div>
+<p>
+			Spring為JSP和JSTL這些view層技術提供了幾個即取即用的解決方案。 使用JSP和JSTL的話，採用
+			<code class="interfacename">WebApplicationContext</code>
+			中定義的普通視圖解析器即可；當然，還需要自行編寫一些實際做渲染的JSP頁面。
+			本章介紹了一些Spring提供的用於簡化JSP開發的額外特性。
+		</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="view-jsp-resolver"></a>14.2.1.&#160;視圖解析器</h3></div></div></div>
+<p>
+				與在Spring中採用的任何其他視圖技術一樣，使用JSP方式需要一個用來解析視圖的視圖解析器，
+				常用的是在<code class="interfacename">WebApplicationContext</code>
+				中定義的<code class="classname">InternalResourceViewResolver</code>和
+				<code class="classname">ResourceBundleViewResolver</code>。
+			</p>
+<pre class="programlisting">
+				<em class="lineannotation"><span class="lineannotation">
+					&lt;!-- the
+					<code class="classname">ResourceBundleViewResolver</code>
+					--&gt;
+				</span></em>
+				
+&lt;bean id="viewResolver" class="org.springframework.web.servlet.view.ResourceBundleViewResolver"&gt;
+  &lt;property name="basename" value="views"/&gt;
+&lt;/bean&gt;
+
+<em class="lineannotation"><span class="lineannotation">
+					# And a sample properties file is uses
+					(views.properties in WEB-INF/classes):
+</span></em>
+				
+welcome.class=org.springframework.web.servlet.view.JstlView
+welcome.url=/WEB-INF/jsp/welcome.jsp
+
+productList.class=org.springframework.web.servlet.view.JstlView
+productList.url=/WEB-INF/jsp/productlist.jsp</pre>
+<p>
+				正如你所看到的，<code class="classname">ResourceBundleViewResolver</code>
+				需要一個屬性檔案來定義view名稱到1) class 2) URL的映射。使用
+				<code class="classname">ResourceBundleViewResolver</code>，可以只使用一個解析器來混用不同型別的視圖技術。
+			</p>
+<pre class="programlisting">&lt;bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver"&gt;
+  &lt;property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/&gt;
+  &lt;property name="prefix" value="/WEB-INF/jsp/"/&gt;
+  &lt;property name="suffix" value=".jsp"/&gt;
+&lt;/bean&gt;</pre>
+<p>
+				如上例所示， 用JSP時可以配置一個
+				<code class="classname">
+					InternalResourceBundleViewResolver
+				</code>。 作為一個最佳實踐，我們強烈推薦你用
+				<code class="filename">WEB-INF</code>下的一個目錄來存放JSP檔案，從而避免被客戶端直接存取。
+			</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="view-jsp-jstl"></a>14.2.2.&#160;
+				'Plain-old' JSPs versus JSTL 'Plain-old' JSP與JSTL
+			</h3></div></div></div>
+<p>
+				使用JSTL時，必須使用一個特別的view類別<code class="classname">JstlView</code>
+				，因為JSTL需要一些準備工作，然後像i18N這樣的特性才能工作。
+			</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="view-jsp-tags"></a>14.2.3.&#160;說明簡化開發的額外的標籤</h3></div></div></div>
+<p>
+				前面的章節中提到過，Spring提供了從請求參數到命令物件的資料綁定。為了簡化與資料綁定特性配合使用的JSP頁面的開發，Spring提供了一些標籤讓事情變得更簡單。這些標籤都提供了
+				<span class="emphasis"><em>html escaping</em></span>的特性，能夠打開或關閉字元轉碼的功能。
+			</p>
+<p>
+				<code class="filename">spring.jar</code>
+				包含了標籤資源庫描述符(TLD)，就好像它自己的tag。關於每個tag的更多資料請參閱附錄<a href="apd.html" title="附錄&#160;D.&#160;spring.tld">附錄&#160;D, <i>spring.tld</i></a>。
+			</p>
+</div>
+</div></body>
+</html>

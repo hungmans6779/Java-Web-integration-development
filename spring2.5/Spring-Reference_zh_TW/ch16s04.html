@@ -1,0 +1,211 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>16.4.&#160;控制器</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch16.html" title="第&#160;16&#160;章&#160;Portlet MVC框架">
+<link rel="prev" href="ch16s03.html" title="16.3.&#160;ViewRendererServlet">
+<link rel="next" href="ch16s05.html" title="16.5.&#160;處理器映射">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="portlet-controller"></a>16.4.&#160;控制器</h2></div></div></div>
+<p>Portlet MVC裡的控制器和Web MVC的很相似，在兩者之間移植程式碼很簡單。</p>
+<p>Portlet MVC控制器構架的基礎是
+		<code class="interfacename">org.springframework.web.portlet.mvc.Controller</code> 
+		介面，如下所示。</p>
+<pre class="programlisting">public interface Controller {
+
+    /**
+     * Process the render request and return a ModelAndView object which the
+     * DispatcherPortlet will render.
+     */
+    ModelAndView handleRenderRequest(RenderRequest request, RenderResponse response)
+        throws Exception;
+
+    /**
+     * Process the action request. There is nothing to return.
+     */
+    void handleActionRequest(ActionRequest request, ActionResponse response)
+        throws Exception;
+
+}</pre>
+<p>如你所見，Portlet
+		<code class="interfacename">Controller</code>介面需要兩個方法來處理Portlet
+		請求的兩個階段：動作請求和顯示請求。動作階段應該能夠處理動作請求，顯示階段應該
+		能夠處理顯示請求，並返回合適的模型和視圖。 
+		儘管<code class="interfacename">Controller</code>介面是抽象的，但Spring Portlet MVC
+		提供了很多包含了各種各樣你需要的功能的控制器-它們中的大多數和Spring Web MVC裡的控制器很類似。
+		<code class="interfacename">Controller</code>介面只定義每個控制器需要的通用的功能
+		- 處理動作請求，處理顯示請求，返回模型和視圖。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="portlet-controller-abstractcontroller"></a>16.4.1.&#160;<code class="classname">AbstractController</code> 和 <code class="classname">PortletContentGenerator</code></h3></div></div></div>
+<p>當然，僅一個<code class="interfacename">Controller</code> 
+			是不夠的。為了提供基本的功能，所有的Spring Portlet
+			<code class="interfacename">Controller</code>從
+			<code class="classname">AbstractController</code>繼承，後者可以存取Spring
+			的<code class="interfacename">ApplicationContext</code>和控制快取記憶體。</p>
+<div class="table">
+<a name="portlet-ac-features"></a><p class="title"><b>表&#160;16.3.&#160;<code class="classname">AbstractController</code>提供的功能</b></p>
+<div class="table-contents"><table summary="AbstractController提供的功能" border="1">
+<colgroup>
+<col align="left">
+<col>
+</colgroup>
+<thead><tr>
+<th align="left">參數</th>
+<th>解釋</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left"><code class="literal">requireSession</code></td>
+<td>表明當前的
+							<code class="interfacename">Controller</code>是否需要session。
+							所有的控制器都能使用這個功能。如果這樣的控制器收到請求時，
+							session不存在，使用者會收到
+							<code class="classname">SessionRequiredException</code>異常。</td>
+</tr>
+<tr>
+<td align="left"><code class="literal">synchronizeSession</code></td>
+<td>如果需要控制器在處理使用者session時保持同步，使用
+							這個參數。更具體來說，擴展的控制器會覆寫<code class="methodname">handleRenderRequestInternal(..)</code>
+							和<code class="methodname">handleActionRequestInternal(..)</code>方法，如果指定了這個參數，
+							這兩個方法會在處理使用者session時保持同步。</td>
+</tr>
+<tr>
+<td align="left"><code class="literal">renderWhenMinimized</code></td>
+<td>如果需要在portlet最小化狀態時，控制器也顯示視圖，
+							把這個參數設為true。這個參數缺省是false，所以portlet在最小化狀態
+							時，不顯示內容。</td>
+</tr>
+<tr>
+<td align="left"><code class="literal">cacheSeconds</code></td>
+<td>在需要控制器覆寫當前portlet定義的缺省快取記憶體失效時間時，
+							設置一個正的整數。這個參數缺省是<code class="literal">-1</code>，
+							表示不改變缺省的快取記憶體，把它設為<code class="literal">0</code>，就是
+							確保不快取記憶體結果。</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><p><code class="literal">requireSession</code>和 
+			<code class="literal">cacheSeconds</code>屬性是在
+			<code class="classname">AbstractController</code>的父類別
+			<code class="classname">PortletContentGenerator</code>裡宣告的。為了完整性，
+			把它們列在這裡。</p>
+<p>在你自己的控制器裡繼承<code class="classname">AbstractController</code>時
+			（不推薦這樣做，因為已經有許多現成的控制器，它們可能有你需要的功能），僅需要覆寫
+			<code class="methodname">handleActionRequestInternal(ActionRequest, 
+			ActionResponse)</code>方法或 
+			<code class="methodname">handleRenderRequestInternal(RenderRequest, 
+			RenderResponse)</code>方法（或兩者都覆寫），實作邏輯，
+			並返回 <code class="classname">ModelAndView</code> 物件（如果是
+			<code class="literal">handleRenderRequestInternal</code>方法）。</p>
+<p><code class="methodname">handleActionRequestInternal(..)</code>和 
+			<code class="methodname">handleRenderRequestInternal(..)</code>方法的缺省實作都會
+			拋出<code class="classname">PortletException</code>，這和JSR-168規範API裡的
+			<code class="classname">GenericPortlet</code>的行為是一致的。所以只要覆寫你的控制器
+			需要處理的方法。</p>
+<p>下面簡短的例子包含了一個類別和一個在web應用context裡的宣告。</p>
+<pre class="programlisting">package samples;
+
+import javax.portlet.RenderRequest;
+import javax.portlet.RenderResponse;
+
+import org.springframework.web.portlet.mvc.AbstractController;
+import org.springframework.web.portlet.ModelAndView;
+
+public class SampleController extends AbstractController {
+
+    public ModelAndView handleRenderRequestInternal(
+        RenderRequest request,
+        RenderResponse response) throws Exception {
+
+        ModelAndView mav = new ModelAndView("foo");
+        mav.addObject("message", "Hello World!");
+        return mav;
+    }
+}
+
+&lt;bean id="sampleController" class="samples.SampleController"&gt;
+    &lt;property name="cacheSeconds" value="120"/&gt;
+&lt;/bean&gt;</pre>
+<p>為了使得一個簡單的控制器工作，你只需要類似上面的類別和在web應用context裡的宣告，
+			並且再設置一下處理器映射（見 <a href="ch16s05.html" title="16.5.&#160;處理器映射">第&#160;16.5&#160;節 「處理器映射」</a>）。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="portlet-controller-simple"></a>16.4.2.&#160;其它簡單的控制器</h3></div></div></div>
+<p>儘管你能夠繼承<code class="classname">AbstractController</code>，
+			Spring Portlet MVC提供了不少具體的實作，它們提供了許多在簡單MVC應用裡常用的功能。
+			</p>
+<p><code class="classname">ParameterizableViewController</code>基本上
+			和上面的例子類似，除了你能指定web應用context返回的視圖的名字。（不需要寫死視圖名稱）。
+			</p>
+<p><code class="classname">PortletModeNameViewController</code>把當前的
+			Portlet的狀態作為視圖名，如果Portlet在View模式
+			（比如：<code class="literal">PortletMode.VIEW</code>），這個「View」就是視圖名。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="portlet-controller-command"></a>16.4.3.&#160;Command控制器</h3></div></div></div>
+<p>Spring Portlet MVC提供了和Spring Web MVC完全一致的
+			<span class="emphasis"><em>command controllers</em></span>層次結構，提供方法來與資料物件交互
+			並且動態地把參數從<code class="interfacename">PortletRequest</code>
+			綁定到資料物件上。資料物件不需要實作框架相關的介面，因而你可以
+			直接操作這些持久化物件。下面讓我們查看Command控制器提供的功能，來瞭解它們的使用：
+			</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><code class="classname">AbstractCommandController</code> 
+				- Command控制器，可以用來創建自己的控制器，它能夠將請求裡的參數
+				綁定到指定的資料物件。這個類別不提供表單功能，但它提供驗證功能，並且
+				可以在控制器裡指定如何處理帶有請求參數的Command物件。</p></li>
+<li><p><code class="classname">AbstractFormController</code> -
+				提供表單提交支持的抽象控制器。你能夠對表單進行建模，通過從控制器
+				裡得到的Command物件來填充表單。在使用者提交表單後， 
+				<code class="classname">AbstractFormController</code>會綁定欄位、進行驗證，
+				然後把物件返回給控制器來做下一步的動作。支持的功能有：無效表單提交(重新
+				提交)、驗正和通常的表單串流程。你需要實作方法來決定表單的顯示和成功時使用的
+				視圖。如果你需要表單，但不想在應用context裡指定使用者看到的視圖，使用這個
+				控制器。</p></li>
+<li><p><code class="classname">SimpleFormController</code> -
+				一個具體的<code class="classname">AbstractFormController</code>，
+				對使用對應的command物件產生表單提供了更多的支持。
+				<code class="classname">SimpleFormController</code>可以讓你在使用者成功地提交
+				表單或其它狀態時，指定command物件，表單的視圖名以及頁面對應的視圖名。</p></li>
+<li><p><code class="classname">AbstractWizardFormController</code> –
+				具體的<code class="classname">AbstractFormController</code>，它提交了嚮導式的介面
+				來編輯跨多個頁面的command物件。支持多種使用者動作：完成、取消或者頁面變化，所有這些
+				都可以簡便地在視圖的請求參數里指定。</p></li>
+</ul></div>
+<p>這些command控制器是非常強大的，為了有效地使用，需要對它們的原理有
+			細緻的理解。在你開始使用它們前，務必仔細閱讀它們層次結構的javadoc以及範例。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="portlet-controller-wrapping"></a>16.4.4.&#160;<code class="classname">PortletWrappingController</code></h3></div></div></div>
+<p>除了開發新的控制器，我們可以重用現有的portlet並且在
+			<code class="classname">DispatcherPortlet</code>
+			把請求映射指向它們。通過<code class="classname">PortletWrappingController</code>，你能實例化一個
+			現有的<code class="interfacename">Portlet</code>來作
+			<code class="interfacename">Controller</code>，如下所示：</p>
+<pre class="programlisting">&lt;bean id="wrappingController"
+      class="org.springframework.web.portlet.mvc.PortletWrappingController"&gt;
+    &lt;property name="portletClass" value="sample.MyPortlet"/&gt;
+    &lt;property name="portletName" value="my-portlet"/&gt;
+    &lt;property name="initParameters"&gt;
+        &lt;value&gt;
+            config=/WEB-INF/my-portlet-config.xml
+        &lt;/value&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;</pre>
+<p>這會很有價值，因為可以使用攔截器來對送向這些portlet的請求進行預處理和後處理。
+			而且也很方便，因為JSR-168沒有提供對過濾機制的支持。比如，可以在一個MyFaces
+			JSR Portlet外面加上Hibernate的
+			<code class="classname">OpenSessionInViewInterceptor</code>。</p>
+</div>
+</div></body>
+</html>

@@ -1,0 +1,176 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>4.7.&#160;Application context 和Resource 路徑</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch04.html" title="第&#160;4&#160;章&#160;資源">
+<link rel="prev" href="ch04s06.html" title="4.6.&#160;把Resource作為屬性來配置">
+<link rel="next" href="ch05.html" title="第&#160;5&#160;章&#160;校驗，資料綁定，BeanWrapper，與屬性編輯器">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="resources-app-ctx"></a>4.7.&#160;Application context 和<code class="interfacename">Resource</code> 路徑</h2></div></div></div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="resources-app-ctx-construction"></a>4.7.1.&#160;建構application context</h3></div></div></div>
+<p>application context建構器通常使用字元串或字元串陣列作為資源(比如組成context定義 的XML檔案)的定位路徑。</p>
+<p>當這樣的定位路徑沒有前綴時，指定的 <code class="interfacename">Resource</code> 型別會通過這個路徑來被創建並被用來載入bean的定義，這都取決於你所指定的application context。例如，如果你使用下面的程式碼來創建<code class="classname">ClassPathXmlApplicationContext</code> ：</p>
+<pre class="programlisting">ApplicationContext ctx = new ClassPathXmlApplicationContext("conf/appContext.xml");</pre>
+<p>這些Bean的定義會通過classpath載入並使用<code class="classname">ClassPathResource</code>。而如果你像下面這麼創建<code class="classname">FileSystemXmlApplicationContext</code>：</p>
+<pre class="programlisting">ApplicationContext ctx =
+    new FileSystemXmlApplicationContext("conf/appContext.xml");</pre>
+<p>這些Bean的定義會通過檔案系統從相對於當前工作目錄中被載入。</p>
+<p>請注意如果定位路徑使用classpath前綴或標準的URL前綴，那它就會覆寫預設的<code class="interfacename">Resource</code>
+型別。因此下面的<code class="classname">FileSystemXmlApplicationContext</code>...
+			</p>
+<pre class="programlisting">ApplicationContext ctx =
+    new FileSystemXmlApplicationContext("classpath:conf/appContext.xml");</pre>
+<p>...實際上會通過classpath載入其bean定義。然而它仍是個<code class="classname">FileSystemXmlApplicationContext</code>。
+如果後面它被當作<code class="interfacename">ResourceLoader</code> 來使用，那麼任何沒有使用前綴的路徑依然會被當作一個檔案系統路徑。
+			</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="resources-app-ctx-classpathxml"></a>4.7.1.1.&#160;創建 <code class="classname">ClassPathXmlApplicationContext</code> 實例 - 簡介</h4></div></div></div>
+<p>
+					<code class="classname">ClassPathXmlApplicationContext</code> 提供了多種建構方法以便於初始化。但其核心是，如果我們僅僅提供由XML檔案名組成的字元串陣列(沒有完整路徑資訊)，	而且<span class="emphasis"><em>還</em></span>提供了<code class="classname">Class</code>；那麼該<code class="classname">ClassPathXmlApplicationContext</code>就
+會從給定的類別中抽取路徑資訊。
+				</p>
+<p>希望通過一個範例把這些闡述清楚。假設有這樣的目錄結構：
+				</p>
+<pre class="programlisting">com/
+  foo/
+    services.xml
+    daos.xml
+    MessengerService.class</pre>
+<p>由 <code class="literal">'services.xml'</code> 和 <code class="literal">'daos.xml'</code> 中定義的bean組成的
+				<code class="classname">ClassPathXmlApplicationContext</code> 實例會像這樣地來實例化...
+				</p>
+<pre class="programlisting">ApplicationContext ctx = new ClassPathXmlApplicationContext(
+    new String[] {"services.xml", "daos.xml"}, MessengerService.class);</pre>
+<p>欲瞭解 <code class="classname">ClassPathXmlApplicationContext</code> 多種建構方法的細節，請參考它的Javadocs。</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="resources-app-ctx-wildcards-in-resource-paths"></a>4.7.2.&#160;Application context建構器中資源路徑的通配符</h3></div></div></div>
+<p>Application context建構器中資源路徑的值可以是簡單的路徑(就像上面的那樣)，即一對一映射到一個目標資源；
+			或者可以包含特殊的"classpath*:"前綴和Ant樣式的正則表達式(用Spring的 <code class="classname">PathMatcher</code> 工具來匹配)。
+			後面的二者都可以使用通配符。</p>
+<p>該機制的一個用處就是做元件型別的應用組裝。所有的元件都可以用通用的定位路徑「發佈」context定義片斷，
+				這樣當使用相同的 <code class="literal">classpath*:</code> 前綴創建最終的application context時，所有的元件片斷都會被自動裝入。
+			</p>
+<p>請注意，這個通配符只在application context建構器的資源路徑中
+			(或直接在類別的層次中使用 <code class="classname">PathMatcher</code> 工具時)有效，
+			它會在建構時進行解析。這與 <code class="interfacename">Resource</code>
+			型別本身沒有關聯。因為同一時刻只能指向一個資源，所以不能使用
+				<code class="literal">classpath*:</code> 前綴來建構實際的<code class="interfacename">Resource</code>。
+			</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="resources-app-ctx-ant-patterns-in-paths"></a>4.7.2.1.&#160;Ant樣式的pattern</h4></div></div></div>
+<p>在包含Ant樣式的pattern時，例如：</p>
+<pre class="programlisting">     /WEB-INF/*-context.xml
+     com/mycompany/**/applicationContext.xml
+     file:C:/some/path/*-context.xml
+     classpath:com/mycompany/**/applicationContext.xml</pre>
+<p>解析器會進行一個預先定義的複雜的過程去試圖解析通配符。
+        它根據路徑中最後一個非通配符片斷產生一個Resource並從中獲得一個URL。
+        如果這個URL不是一個"jar:" URL或特定容器的變數(例如WebLogic中的
+        "<code class="literal">zip:</code>"，WebSphere中的"<code class="literal">wsjar</code>"等等)，
+        那麼可以從中獲得一個<code class="methodname">java.io.File</code>，
+        並用它從檔案系統中解析通配符。如果是一個jar URL，解析器可以從中取得一個
+        <code class="classname">java.net.JarURLConnection</code>，或者手工解析該jar URL，
+        隨後遍歷jar檔案以解析通配符。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="resources-app-ctx-portability"></a>4.7.2.1.1.&#160;潛在的可移植性</h5></div></div></div>
+<p>如果給定的路徑已經是一個檔案URL(可以是顯式的或者是隱式的)，
+          由於基本的ResourceLoader是針對檔案系統的，那麼通配符一定能夠移植。</p>
+<p>如果給定的路徑是一個classpath的位置，那麼解析器必須通過一個
+          <code class="methodname">Classloader.getResource()</code> 調用獲得最後一個
+          非通配符路徑片斷的URL。因為這僅僅是一個路徑的節點(不是最終的檔案)，
+          所以它並未確切定義(在 <code class="classname">ClassLoader</code> Javadocs裡)
+          此處究竟會返回什麼型別的URL。一般情況下，當classpath資源解析為一個檔案系統位置時，
+          返回一個代表目錄的 <code class="classname">java.io.File</code>；當解析為jar位置時，
+          返回某類別jar URL。當然，這個操作涉及到可移植性。</p>
+<p>如果從最後一個非通配符片斷中獲得一個jar URL，那麼解析器一定能從中取得一個
+          <code class="classname">java.net.JarURLConnection</code>，或者手動解析jar URL以遍歷jar檔案，
+          從而解析通配符。這一操作在大多數環境中能正常工作，不過也有例外，
+          因此我們強烈建議特定環境中的jar資源通配符解析應在正式使用前要經過徹底測試。</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="resources-classpath-wildcards"></a>4.7.2.2.&#160;<code class="literal">classpath*:</code> 前綴</h4></div></div></div>
+<p>當建構基於XML的application context時，路徑字元串可能使用特殊的 <code class="literal">classpath*:</code> 前綴：</p>
+<pre class="programlisting">ApplicationContext ctx =
+    new ClassPathXmlApplicationContext("classpath*:conf/appContext.xml");</pre>
+<p>此前綴表示所有與給定名稱匹配的classpath資源都應該被獲取(其中，這經常會在調用 <code class="methodname">ClassLoader.getResources(...)</code>) 時發生)，並接著將那些資源全並成最終的application context定義。</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Classpath*: 的可移植性</h3>
+<p>帶通配符的classpath依賴於底層classloader的 <code class="literal">getResources()</code> 方法。
+          現在大多數的應用伺服器提供自己的classloader實作，它們在處理jar檔案時的行為也許會有所不同。
+          要測試 <code class="literal">classpath*:</code> 是否有效，可以簡單地用classloader從classpath中的jar檔案裡載入一個檔案：
+          <code class="literal">getClass().getClassLoader().getResources("&lt;someFileInsideTheJar&gt;")</code>。
+          針對兩個不同位置但有相同名字的檔案來運行測試。如果結果不對，那麼就查看一下應用伺服器的文檔，
+          特別是那些可能影響classloader行為的設置。</p>
+</div>
+<p>"<code class="literal">classpath*:</code>"前綴也能在位置路徑的其他部分結合<code class="literal">PathMatcher</code> 
+        pattern一起使用，例如"<code class="literal">classpath*:META-INF/*-beans.xml</code>"。在這裡，
+        解析策略很簡單：對最後一個非通配符路徑片斷使用一個ClassLoader.getResources()調用，
+        從類別載入層次中獲得所有滿足的資源，隨後針對子路徑的通配符，
+        將同一個PathMatcher解析策略運用於每個資源之上。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="resources-wildcards-in-path-other-stuff"></a>4.7.2.3.&#160;其他關於通配符的說明</h4></div></div></div>
+<p>請注意如果目標檔案不是在檔案系統中，那麼"<code class="literal">classpath*:</code>"
+        在結合Ant樣式的pattern時必須在pattern開始前包含至少一個根路徑才能保證其正確性。
+        像"<code class="literal">classpath*:*.xml</code>"這樣的pattern不能從jar檔案的根目錄取得檔案，
+        而只能從這個根目錄的子目錄中獲得檔案。這個問題源自JDK中 <code class="methodname">ClassLoader.getResources()</code>
+        方法的一個局限性，即該方法在傳入空String(指示要搜尋的潛在根目錄)時只返回檔案系統位置。</p>
+<p>如果搜尋的根包在多個類別路徑位置上，帶"<code class="literal">classpath:</code>"的Ant樣式pattern
+		資源不能保證一定可以找到匹配的資源。這是因為像</p>
+<pre class="programlisting">    com/mycompany/package1/service-context.xml</pre>
+<p>這樣的資源只可能在一個位置，但如果要解析的是如下路徑</p>
+<pre class="programlisting">    classpath:com/mycompany/**/service-context.xml</pre>
+<p>解析器會排除<code class="methodname">getResource("com/mycompany")</code>;返回的(第一個)URL。
+        如果這個基礎包節點存在於多個classloader位置，最終要找的資源未必會被發現。
+        因此在這種情況中最好在這個Ant樣式的pattern中使用"<code class="literal">classpath*:</code>"，
+        這樣就會搜尋包含根包在內全部類別路徑。</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="resources-filesystemresource-caveats"></a>4.7.3.&#160;<code class="classname">FileSystemResource</code> 說明</h3></div></div></div>
+<p>一個並沒有與 <code class="classname">FileSystemApplicationContext</code> 綁定的
+				<code class="classname">FileSystemResource</code>(也就是說<code class="classname">FileSystemApplicationContext</code> 並不是真正的<code class="interfacename">ResourceLoader</code>)，會像你期望的那樣分辨絕對和相對路徑。
+				相對路徑是相對於當前的工作目錄，而絕對路徑是相對與檔案系統的根目錄。
+			</p>
+<p>為了向前相容的目的，當 <code class="classname">FileSystemApplicationContext</code> 是個
+				<code class="literal">ResourceLoader</code> 時它會發生變化。<code class="classname">FileSystemApplicationContext</code>
+				會簡單地讓所有綁定的 <code class="classname">FileSystemResource</code> 實例把絕對路徑都當成相對路徑，
+				而不管它們是否以反斜槓開頭。也就是說，下面的含義是相同的：
+			</p>
+<pre class="programlisting">ApplicationContext ctx =
+    new FileSystemXmlApplicationContext("conf/context.xml");</pre>
+<pre class="programlisting">ApplicationContext ctx =
+    new FileSystemXmlApplicationContext("/conf/context.xml");</pre>
+<p>下面的也一樣：(雖然把它們區分開來也很有意義，但其中的一個是相對路徑而另一個則是絕對路徑)。
+			</p>
+<pre class="programlisting">FileSystemXmlApplicationContext ctx = ...;
+ctx.getResource("some/resource/path/myTemplate.txt");</pre>
+<pre class="programlisting">FileSystemXmlApplicationContext ctx = ...;
+ctx.getResource("/some/resource/path/myTemplate.txt");</pre>
+<p>實際上如果的確需要使用絕對路徑，那你最好就不要使用 <code class="classname">FileSystemResource</code> 或 <code class="classname">FileSystemXmlApplicationContext</code>來確定絕對路徑。我們可以通過使用 <code class="literal">file:</code> URL前綴來強制使用<code class="classname">UrlResource</code>。
+			</p>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation">// actual context type doesn't matter, the <code class="interfacename">Resource</code> will always be <code class="classname">UrlResource</code></span></em>
+ctx.getResource("file:/some/resource/path/myTemplate.txt");</pre>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation">// force this FileSystemXmlApplicationContext to load it's definition via a <code class="classname">UrlResource</code></span></em>
+ApplicationContext ctx =
+    new FileSystemXmlApplicationContext("file:/conf/context.xml");</pre>
+</div>
+</div></body>
+</html>

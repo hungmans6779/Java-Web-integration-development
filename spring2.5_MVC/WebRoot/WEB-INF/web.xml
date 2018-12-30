@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="2.5" 
+	xmlns="http://java.sun.com/xml/ns/javaee" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee 
+	http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+  
+  
+  
+  <display-name></display-name>	
+  
+    
+    
+    
+  <!-- Spring 設定 -->
+  <context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>
+      /WEB-INF/classes/applicationContext.xml,
+      /WEB-INF/classes/spring-action.xml
+    </param-value> <!-- 設定檔的位置(可以多個設定檔，用,隔開即可)  --> 
+  </context-param>
+
+  
+  <!-- 設定 Listener 載入 Spring 設定檔 -->
+  <listener>
+    <!-- 初始化設定器 -->
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+  </listener>
+  
+  
+  
+  
+  
+   
+  <!-- 
+    OpenSessionInViewFilter，將 session 範圍擴大到 JSP 層，防止拋出延遲載入例外
+    OpenSessionInViewFilter 是 Spring 的一個 filter ，用於解決 Hibernate 延遲載人的問題，
+    該 Filter 會將 Session 的範圍延到到 JSP 層，這樣 JSP 中就不會因為延遲載入拋出例外了。 
+  -->
+  <filter>
+    <filter-name>hibernateFilter</filter-name>
+    <filter-class>org.springframework.orm.hibernate3.support.OpenSessionInViewFilter</filter-class>
+  </filter>
+  
+  <!-- 字元編碼 Filter -->
+  <filter>
+    <filter-name>CharacterEncodingFilter</filter-name>
+    <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+    <init-param>
+      <param-name>encoding</param-name>
+      <param-value>utf-8</param-value>
+    </init-param>
+    <init-param>
+      <param-name>forceEncoding</param-name>  <!-- 是否啟用編碼 -->
+      <param-value>true</param-value>         <!-- 啟用 -->
+    </init-param>
+  </filter>
+  
+  <filter-mapping>
+    <filter-name>hibernateFilter</filter-name>
+    <url-pattern>*.do</url-pattern>
+  </filter-mapping>
+  <filter-mapping>
+    <filter-name>CharacterEncodingFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  
+  
+  
+  
+  
+  <!-- Spring 分發器 -->
+  <!-- 
+      DispatcherServlet 需要設定 Controller 所在的設定檔，如果沒有，將使用預設位置，預設位置為 /WEB-INF/classes/Servlet 名稱-action.xml。
+      web.xml 需要設定 Spring MVC 的入口。 contextConfigLocation 需要同時設定 applicationContext.xml 與 spring-action.xml。 
+  -->
+  <servlet>
+    <servlet-name>spring</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <init-param>
+      <param-name>contextConfigLocation</param-name>
+      <param-value>/WEB-INF/classes/spring-action.xml</param-value>  <!-- 設定檔位置 -->
+    </init-param>
+    <load-on-startup>1</load-on-startup>                             <!-- 啟動時載入 -->
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>spring</servlet-name>
+    <url-pattern>*.mvc</url-pattern>      <!-- 攔截所有 .mvc 的檔案 -->
+  </servlet-mapping>
+  
+  
+  
+  
+  
+  
+  <welcome-file-list>
+    <welcome-file>index.jsp</welcome-file>
+  </welcome-file-list>
+  
+  
+  
+  
+</web-app>

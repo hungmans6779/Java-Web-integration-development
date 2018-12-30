@@ -1,0 +1,937 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>8.3.&#160;整合測試</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch08.html" title="第&#160;8&#160;章&#160;測試">
+<link rel="prev" href="ch08s02.html" title="8.2.&#160;單元測試">
+<link rel="next" href="ch08s04.html" title="8.4.&#160;更多資源">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="integration-testing"></a>8.3.&#160;整合測試</h2></div></div></div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="integration-testing-overview"></a>8.3.1.&#160;概覽</h3></div></div></div>
+<p>能夠無需部署到你的應用伺服器上或連接其它企業架構就實作整合測試是非常重要的。這可以讓你來進行以下測試：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>正確配置Spring IoC 容器上下文。</p></li>
+<li><p>使用JDBC或ORM工具的資料存取。可能包括如SQL文稿，Hibernate query，JPA 實體映射等的正確性驗證。</p></li>
+</ul></div>
+<p>Spring框架提供整合測試的一串流支持，相關類別打包在<code class="filename">spring-test.jar</code>類別資源庫中。在這個類別資源庫中，你可以找到<code class="literal">org.springframework.test</code>包，有很多方便使用Spring容器進行整合測試的類別，而且同時不依賴應用伺服器或其它部署環境。這些測試會比單元測試慢，但會比Cactus（譯者註：Apache測試伺服端Java程式碼的工具http://jakarta.apache.org/cactus/index.html ）測試或依靠部署到一個應用伺服器上來進行遠端測試要快捷的多。</p>
+<p>在2.5版本之前，Spring已經提供了<a href="ch08s03.html#junit38-legacy-support" title="8.3.6.&#160;JUnit 3.8遺留支持">導向JUnit 3.8的單元測試支持</a>.
+      在2.5版本中, Spring 提供了單元和整合測試支持 <a href="ch08s03.html#testcontext-framework" title="8.3.7.&#160;Spring TestContext Framework">Spring TestContext框架</a>。
+      它是實際測試框架的混合體，因此能夠說明在多個測試環境包括JUnit 3.8,JUnit 4.4, TestNG等中進行測試。 <span class="emphasis"><em>注意Spring TestContext框架需要Java 5+支持.</em></span></p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="integration-testing-which-framework"></a>8.3.2.&#160;使用哪個支持框架</h3></div></div></div>
+<p>Spring團隊推薦使用<a href="ch08s03.html#testcontext-framework" title="8.3.7.&#160;Spring TestContext Framework">Spring TestContext框架</a>
+      來進行所有新的單元測試和整合測試，以包括<code class="classname">ApplicationContext</code>或需要事務管理的情況。
+      但如果你開發在Java5之前的環境上，就需要繼續使用<a href="ch08s03.html#junit38-legacy-support" title="8.3.6.&#160;JUnit 3.8遺留支持">JUnit 3.8遺留支持</a>. 另外，顯式
+      <a href="ch08s03.html#junit38-legacy-jpa-tests" title="8.3.6.5.2.&#160;JPA支持類別">JPA整合測試支持</a>
+       依賴於<span class="emphasis"><em>shadow class載入</em></span>來進行JPA類別測試(class instrumentation)目前只能與JUnit 3.8遺留支持相容。
+       如果你要測試的JPA提供者不需要class instrumentation，就推薦使用TestContext框架。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="integration-testing-common-goals"></a>8.3.3.&#160;通用目標</h3></div></div></div>
+<p>Spring整合測試支持框架提供了一些通用目標，包括：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>跨越各個測試案例執行期的<a href="ch08s03.html#testing-ctx-management" title="8.3.3.1.&#160;上下文管理及快取記憶體">Spring IoC容器快取記憶體</a>。</p></li>
+<li><p><a href="ch08s03.html#testing-fixture-di" title="8.3.3.2.&#160;測試fixtures依賴注入">測試fixture實例的依賴注入</a> (這很爽)。</p></li>
+<li><p>適合整合測試的<a href="ch08s03.html#testing-tx" title="8.3.3.3.&#160;事務管理">事務管理</a>(這更加爽)。</p></li>
+<li><p><a href="ch08s03.html#testing-support-classes" title="8.3.3.4.&#160;整合測試支持類別">Spring特有的支持類別</a>在編寫整合測試時真的很有用。</p></li>
+</ul></div>
+<p>下面的章節具體描述每一個目標並提供指向特定支持框架的資訊的連接。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="testing-ctx-management"></a>8.3.3.1.&#160;上下文管理及快取記憶體</h4></div></div></div>
+<p>Spring整合測試支持框架提供了<code class="classname">ApplicationContext</code>的持久化載入和這些上下文的快取記憶體機制。
+        對已載入上下文的快取記憶體是很重要的，因為如果你是在一個大型的項目中，啟動時間會成為一個問題——不是因為Spring本身的開銷，
+        而是因為靠Spring容器來初始化的物件需要很長時間。比如一個有50-100 Hibernate映射檔案的項目可能需要10-20秒來載入映射檔案，
+        而每次單一測試fixture的每個單一測試前都要這樣的時間開銷，減慢了整體的測試進度進而降低效率。</p>
+<p>測試類別通常會提供一個陣列來包含XML配置元資料的資源路徑——通常是classpath——來配置應用。這通常和<code class="literal">web.xml</code>或其它部署描述中指定的配置路徑是相同或相近的。</p>
+<p>預設情況下,一旦載入，<code class="interfacename">ApplicationContext</code>將在每次測試中重用。
+        這樣啟動的開銷將只需要一次（每個測試fixture），接下來的測試執行就會快得多。
+        在一些少見的會「污染」應用上下文的案例中需要重新載入—— 例如，改變一個bean定義或應用物件的狀態——
+        Spring的測試支持提供了在執行下一個測試前讓測試fixture重新載入配置並重建應用上下文的機制。</p>
+<p>上下文管理和快取記憶體使用：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><a href="ch08s03.html#junit38-legacy-ctx-management" title="8.3.6.1.&#160;上下文管理及快取記憶體">JUnit 3.8遺留支持</a></p></li>
+<li><p><a href="ch08s03.html#testcontext-ctx-management" title="8.3.7.2.&#160;上下文管理和快取記憶體">TestContext框架</a></p></li>
+</ul></div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="testing-fixture-di"></a>8.3.3.2.&#160;測試fixtures依賴注入</h4></div></div></div>
+<p>當Spring整合測試支持框架載入你的應用上下文時，它們能通過依賴注入選擇性配置測試類別實例。
+        這提供了一個方便的機制來使用預先在應用上下文中配置的bean來搭建測試fixture。
+        很大的好處就是你可以在各種測試場景中重用應用上下文(例如配置Spring管理的物件圖，
+        事務代理<code class="classname">DataSource</code>等)，從而能避免為單個的測試案例重複進行測試fixture搭建。</p>
+<p>作為例子，考慮一個場景：我們有一個<code class="classname">HibernateTitleDao</code>類別來實作資料存取邏輯，假設是<code class="classname">Title</code>域物件。我們希望編寫測試所有以下方面的整合測試：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>Spring配置: 最基本的，是否所有與<code class="classname">HibernateTitleDao</code> bean相關的配置都是正確和存在的？</p></li>
+<li><p>Hibernate映射配置檔案: 是否所有映射都是正確的並且lazy-loading設置也到位了？</p></li>
+<li><p><code class="classname">HibernateTitleDao</code>邏輯：是否類別的已配置範例的實作與預期相同？</p></li>
+</ul></div>
+<p>測試fixtures依賴注入使用：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><a href="ch08s03.html#junit38-legacy-fixture-di" title="8.3.6.2.&#160;測試fixture依賴注入">JUnit 3.8 遺留支持</a></p></li>
+<li><p><a href="ch08s03.html#testcontext-fixture-di" title="8.3.7.3.&#160;測試fixture的依賴注入">TestContext框架</a></p></li>
+</ul></div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="testing-tx"></a>8.3.3.3.&#160;事務管理</h4></div></div></div>
+<p>存取實際資料庫的測試的一個通常問題是對持久化狀態的影響。
+        即使你使用開發資料庫，狀態的改變也可能影響後面的測試。而且很多操作 —— 
+        如插入或修改持久化資料 —— 不能在事務外完成（或驗證）。</p>
+<p>Spring整合測試支持框架滿足了這些需求。預設情況下，對每次測試它們會創建並回滾事務。
+        你編寫程式碼可以假定事務已經存在。如果你在測試中調用事務代理物件，它們將根據配置的事務語義正常響應。
+        另外，如果測試方法在事務內刪除了選定表的資料，這個事務會預設回滾，資料庫也將回到測試執行前的狀態。
+        事務支持通過在測試應用上下文中定義的<code class="classname">PlatformTransactionManager</code> bean提供。</p>
+<p>如果你希望事務被提交 —— 不常見,但可能你希望特定的測試插入或修改資料庫 —— Spring整合測試支持框架
+        可以通過調用一個繼承下來的鉤子(Hook)方法或宣告特定註釋來讓事務提交而不是回滾。</p>
+<p>事務管理使用:</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><a href="ch08s03.html#junit38-legacy-tx" title="8.3.6.3.&#160;事務管理">JUnit 3.8 遺留支持</a></p></li>
+<li><p><a href="ch08s03.html#testcontext-tx" title="8.3.7.4.&#160;事務管理">TestContext框架</a></p></li>
+</ul></div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="testing-support-classes"></a>8.3.3.4.&#160;整合測試支持類別</h4></div></div></div>
+<p>Spring整合測試支持框架提供了幾個<code class="literal">abstract</code>支持類別來簡化編寫整合測試。
+        這些測試基類別提供了定義良好的測試框架鉤子，比如方便的變數實例和方法，來存取以下物件：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><code class="literal">ApplicationContext</code>: 用來進行顯式bean尋找或整體測試上下文狀態。</p></li>
+<li><p><code class="classname">JdbcTemplate</code>或<code class="classname">SimpleJdbcTemplate</code>: 用來查詢並確認狀態。 
+            例如，你可能需要在創建對象並通過ORM工具持久化到資料庫中的測試案例運行前後進行查詢，以確認資料在資料庫中存在了。
+            (Spring將確保查詢在同一個事務範圍內運行。) 你需要通知ORM工具來'flush'變化以確保正常工作，
+            例如使用Hibernate <code class="interfacename">Session</code>介面的<code class="methodname">flush()</code>方法。</p></li>
+</ul></div>
+<p>你經常會提供一個應用範圍的父級類別來為多個整合測試提供有用的實例變數。</p>
+<p>支持類別：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><a href="ch08s03.html#junit38-legacy-support-classes" title="8.3.6.4.&#160;JUnit 3.8 遺留支持類別">JUnit 3.8遺留支持</a></p></li>
+<li><p><a href="ch08s03.html#testcontext-support-classes" title="8.3.7.5.&#160;TestContext支持類別">TestContext框架</a></p></li>
+</ul></div>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="integration-testing-support-jdbc"></a>8.3.4.&#160;JDBC測試支持</h3></div></div></div>
+<p><code class="literal">org.springframework.test.jdbc</code>包含有<code class="classname">SimpleJdbcTestUtils</code>類別，它
+      是一個基於Java5的JDBC相關工具方法集，用來簡化標準資料庫測試場景。<span class="emphasis"><em>注意<a href="ch08s03.html#testcontext-support-classes-junit38" title="8.3.7.5.1.&#160;JUnit 3.8支持類別"><code class="classname">AbstractTransactionalJUnit38SpringContextTests</code></a>,
+      <a href="ch08s03.html#testcontext-support-classes-junit44" title="8.3.7.5.2.&#160;JUnit 4.4支持類別"><code class="classname">AbstractTransactionalJUnit4SpringContextTests</code></a>,
+      和<a href="ch08s03.html#testcontext-support-classes-testng" title="8.3.7.5.4.&#160;TestNG支持類別"><code class="classname">AbstractTransactionalTestNGSpringContextTests</code></a>
+      提供了簡便的方法來內部代理到<code class="classname">SimpleJdbcTestUtils</code>。</em></span></p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="integration-testing-common-annotations"></a>8.3.5.&#160;常用註釋</h3></div></div></div>
+<p>Spring框架在<code class="literal">org.springframework.test.annotation</code>
+      套件中提供了常用的<span class="emphasis"><em>Spring特定的</em></span>註釋集，如果你在Java5或以上版本開發，可以在測試中使用它。</p>
+<div class="itemizedlist"><ul type="disc">
+<li>
+<p><span class="bold"><strong><code class="interfacename">@IfProfileValue</code></strong></span></p>
+<p>提示一下，註釋測試只針對特定的測試環境。
+          如果配置的<code class="classname">ProfileValueSource</code>類別返回對應的提供者的<code class="literal">名稱</code><code class="literal">值</code>，
+          這個測試就可以啟動。這個註釋可以應用到一個類別或者單獨的方法。</p>
+<pre class="programlisting">@IfProfileValue(name="java.vendor", value="Sun Microsystems Inc.")
+public void testProcessWhichRunsOnlyOnSunJvm() {
+    <em class="lineannotation"><span class="lineannotation">// some logic that should run only on Java VMs from Sun Microsystems</span></em>
+}</pre>
+<p>同時<code class="interfacename">@IfProfileValue</code>可配置一個<code class="literal">值</code>列表
+          (使用<span class="emphasis"><em>OR</em></span> 語義) 來在JUnit環境中獲得TestNG的<span class="emphasis"><em>測試組</em></span>支持。
+          看下面的例子：</p>
+<pre class="programlisting">@IfProfileValue(name="test-groups", values={"unit-tests", "integration-tests"})
+public void testProcessWhichRunsForUnitOrIntegrationTestGroups() {
+    <em class="lineannotation"><span class="lineannotation">// some logic that should run only for unit and integration test groups</span></em>
+}</pre>
+</li>
+<li>
+<p><span class="bold"><strong><code class="interfacename">@ProfileValueSourceConfiguration</code></strong></span></p>
+<p>類別級別註釋用來指定當通過<code class="interfacename">@IfProfileValue</code>註釋獲取已配置的<span class="emphasis"><em>profile值</em></span>時使用何種<code class="literal">ProfileValueSource</code>。
+          如果<code class="interfacename">@ProfileValueSourceConfiguration</code>沒有在測試中宣告，將預設使用<code class="classname">SystemProfileValueSource</code>。</p>
+<pre class="programlisting">@ProfileValueSourceConfiguration(CustomProfileValueSource.class)
+public class CustomProfileValueSourceTests {
+    <em class="lineannotation"><span class="lineannotation">// class body...</span></em>
+}</pre>
+</li>
+<li>
+<p><span class="bold"><strong><code class="interfacename">@DirtiesContext</code></strong></span></p>
+<p>在測試方法上出現這個註釋時，表明底層Spring容器在該方法的執行中被「污染」，從而必須在方法執行結束後重新創建（無論該測試是否通過）。</p>
+<pre class="programlisting">@DirtiesContext
+public void testProcessWhichDirtiesAppCtx() {
+    <em class="lineannotation"><span class="lineannotation">// some logic that results in the Spring container being dirtied</span></em>
+}</pre>
+</li>
+<li>
+<p><span class="bold"><strong><code class="interfacename">@ExpectedException</code></strong></span></p>
+<p>表明被註釋方法預期在執行中拋出一個異常。預期異常的型別在註釋中給定。如果該異常的實例在測試方法執行中被拋出，
+          則測試通過。同樣的如果該異常實例<span class="emphasis"><em>沒有</em></span>在測試方法執行時拋出，則測試失敗。</p>
+<pre class="programlisting">@ExpectedException(SomeBusinessException.class)
+public void testProcessRainyDayScenario() {
+    <em class="lineannotation"><span class="lineannotation">// some logic that should result in an <code class="classname">Exception</code> being thrown</span></em>
+}</pre>
+</li>
+<li>
+<p><span class="bold"><strong><code class="interfacename">@Timed</code></strong></span></p>
+<p>表明被註釋的測試方法必須在規定的時間區間內執行完成（以毫秒記）。如果測試執行時間超過了規定的時間區間，測試就失敗了。</p>
+<p>注意該時間區間包括測試方法本身的執行，任何重複測試（參見 <code class="interfacename">@Repeat</code>），還有任何測試fixture的<span class="emphasis"><em>set up</em></span>或<span class="emphasis"><em>tear down</em></span>時間。</p>
+<pre class="programlisting">@Timed(millis=1000)
+public void testProcessWithOneSecondTimeout() {
+    <em class="lineannotation"><span class="lineannotation">// some logic that should not take longer than 1 second to execute</span></em>
+}</pre>
+</li>
+<li>
+<p><span class="bold"><strong><code class="interfacename">@Repeat</code></strong></span></p>
+<p>表明被註釋的測試方法必須重複執行。執行的次數在註釋中宣告。</p>
+<p>注意重複執行範圍包括包括測試方法本身的執行，以及任何測試fixture的<span class="emphasis"><em>set up</em></span>或<span class="emphasis"><em>tear down</em></span>。</p>
+<pre class="programlisting">@Repeat(10)
+public void testProcessRepeatedly() {
+    <em class="lineannotation"><span class="lineannotation">// ...</span></em>
+}</pre>
+</li>
+<li>
+<p><span class="bold"><strong><code class="interfacename">@Rollback</code></strong></span></p>
+<p>表明被註釋方法的事務在完成後是否需要被<span class="emphasis"><em>回滾</em></span>。
+          如果<code class="literal">true</code>，事務將被回滾，否則事務將被提交。
+          使用<code class="interfacename">@Rollback</code>介面來在類別級別覆寫配置的預設回滾標誌。</p>
+<pre class="programlisting">@Rollback(false)
+public void testProcessWithoutRollback() {
+    <em class="lineannotation"><span class="lineannotation">// ...</span></em>
+}</pre>
+</li>
+<li>
+<p><span class="bold"><strong><code class="interfacename">@NotTransactional</code></strong></span></p>
+<p>出現該註釋表明測試方法必須<span class="emphasis"><em>不</em></span>在事務中執行。</p>
+<pre class="programlisting">@NotTransactional 
+public void testProcessWithoutTransaction() {
+    <em class="lineannotation"><span class="lineannotation">// ...</span></em>
+}</pre>
+</li>
+</ul></div>
+<p>註釋支持：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><a href="ch08s03.html#junit38-legacy-java5-support" title="8.3.6.5.&#160;Java 5+ 專有支持">JUnit 3.8遺留支持</a>：
+          所有上面列舉的註釋都被支持，但<span class="emphasis"><em>必須</em></span>與<code class="classname">AbstractAnnotationAwareTransactionalTests</code>類別聯合使用，以保證這些註釋能起作用。</p></li>
+<li><p><a href="ch08s03.html#testcontext-annotations" title="8.3.7.6.&#160;TestContext框架註釋支持">TestContext框架</a>：
+          支持上面列舉的所有註釋，而且提供了額外的TestContext特定註釋
+          (例如<code class="interfacename">@ContextConfiguration</code>、<code class="interfacename">@BeforeTransaction</code>等等)。
+          注意，但是一些註釋只有與JUnit聯合使用時(例如，基於<a href="ch08s03.html#testcontext-junit4-runner" title="8.3.7.5.3.&#160;定制JUnit 4.4運行器">SpringJUnit4ClassRunner</a>
+          或<a href="ch08s03.html#testcontext-support-classes-junit38" title="8.3.7.5.1.&#160;JUnit 3.8支持類別">JUnit 3.8</a>以及<a href="ch08s03.html#testcontext-support-classes-junit44" title="8.3.7.5.2.&#160;JUnit 4.4支持類別">JUnit 4.4</a>的測試類別)。
+          詳細內容參見<span class="emphasis"><em>TestContext框架</em></span>章節。</p></li>
+</ul></div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="junit38-legacy-support"></a>8.3.6.&#160;JUnit 3.8遺留支持</h3></div></div></div>
+<p>Spring JUnit 3.8 遺留支持類別打包在<code class="literal">org.springframework.test</code>包中。
+      這個包提供了有用的JUnit <code class="classname">TestCase</code>父級類別，
+      擴展它可以在容器外整合測試中引入Spring <code class="classname">ApplicationContext</code>類別或在測試方法級別獲得事務支持。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="junit38-legacy-ctx-management"></a>8.3.6.1.&#160;上下文管理及快取記憶體</h4></div></div></div>
+<p><code class="classname">AbstractSingleSpringContextTests</code>為基於JUnit 3.8的測試案例提供了上下文管理和快取記憶體支持。
+        它暴露了一個<code class="literal">protected</code>方法來給子類別覆寫以提供上下文定義檔案的路徑：</p>
+<pre class="programlisting">protected String[] getConfigLocations()</pre>
+<p>這個方法的實作必須提供包含XML配置元資料的資源路徑 —— 通常是類別路徑 —— 的一個陣列。
+        這和在<code class="literal">web.xml</code>或其它部署配置中的資源路徑是相同的或基本相同的。
+        作為可選方案，你也可以覆寫下面的方法。詳細內容參見相關JavaDoc。</p>
+<pre class="programlisting">protected String[] getConfigPaths()</pre>
+<pre class="programlisting">protected String getConfigPath()</pre>
+<p>預設情況下，一旦配置檔案被載入就會在每個測試案例中重用。
+        這樣建構的開銷只會產生一次（每個測試fixture），然後後面的測試執行會快速的多。
+        在較少的情況下測試可能「污染」應用上下文，需要重新載入 —— 例如，
+        改變一個bean定義或應用物件狀態 —— 你可以調用<code class="classname">AbstractSingleSpringContextTests</code>類別中的
+        <code class="methodname">setDirty()</code>方法來讓測試fixture在執行下一個測試案例時重新載
+        <a href="ch08s03.html#junit38-legacy-annotation-aware-tests" title="8.3.6.5.1.&#160;使用註釋的事務相關測試"><code class="classname">AbstractAnnotationAwareTransactionalTests</code></a>類別，
+        你可以使用<code class="interfacename">@DirtiesContext</code>來對測試方法進行註釋以達到同樣的效果。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="junit38-legacy-fixture-di"></a>8.3.6.2.&#160;測試fixture依賴注入</h4></div></div></div>
+<p>當<code class="classname">AbstractDependencyInjectionSpringContextTests</code>類別(及其子類別)載入你的應用上下文時，
+        它們可以通過Setter注入選擇性配置你的測試類別實例。你需要做的僅僅是定義實例變數和相應的setter方法。
+        <code class="classname">AbstractDependencyInjectionSpringContextTests</code>將在<code class="methodname">getConfigLocations()</code>方法定義的配置檔案集中自動尋找相應物件。</p>
+<p>假定這樣一個場景，我們有一個<code class="classname">HibernateTitleDao</code>類別(在<a href="ch08s03.html#testing-fixture-di" title="8.3.3.2.&#160;測試fixtures依賴注入">通常目標</a>章節詳述)。
+        讓我們看基於JUnit 3.8 的測試類別實作本身(我們很快將看看配置本身)。</p>
+<pre class="programlisting">public final class HibernateTitleDaoTests <span class="bold"><strong>extends AbstractDependencyInjectionSpringContextTests</strong></span>  {
+
+    <em class="lineannotation"><span class="lineannotation">// this instance will be (automatically) dependency injected</span></em>    
+    private HibernateTitleDao titleDao;
+
+    <em class="lineannotation"><span class="lineannotation">// a setter method to enable DI of the 'titleDao' instance variable</span></em>
+    public void setTitleDao(HibernateTitleDao titleDao) {
+        this.titleDao = titleDao;
+    }
+
+    public void testLoadTitle() throws Exception {
+        Title title = this.titleDao.loadTitle(new Long(10));
+        assertNotNull(title);
+    }
+
+    <em class="lineannotation"><span class="lineannotation">// specifies the Spring configuration to load for this test fixture</span></em>
+    protected String[] getConfigLocations() {
+        return new String[] { "classpath:com/foo/daos.xml" };
+    }
+
+}</pre>
+<p>這個檔案被<code class="methodname">getConfigLocations()</code>方法指定(比如，<code class="literal">"classpath:com/foo/daos.xml"</code>) 像這樣：</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans" 
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans 
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"&gt;
+
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- this bean will be injected into the <code class="classname">HibernateTitleDaoTests</code> class --&gt;</span></em>
+    &lt;bean id="<span class="bold"><strong>titleDao</strong></span>" class="<span class="bold"><strong>com.foo.dao.hibernate.HibernateTitleDao</strong></span>"&gt;
+        &lt;property name="sessionFactory" ref="sessionFactory"/&gt;
+    &lt;/bean&gt;
+    
+    &lt;bean id="sessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean"&gt;
+        <em class="lineannotation"><span class="lineannotation">&lt;!-- dependencies elided for clarity --&gt;</span></em>
+    &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<p><code class="classname">AbstractDependencyInjectionSpringContextTests</code>類別使用<a href="ch03s03.html#beans-factory-autowire" title="3.3.5.&#160;自動裝配（autowire）協作者"><span class="emphasis"><em>按型別自動裝配</em></span></a>。
+        因此如果你有多個bean定義是相同的型別，就不能在這些bean中使用這種方法。
+        這種情況下，你可以使用繼承的<code class="literal">applicationContext</code>實例變數並實作顯式的尋找（比如），
+        調用<code class="methodname">applicationContext.getBean("titleDao")</code>方法。</p>
+<p>如果你不希望在測試案例中使用依賴注入，只要不宣告任何<code class="literal">public</code> setter方法就可以簡單實作。
+        作為替代的，你可以擴展<code class="classname">AbstractSpringContextTests</code> - 在<code class="literal">org.springframework.test</code>
+        套件中的JUnit 3.8整合測試支持類別層次的根 - 它僅僅包含了一些載入Spring上下文的簡單方法，而且不在測試fixture中使用依賴注入。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="junit38-legacy-fixture-di-field"></a>8.3.6.2.1.&#160;欄位級別（Field Level）注入</h5></div></div></div>
+<p>如果不管何種原因，你的測試fixture中沒有setter方法，Spring可以對<code class="literal">protected</code>欄位進行依賴注入。
+          下面是前面使用欄位級注入範例的新版本（Spring XML檔案無需改變，僅僅需要改變測試fixture）。</p>
+<pre class="programlisting">public final class HibernateTitleDaoTests <span class="bold"><strong>extends AbstractDependencyInjectionSpringContextTests</strong></span>  {
+
+    public HibernateTitleDaoTests() {
+        <em class="lineannotation"><span class="lineannotation">// switch on field level injection</span></em>
+        setPopulateProtectedVariables(true);
+    }
+
+    <em class="lineannotation"><span class="lineannotation">// this instance will be (automatically) dependency injected</span></em>
+    <em class="lineannotation"><span class="lineannotation"><span class="emphasis"><em>protected</em></span></span></em> HibernateTitleDao <em class="lineannotation"><span class="lineannotation"><span class="emphasis"><em>titleDao</em></span></span></em>;
+
+    public void testLoadTitle() throws Exception {
+        Title title = this.titleDao.loadTitle(new Long(10));
+        assertNotNull(title);
+    }
+
+    <em class="lineannotation"><span class="lineannotation">// specifies the Spring configuration to load for this test fixture</span></em>
+    protected String[] getConfigLocations() {
+        return new String[] { "classpath:com/foo/daos.xml" };
+    }
+
+}</pre>
+<p>在欄位注入的情況下，不能使用自動裝配：<code class="literal">protected</code> 實例變數被作為已配置的Spring容器的bean 尋找名。</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="junit38-legacy-tx"></a>8.3.6.3.&#160;事務管理</h4></div></div></div>
+<p><code class="classname">AbstractTransactionalSpringContextTests</code>類別
+        依賴於應用上下文中定義的<code class="classname">PlatformTransactionManager</code> bean。
+        名字是無關緊要的，因為使用了<a href="ch03s03.html#beans-factory-autowire" title="3.3.5.&#160;自動裝配（autowire）協作者"><span class="emphasis"><em>按型別自動裝配</em></span></a>.</p>
+<p>通常你會擴展其子類別<code class="classname">AbstractTransactionalDataSourceSpringContextTests</code>。
+        這個類別也需要在應用上下文中有一個<code class="classname">DataSource</code> bean定義(同樣可以是任意名稱)。
+        它創建一個<code class="classname">JdbcTemplate</code>實例變數，可以用來方便的查詢和刪除選定表的內容（
+        請記住預設情況下事務將被回滾，因而這樣做是安全的）。</p>
+<p>如果你希望<span class="emphasis"><em>程式式</em></span>提交事務 —— 不常見但對於特殊的插入資料庫的測試很有用 ——
+         你可以調用繼承自<code class="classname">AbstractTransactionalSpringContextTests</code>類別的<code class="methodname">setComplete()</code> 方法。
+         這將使事務提交而不是回滾。作為可替代的，如果你在Java 5或更高環境中開發擴展<a href="ch08s03.html#junit38-legacy-annotation-aware-tests" title="8.3.6.5.1.&#160;使用註釋的事務相關測試"><code class="classname">AbstractAnnotationAwareTransactionalTests</code></a>類別，
+        你可以使用<code class="interfacename">@Rollback(false)</code>來註釋測試方法，以通過<span class="emphasis"><em>配置</em></span>獲得相同的效果。</p>
+<p>通過調用<code class="methodname">endTransaction()</code>方法，這裡可以在測試案例完成時中止一個事務。
+        預設將回滾事務，除非前面調用了<code class="methodname">setComplete()</code>方法。
+        這個特性當你希望測試『斷連接』的 資料物件行為是很有用，比如事務外的web或遠端使用的Hibernate映射實體。
+        通常懶載入錯誤只有通過UI測試發現。如果你調用<code class="methodname">endTransaction()</code>方法
+        可以保證JUnit測試時UI操作的正確性。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="junit38-legacy-support-classes"></a>8.3.6.4.&#160;JUnit 3.8 遺留支持類別</h4></div></div></div>
+<p>當你擴展
+        <code class="classname">AbstractTransactionalDataSourceSpringContextTests</code>類別時，你將需要存取下面<code class="literal">protected</code> 實例變數:</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><code class="literal">applicationContext</code>(<code class="interfacename">ConfigurableApplicationContext</code>):
+            繼承自<code class="classname">AbstractSingleSpringContextTests</code>類別。使用它可以進行顯式bean尋找或測試整個的上下文狀態。</p></li>
+<li><p><code class="literal">jdbcTemplate</code>: 繼承自<code class="classname">AbstractTransactionalDataSourceSpringContextTests</code>類別，用於查詢已確認狀態。
+            例如,應用程式碼要創建一個物件，然後使用ORM工具將其持久化，這時你想在測試程式碼執行前後對其進行查詢，以確定資料是否插入到資料庫中（Spring會保證該查詢運行在相同事務內）。你需要告訴你的ORM工具『清空』其改變以正確完成任務，例如，使用Hibernate<code class="classname">Session</code>介面的<code class="methodname">flush()</code>方法。</p></li>
+</ul></div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="junit38-legacy-java5-support"></a>8.3.6.5.&#160;Java 5+ 專有支持</h4></div></div></div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="junit38-legacy-annotation-aware-tests"></a>8.3.6.5.1.&#160;使用註釋的事務相關測試</h5></div></div></div>
+<p>在上述<a href="ch08s03.html#integration-testing-common-annotations" title="8.3.5.&#160;常用註釋">常用註釋</a>之外，
+          <code class="literal">org.springframework.test.annotation</code>包也有一個<code class="literal">抽象</code> JUnit
+          <code class="classname">TestCase</code>類別來提供註釋驅動的整合測試支持。</p>
+<p><code class="classname">AbstractAnnotationAwareTransactionalTests</code>類別擴展了<code class="classname">AbstractTransactionalDataSourceSpringContextTests</code>類別，
+          並通過擴展fixture引入一些（Spring專有）的註釋。<code class="classname">AbstractAnnotationAwareTransactionalTests</code>
+          支持所有<a href="ch08s03.html#integration-testing-common-annotations" title="8.3.5.&#160;常用註釋">常用註釋</a>章節中列舉的註釋，
+          而且包括Spring的<code class="interfacename">@Transactional</code>註釋，以顯式配置事務語義。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="junit38-legacy-jpa-tests"></a>8.3.6.5.2.&#160;JPA支持類別</h5></div></div></div>
+<p><code class="literal">org.springframework.test.jpa</code>包提供了基於Java 持久化API(JPA)的測試支持類別。</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><code class="classname">AbstractJpaTests</code>是一個方便的JPA相關測試的支持類別，
+              它提供了和<code class="classname">AbstractTransactionalDataSourceSpringContextTests</code>相同的功能和即使在進行JPA規範需要的性能測試時也相同的性能。
+              它暴露了一個<code class="interfacename">EntityManagerFactory</code>介面和一個共享的<code class="interfacename">EntityManager</code>介面。
+              需要注入一個<code class="interfacename">EntityManagerFactory</code>介面，
+              以及通過父級類別獲得<code class="interfacename">DataSource</code>介面和<code class="interfacename">JpaTransactionManager</code>介面。</p></li>
+<li><p><code class="classname">AbstractAspectjJpaTests</code>類別是<code class="classname">AbstractJpaTests</code>的子類別，
+              它啟動了AspectJ 的裝載期織入並能夠讓AspectJ指定一個自定義的<code class="literal">aop.xml</code>檔案路徑。</p></li>
+</ul></div>
+</div>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="testcontext-framework"></a>8.3.7.&#160;Spring TestContext Framework</h3></div></div></div>
+<p><span class="emphasis"><em>Spring <code class="classname">TestContext</code> Framework</em></span> (在<code class="literal">org.springframework.test.context</code>包中)
+	  提供了一般的、註釋驅動的單元和整合測試支持，它對使用的測試框架不做要求，可以使用JUnit 3.8、JUnit 4.4, TestNG 5.5等等。
+	  TestContext框架也強調了<span class="emphasis"><em>約定優於配置</em></span>的重要性，它提供了合理的預設值，同時也可以通過基於註釋的配置進行改寫。</p>
+<p>除了一般的測試基礎設施外，TestContext框架還以<code class="literal">抽象</code>支持類別的形式對JUnit 3.8、JUnit 4.4和TestNG 5.5提供了顯式的支持。
+	  針對JUnit 4.4，該框架還提供了一個自定義的<code class="interfacename">Runner</code>，這使得使用者無需繼承特定的類別就可以編寫測試類別了。 </p>
+<p>以下章節給出了TestContext框架的內部概覽。
+	  如果你僅僅關注如何使用該框架而不是使用你自己的監聽器去擴展它，那麼請直接跳到配置(<a href="ch08s03.html#testcontext-ctx-management" title="8.3.7.2.&#160;上下文管理和快取記憶體">上下文管理和快取記憶體</a>、
+	  <a href="ch08s03.html#testcontext-fixture-di" title="8.3.7.3.&#160;測試fixture的依賴注入">依賴注入</a>、<a href="ch08s03.html#testcontext-tx" title="8.3.7.4.&#160;事務管理">事務管理</a>)、
+	  <a href="ch08s03.html#testcontext-support-classes" title="8.3.7.5.&#160;TestContext支持類別">支持類別</a>及<a href="ch08s03.html#testcontext-annotations" title="8.3.7.6.&#160;TestContext框架註釋支持">註釋支持</a>章節。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="testcontext-key-abstractions"></a>8.3.7.1.&#160;主要的抽象</h4></div></div></div>
+<p>框架的核心包括<code class="classname">TestContext</code>和<code class="classname">TestContextManager</code>類別以及<code class="interfacename">TestExecutionListener</code>介面。
+        每次測試都會創建<code class="classname">TestContextManager</code>。<code class="classname">TestContextManager</code>管理了一個<code class="classname">TestContext</code>，
+        它負責持有當前測試的上下文。<code class="classname">TestContextManager</code>還負責在測試執行過程中更新<code class="classname">TestContext</code>的狀態並代理到<code class="interfacename">TestExecutionListener</code>，
+        它用來監測測試實際的執行（如提供依賴注入、管理事務等等）。請查看JavaDoc及Spring測試套件以獲得進一步的資訊和各種配置範例。</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><code class="classname">TestContext</code>：封裝測試執行的上下文，與當前使用的測試框架無關。</p></li>
+<li><p><code class="classname">TestContextManager</code>：<span class="emphasis"><em>Spring TestContext Framework</em></span>的主入口點，
+            負責管理單獨的<code class="classname">TestContext</code>並在定義好的執行點上向所有註冊的<code class="interfacename">TestExecutionListener</code>發出事件通知：
+            測試實例的準備，先於特定的測試框架的<span class="emphasis"><em>前置方法</em></span>，遲於<span class="emphasis"><em>後置方法</em></span>。</p></li>
+<li>
+<p><code class="interfacename">TestExecutionListener</code>：定義了一個<span class="emphasis"><em>監聽器</em></span>API與<code class="classname">TestContextManager</code>發佈的測試執行事件進行交互，
+            而該監聽器就是註冊到這個<code class="classname">TestContextManager</code>上的。</p>
+<p>Spring提供了<code class="interfacename">TestExecutionListener</code>的三個實作，
+            他們都是使用預設值進行配置的(通過<code class="interfacename">@TestExecutionListeners</code>註釋)：
+            <code class="classname">DependencyInjectionTestExecutionListener</code>、<code class="classname">DirtiesContextTestExecutionListener</code>及<code class="classname">TransactionalTestExecutionListener</code>，
+            他們對測試實例提供了依賴注入支持，處理<code class="interfacename">@DirtiesContext</code>註釋，並分別使用預設的回滾語義對測試提供事務支持。</p>
+</li>
+</ul></div>
+<p>以下三個章節講述了如何通過註釋配置<code class="classname">TestContext</code>框架並提供了使用該框架編寫真實的單元和整合測試的範例。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="testcontext-ctx-management"></a>8.3.7.2.&#160;上下文管理和快取記憶體</h4></div></div></div>
+<p>每個<code class="classname">TestContext</code>都會為其所負責的測試實例提供上下文和快取記憶體管理。
+        測試實例不會自動存取配置好的<code class="classname">ApplicationContext</code>；然而，如果一個測試類別實作了<code class="interfacename">ApplicationContextAware</code>介面，
+        那麼測試實例就會擁有一個對<code class="classname">ApplicationContext</code>的參考（假如預設已經配置好了<code class="classname">DependencyInjectionTestExecutionListener</code>）。
+        <code class="classname">AbstractJUnit38SpringContextTests</code>、
+        <code class="classname">AbstractJUnit4SpringContextTests</code>及<code class="classname">AbstractTestNGSpringContextTests</code>已經實作了<code class="interfacename">ApplicationContextAware</code>，
+        因此自帶了上述功能。</p>
+<p>與JUnit 3.8遺留支持不同，使用TestContext框架的測試類別無需覆寫任何<code class="literal">protected</code>成員方法來配置應用上下文。
+        只需在類別層次上宣告<code class="interfacename">@ContextConfiguration</code>註釋就可以完成配置。
+        如果你的測試類別沒有顯式宣告任何應用上下文資源的<code class="literal">位置</code>，那麼配置好的<code class="interfacename">ContextLoader</code>就會決定如何以及是否從預設的集合位置上載入一個上下文。
+        例如，<code class="classname">GenericXmlContextLoader</code> - 預設的<code class="interfacename">ContextLoader</code> - 會基於測試類別的名字產生一個預設的位置。
+        如果類別名叫做<code class="literal">com.example.MyTest</code>，那麼<code class="classname">GenericXmlContextLoader</code>就會從<code class="literal">"classpath:/com/example/MyTest-context.xml"</code>載入應用上下文。</p>
+<pre class="programlisting">package com.example;
+
+@RunWith(SpringJUnit4ClassRunner.class)
+<em class="lineannotation"><span class="lineannotation">// ApplicationContext will be loaded from <code class="literal">"classpath:/com/example/MyTest-context.xml"</code></span></em>
+<span class="bold"><strong>@ContextConfiguration</strong></span>
+public class MyTest {
+    <em class="lineannotation"><span class="lineannotation">// class body...</span></em>
+}</pre>
+<p>如果預設位置不適合你的需求，你可以使用一個套件含了XML配置元資料的資源位置的陣列來配置<code class="interfacename">@ContextConfiguration</code>的<code class="literal">locations</code>屬性
+        （假如已經配置好了一個可以使用XML的<code class="interfacename">ContextLoader</code>）- 一般在classpath上，該屬性被用來配置應用程序。
+        這就和在<code class="literal">web.xml</code>或者其他部署配置中指定配置列表時，方法完全一樣，或者幾乎一樣。
+        作為另外一種選擇，你可以實作並配置自己的<code class="interfacename">ContextLoader</code>
+        </p>
+<pre class="programlisting">@RunWith(SpringJUnit4ClassRunner.class)
+<em class="lineannotation"><span class="lineannotation">// ApplicationContext will be loaded from <code class="literal">"/applicationContext.xml"</code> and <code class="literal">"/applicationContext-test.xml"</code></span></em>
+<em class="lineannotation"><span class="lineannotation">// in the root of the classpath</span></em>
+<span class="bold"><strong>@ContextConfiguration(locations={"/applicationContext.xml", "/applicationContext-test.xml"})</strong></span>
+public class MyTest {
+    <em class="lineannotation"><span class="lineannotation">// class body...</span></em>
+}</pre>
+<p><code class="interfacename">@ContextConfiguration</code>還提供了一個boolean型別的<code class="literal">inheritLocations</code>屬性以表明是否<span class="emphasis"><em>繼承</em></span>父類別的locations。
+        其預設值是<code class="literal">true</code>，表明一個被註釋的類別會<span class="emphasis"><em>繼承</em></span>被註釋的父類別中定義的資源位置。
+        特別地，一個被註釋的類別的資源位置會附加到其被註釋的父類別中的資源位置列表上。這樣子類別就可以<span class="emphasis"><em>繼承</em></span>資源位置列表。
+        在下面的例子中，將按順序從"/base-context.xml"<span class="bold"><strong>和</strong></span>"/extended-context.xml"中載入針對<code class="classname">ExtendedTest</code>的<code class="interfacename">ApplicationContext</code>。
+        所以定義在"/extended-context.xml"中的Beans會覆寫掉定義在"/base-context.xml"中的Beans。</p>
+<pre class="programlisting">@RunWith(SpringJUnit4ClassRunner.class)
+<em class="lineannotation"><span class="lineannotation">// ApplicationContext will be loaded from <code class="literal">"/base-context.xml"</code> in the root of the classpath</span></em>
+<span class="bold"><strong>@ContextConfiguration(locations={"/base-context.xml"})</strong></span>
+public class BaseTest {
+    <em class="lineannotation"><span class="lineannotation">// class body...</span></em>
+}
+
+<em class="lineannotation"><span class="lineannotation">// ApplicationContext will be loaded from <code class="literal">"/base-context.xml"</code> and <code class="literal">"/extended-context.xml"</code></span></em>
+<em class="lineannotation"><span class="lineannotation">// in the root of the classpath</span></em>
+<span class="bold"><strong>@ContextConfiguration(locations={"/extended-context.xml"})</strong></span>
+public class ExtendedTest extends BaseTest {
+    <em class="lineannotation"><span class="lineannotation">// class body...</span></em>
+}</pre>
+<p>如果將<code class="literal">inheritLocations</code>設為<code class="literal">false</code>，那麼就會<span class="emphasis"><em>屏蔽掉</em></span>父類別的資源位置，然後可以替換父類別中定義的任何資源位置。</p>
+<p>預設情況下, 配置好的<code class="interfacename">ApplicationContext</code>一旦被載入就會重用到每個測試上。這樣設置的成本僅產生一次（每個測試fixture），
+        隨後測試的執行就會很快了。在某些不太可能發生的情況下，一個測試可能會<span class="emphasis"><em>破壞</em></span>應用上下文，
+        這時它需要重新載入 - 例如，通過改變應用物件的bean定義或者狀態 - 你可以使用<code class="interfacename">@DirtiesContext</code>
+        （假設預設已經配置了<code class="classname">DirtiesContextTestExecutionListener</code>）來註釋測試方法使得測試fixture重新載入配置檔案並在測試下次執行前重新建構應用上下文。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="testcontext-fixture-di"></a>8.3.7.3.&#160;測試fixture的依賴注入</h4></div></div></div>
+<p>當你配置<code class="classname">DependencyInjectionTestExecutionListener</code>時 - 它會被預設配置 - 通過<code class="interfacename">@TestExecutionListeners</code>註釋，
+        你的測試實例依賴的bean會被<span class="emphasis"><em>注入</em></span>，而這些bean是通過<code class="interfacename">@ContextConfiguration</code>使用Setter注入、Field注入或者兩者都有來注入的，
+        到底使用哪種方式取決於你選擇的註釋以及你將它們放到setter方法中還是屬性中。為了與Spring 2.5的註釋保持一致，
+        你可以選擇Spring的<code class="interfacename">@Autowired</code>註釋或者JSR 250中的<code class="interfacename">@Resource</code>註釋。其語義對於Spring框架來說都是一致的。
+        例如， 如果你喜歡 <a href="ch03s03.html#beans-factory-autowire" title="3.3.5.&#160;自動裝配（autowire）協作者"><span class="emphasis"><em>按型別自動織入</em></span></a>，
+        那麼請使用<code class="interfacename">@Autowired</code>來註釋你的settter方法或者屬性。另一方面，如果你喜歡<span class="emphasis"><em>按名字</em></span>注入，
+        那麼請使用<code class="interfacename">@Resource</code>來註釋你的settter方法或者屬性。</p>
+<div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">提示</h3>
+<p>TestContext框架沒有監測測試實例的實例化方式。所以對建構方法使用<code class="interfacename">@Autowired</code>將毫無意義。</p>
+</div>
+<p>既然<code class="interfacename">@Autowired</code>執行<a href="ch03s03.html#beans-factory-autowire" title="3.3.5.&#160;自動裝配（autowire）協作者"><span class="emphasis"><em>按型別自動編織</em></span></a>，
+        那麼如果你有相同型別的多個bean定義的話，對那些特定的bean就不能使用該方式。在這種情況下，
+        你可以使用<code class="interfacename">@Resource</code><span class="emphasis"><em>按名字</em></span>注入。另外，如果你的測試類別實作了<code class="classname">ApplicationContextAware</code>，
+        就可以直接存取<code class="classname">ApplicationContext</code>並調用<code class="methodname">applicationContext.getBean("titleDao")</code>執行一個顯式的尋找。</p>
+<p>如果你不想讓你的測試實例使用依賴注入，只要不將<code class="interfacename">@Autowired</code>或者<code class="interfacename">@Resource</code>註釋到任何屬性或者setter方法上就行了。
+        另一種方式，你可以使用<code class="interfacename">@TestExecutionListeners</code>並忽略掉監聽器列表中的<code class="literal">DependencyInjectionTestExecutionListener.class</code>就可以完全禁用依賴注入。</p>
+<p>考慮如下場景：我們有一個類別，名字叫<code class="classname">HibernateTitleDao</code>（<a href="ch08s03.html#testing-fixture-di" title="8.3.3.2.&#160;測試fixtures依賴注入">通用目標</a>章節已經進行了介紹）。
+        首先，讓我們看看基於JUnit 4.4的測試類別的實作，它使用<code class="interfacename">@Autowired</code>進行屬性注入（在所有範例程式碼之後我們會查看應用上下文的配置）。
+        <span class="emphasis"><em>注意：下面程式碼的依賴注入行為並不是特定於JUnit 4.4的。同樣的依賴注入技術可以使用在任何測試框架中。</em></span></p>
+<pre class="programlisting">@RunWith(SpringJUnit4ClassRunner.class)
+<em class="lineannotation"><span class="lineannotation">// specifies the Spring configuration to load for this test fixture</span></em>
+<span class="bold"><strong>@ContextConfiguration(locations={"daos.xml"})</strong></span>
+public final class HibernateTitleDaoTests {
+
+    <em class="lineannotation"><span class="lineannotation">// this instance will be dependency injected <span class="bold"><strong>by type</strong></span></span></em>
+    <span class="bold"><strong>@Autowired</strong></span>    
+    private HibernateTitleDao titleDao;
+
+    public void testLoadTitle() throws Exception {
+        Title title = this.titleDao.loadTitle(new Long(10));
+        assertNotNull(title);
+    }
+}</pre>
+<p>此外，我們可以使用<code class="interfacename">@Autowired</code>進行setter注入。</p>
+<pre class="programlisting">@RunWith(SpringJUnit4ClassRunner.class)
+<em class="lineannotation"><span class="lineannotation">// specifies the Spring configuration to load for this test fixture</span></em>
+<span class="bold"><strong>@ContextConfiguration(locations={"daos.xml"})</strong></span>
+public final class HibernateTitleDaoTests {
+
+    <em class="lineannotation"><span class="lineannotation">// this instance will be dependency injected <span class="bold"><strong>by type</strong></span></span></em>
+    private HibernateTitleDao titleDao;
+
+    <span class="bold"><strong>@Autowired</strong></span>
+    public void setTitleDao(HibernateTitleDao titleDao) {
+        this.titleDao = titleDao;
+    }
+
+    public void testLoadTitle() throws Exception {
+        Title title = this.titleDao.loadTitle(new Long(10));
+        assertNotNull(title);
+    }
+}</pre>
+<p>現在讓我們看看使用<code class="interfacename">@Resource</code>進行屬性注入的一個範例。</p>
+<pre class="programlisting">@RunWith(SpringJUnit4ClassRunner.class)
+<em class="lineannotation"><span class="lineannotation">// specifies the Spring configuration to load for this test fixture</span></em>
+<span class="bold"><strong>@ContextConfiguration(locations={"daos.xml"})</strong></span>
+public final class HibernateTitleDaoTests {
+
+    <em class="lineannotation"><span class="lineannotation">// this instance will be dependency injected <span class="bold"><strong>by name</strong></span></span></em>
+    <span class="bold"><strong>@Resource</strong></span>
+    private HibernateTitleDao titleDao;
+
+    public void testLoadTitle() throws Exception {
+        Title title = this.titleDao.loadTitle(new Long(10));
+        assertNotNull(title);
+    }
+}</pre>
+<p>最後，這是使用<code class="interfacename">@Resource</code>進行setter注入的一個範例。</p>
+<pre class="programlisting">@RunWith(SpringJUnit4ClassRunner.class)
+<em class="lineannotation"><span class="lineannotation">// specifies the Spring configuration to load for this test fixture</span></em>
+<span class="bold"><strong>@ContextConfiguration(locations={"daos.xml"})</strong></span>
+public final class HibernateTitleDaoTests {
+
+    <em class="lineannotation"><span class="lineannotation">// this instance will be dependency injected <span class="bold"><strong>by name</strong></span></span></em>
+    private HibernateTitleDao titleDao;
+    
+    <span class="bold"><strong>@Resource</strong></span>
+    public void setTitleDao(HibernateTitleDao titleDao) {
+        this.titleDao = titleDao;
+    }
+
+    public void testLoadTitle() throws Exception {
+        Title title = this.titleDao.loadTitle(new Long(10));
+        assertNotNull(title);
+    }
+}</pre>
+<p>上面的程式碼使用了相同的XML上下文檔案，<code class="interfacename">@ContextConfiguration</code>註釋使用了這些資訊(如 <code class="literal">"daos.xml"</code>)，它是這樣的：</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans" 
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans 
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd"&gt;
+
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- this bean will be injected into the <code class="classname">HibernateTitleDaoTests</code> class --&gt;</span></em>
+    &lt;bean id="<span class="bold"><strong>titleDao</strong></span>" class="<span class="bold"><strong>com.foo.dao.hibernate.HibernateTitleDao</strong></span>"&gt;
+        &lt;property name="sessionFactory" ref="sessionFactory"/&gt;
+    &lt;/bean&gt;
+    
+    &lt;bean id="sessionFactory" class="org.springframework.orm.hibernate3.LocalSessionFactoryBean"&gt;
+        <em class="lineannotation"><span class="lineannotation">&lt;!-- dependencies elided for clarity --&gt;</span></em>
+    &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="testcontext-tx"></a>8.3.7.4.&#160;事務管理</h4></div></div></div>
+<p>在TestContext框架中，事務是由<code class="classname">TransactionalTestExecutionListener</code>進行管理的，
+        預設情況下這是通過<code class="interfacename">@TestExecutionListeners</code>註釋進行配置的，
+        即使你沒有在測試類別中顯式宣告 <code class="interfacename">@TestExecutionListeners</code>註釋。
+        為了支持事務，你必須通過<code class="interfacename">@ContextConfiguration</code>在應用上下文中載入一個<code class="classname">PlatformTransactionManager</code> bean。
+        此外，你必須在類別或方法層次上宣告一個<code class="interfacename">@Transactional</code>。
+        </p>
+<p>請參考<a href="ch08s03.html#testcontext-annotations" title="8.3.7.6.&#160;TestContext框架註釋支持">TestContext框架的註釋支持</a>中的<code class="interfacename">@TransactionConfiguration</code>以瞭解類別層次的事務配置（例如為事務管理器設置bean名稱以及預設的回滾標誌）。</p>
+<p>為每個測試方法配置事務時有幾種選項。如果對於整個類別來說事務不可用，那麼可以使用<code class="interfacename">@Transactional</code>來顯式註釋方法。
+        與此類似，如果對於整個類別來說事務<span class="emphasis"><em>可用</em></span>，那麼可以使用<code class="interfacename">@NotTransactional</code>來註釋方法表明不為該方法增加事務。
+        你可以使用<code class="interfacename">@Rollback</code>註釋覆寫類別級別的預設的回滾設置進而針對一個特定的測試方法控制其事務的提交。</p>
+<p><span class="emphasis"><em>請注意，<a href="ch08s03.html#testcontext-support-classes-junit38" title="8.3.7.5.1.&#160;JUnit 3.8支持類別"><code class="classname">AbstractTransactionalJUnit38SpringContextTests</code></a>、
+        <a href="ch08s03.html#testcontext-support-classes-junit44" title="8.3.7.5.2.&#160;JUnit 4.4支持類別"><code class="classname">AbstractTransactionalJUnit4SpringContextTests</code></a> 及 
+        <a href="ch08s03.html#testcontext-support-classes-testng" title="8.3.7.5.4.&#160;TestNG支持類別"><code class="classname">AbstractTransactionalTestNGSpringContextTests</code></a>已經在類別級別預先配置好了事務支持。
+        </em></span></p>
+<p>偶爾你需要在一個事務性測試方法前、後執行某些程式碼，而這些程式碼是處在事務上下文之外的，例如，
+        在測試執行前去驗證初始的資料庫狀態或者在測試執行後驗證期待的事務提交行為（舉例來說，該測試被配置為不進行回滾的）。
+        支持<code class="interfacename">@BeforeTransaction</code>和<code class="interfacename">@AfterTransaction</code>註釋的<code class="classname">TransactionalTestExecutionListener</code>正好適用於這種情況。
+        使用這些註釋之一來註釋測試類別中任何的<code class="literal">public void</code>方法，
+        同時<code class="classname">TransactionalTestExecutionListener</code>會保證你的<span class="emphasis"><em>事務方法之前的程式碼</em></span>或者<span class="emphasis"><em>事務方法之後的程式碼</em></span>會在正確的時間執行。</p>
+<div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">提示</h3>
+<p>任意<span class="emphasis"><em>前置方法</em></span> (如使用JUnit 4的@Before所註釋的方法)和<span class="emphasis"><em>後置方法</em></span> (如使用JUnit 4的@After所註釋的方法)都會<span class="bold"><strong>在</strong></span>一個事務中得到執行。
+          此外，使用 <code class="interfacename">@NotTransactional</code>註釋的測試不會執行<code class="interfacename">@BeforeTransaction</code>或<code class="interfacename">@AfterTransaction</code>所註釋的方法。</p>
+</div>
+<p>下面的基於JUnit 4的範例展示了一個假想的整合測試場景，重點闡述了事務相關的註釋。請查看參考手冊的<a href="ch08s03.html#testcontext-annotations" title="8.3.7.6.&#160;TestContext框架註釋支持">TestContext框架註釋支持</a>章節以瞭解進一步的資訊和配置範例。</p>
+<pre class="programlisting">@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration
+<span class="bold"><strong>@TransactionConfiguration(transactionManager="txMgr", defaultRollback=false)</strong></span>
+<span class="bold"><strong>@Transactional</strong></span>
+public class FictitiousTransactionalTest {
+
+	<span class="bold"><strong>@BeforeTransaction</strong></span>
+	public void verifyInitialDatabaseState() {
+		<em class="lineannotation"><span class="lineannotation">// logic to verify the initial state before a transaction is started</span></em>
+	}
+
+	@Before
+	public void setUpTestDataWithinTransaction() {
+		<em class="lineannotation"><span class="lineannotation">// set up test data within the transaction</span></em>
+	}
+
+	@Test
+	<em class="lineannotation"><span class="lineannotation">// overrides the class-level defaultRollback setting</span></em>
+	<span class="bold"><strong>@Rollback(true)</strong></span>
+	public void modifyDatabaseWithinTransaction() {
+		<em class="lineannotation"><span class="lineannotation">// logic which uses the test data and modifies database state</span></em>
+	}
+
+	@After
+	public void tearDownWithinTransaction() {
+		<em class="lineannotation"><span class="lineannotation">// execute "tear down" logic within the transaction</span></em>
+	}
+
+	<span class="bold"><strong>@AfterTransaction</strong></span>
+	public void verifyFinalDatabaseState() {
+		<em class="lineannotation"><span class="lineannotation">// logic to verify the final state after transaction has rolled back</span></em>
+	}
+
+	@Test
+	<span class="bold"><strong>@NotTransactional</strong></span>
+	public void performNonDatabaseRelatedAction() {
+		<em class="lineannotation"><span class="lineannotation">// logic which does not modify database state</span></em>
+	}
+}</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="testcontext-support-classes"></a>8.3.7.5.&#160;TestContext支持類別</h4></div></div></div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="testcontext-support-classes-junit38"></a>8.3.7.5.1.&#160;JUnit 3.8支持類別</h5></div></div></div>
+<p><code class="literal">org.springframework.test.context.junit38</code>包為基於JUnit 3.8的測試用例提供了支持類別。</p>
+<div class="itemizedlist"><ul type="disc">
+<li>
+<p><code class="classname">AbstractJUnit38SpringContextTests</code>：</p>
+<p>對整合了<span class="emphasis"><em>Spring TestContext Framework</em></span>與JUnit 3.8環境中的<code class="classname">ApplicationContext</code>測試支持的<code class="classname">TestCase</code>進行了抽象。
+              當你繼承<code class="classname">AbstractJUnit38SpringContextTests</code>類別時，你就可以存取到<code class="literal">protected</code>的成員變數：</p>
+<div class="itemizedlist"><ul type="circle"><li><p><code class="literal">applicationContext</code>：使用它進行顯式的bean尋找或者測試整個上下文的狀態。</p></li></ul></div>
+</li>
+<li>
+<p><code class="classname">AbstractTransactionalJUnit38SpringContextTests</code>：</p>
+<p>對為JDBC存取增加便捷功能的<code class="classname">AbstractJUnit38SpringContextTests</code>的<span class="emphasis"><em>事務</em></span>擴展進行抽象。
+              需要在<code class="classname">ApplicationContext</code>中定義一個<code class="classname">javax.sql.DataSource</code> bean和一個<code class="interfacename">PlatformTransactionManager</code> bean。
+              當你繼承<code class="classname">AbstractTransactionalJUnit38SpringContextTests</code>類別時，你就可以存取到<code class="literal">protected</code>的成員變數：</p>
+<div class="itemizedlist"><ul type="circle">
+<li><p><code class="literal">applicationContext</code>：從<code class="classname">AbstractJUnit38SpringContextTests</code>父類別繼承。使用它執行bean的尋找或者測試整個上下文的狀態</p></li>
+<li><p><code class="literal">simpleJdbcTemplate</code>：在查詢以確認狀態時非常有用。例如，應用程式碼要創建一個物件，然後使用ORM工具將其持久化，
+                  這時你想在測試程式碼執行前後對其進行查詢，以確定資料是否插入到資料庫中（Spring會保證該查詢運行在相同事務內）。
+                  你需要告訴你的ORM工具『flush』其改變以正確完成任務，例如，使用Hibernate<code class="classname">Session</code>介面的<code class="methodname">flush()</code>方法。</p></li>
+</ul></div>
+</li>
+</ul></div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="testcontext-support-classes-junit44"></a>8.3.7.5.2.&#160;JUnit 4.4支持類別</h5></div></div></div>
+<p><code class="literal">org.springframework.test.context.junit4</code>包為基於JUnit 4.4的測試用例提供了支持類別。</p>
+<div class="itemizedlist"><ul type="disc">
+<li>
+<p><code class="classname">AbstractJUnit4SpringContextTests</code>：</p>
+<p>對整合了<span class="emphasis"><em>Spring TestContext Framework</em></span>與JUnit 4.4環境中的<code class="classname">ApplicationContext</code>測試支持的基本測試類別進行了抽取。</p>
+<p>當你繼承<code class="classname">AbstractJUnit4SpringContextTests</code>時，你就可以存取到<code class="literal">protected</code>的成員變數：</p>
+<div class="itemizedlist"><ul type="circle"><li><p><code class="literal">applicationContext</code>：使用它進行顯式的bean尋找或者測試整個上下文的狀態。</p></li></ul></div>
+</li>
+<li>
+<p><code class="classname">AbstractTransactionalJUnit4SpringContextTests</code>：</p>
+<p>對為JDBC存取增加便捷功能的<code class="classname">AbstractJUnit4SpringContextTests</code>的<span class="emphasis"><em>事務</em></span>擴展進行抽象。
+              需要在<code class="classname">ApplicationContext</code>中定義一個<code class="classname">javax.sql.DataSource</code> bean和一個<code class="interfacename">PlatformTransactionManager</code> bean。</p>
+<p>當你繼承<code class="classname">AbstractTransactionalJUnit4SpringContextTests</code>類別時，你就可以存取到下列<code class="literal">protected</code>的成員變數：</p>
+<div class="itemizedlist"><ul type="circle">
+<li><p><code class="literal">applicationContext</code>：繼承自父類別<code class="classname">AbstractJUnit4SpringContextTests</code>。
+                  使用它執行bean的尋找或者測試整個上下文的狀態</p></li>
+<li><p><code class="literal">simpleJdbcTemplate</code>：當通過查詢來確認狀態時非常有用。例如，應用程式碼要創建一個物件，
+                  然後使用ORM工具將其持久化，這時你想在測試程式碼執行前後對其進行查詢，以確定資料是否插入到資料庫中。
+                  （Spring會保證該查詢運行在相同事務內。）你需要告訴你的ORM工具『flush』其改變以正確完成任務，例如，
+                  使用Hibernate<code class="classname">Session</code>介面的<code class="methodname">flush()</code>方法。</p></li>
+</ul></div>
+</li>
+</ul></div>
+<div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">提示</h3>
+<p>這些類別僅僅為擴展提供了方便。 如果你不想將你的測試類別綁定到Spring的類別上 - 例如，如果你要直接擴展你想測試的類別 - 只需要通過<code class="interfacename">@RunWith(SpringJUnit4ClassRunner.class)</code>、
+            <code class="interfacename">@ContextConfiguration</code>、<code class="interfacename">@TestExecutionListeners</code>等註釋來配置你自己的測試類別就可以了。</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="testcontext-junit4-runner"></a>8.3.7.5.3.&#160;定制JUnit 4.4運行器</h5></div></div></div>
+<p><span class="emphasis"><em>Spring TestContext Framework</em></span>通過一個可定制的運行器提供了與JUnit 4.4的完全整合。
+          通過使用<code class="literal">@Runwith(SpringJUnit4ClassRunner.class)</code>來註釋測試類別，開發者可以實作標準的JUnit 4.4單元和整合測試，
+          同時還能獲得TestContext框架的好處，如對載入應用上下文的支持，測試實例的依賴注入，執行事務性測試方法等等。
+          下面的程式碼清單顯示了使用定制的Spring Runner來配置一個測試類別的最小需求。
+          <span class="emphasis"><em>注意，我們使用一個空的列表來配置<code class="interfacename">@TestExecutionListeners</code>以便禁用預設的監聽器，
+          否則需要通過<code class="interfacename">@ContextConfiguration</code>配置一個 <code class="interfacename">ApplicationContext</code>。</em></span></p>
+<pre class="programlisting">@RunWith(SpringJUnit4ClassRunner.class)
+@TestExecutionListeners({})
+public class SimpleTest {
+
+	@Test
+	public void testMethod() {
+		<em class="lineannotation"><span class="lineannotation">// execute test logic...</span></em>
+	}
+}</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h5 class="title">
+<a name="testcontext-support-classes-testng"></a>8.3.7.5.4.&#160;TestNG支持類別</h5></div></div></div>
+<p><code class="literal">org.springframework.test.context.testng</code>包為基於TestNG的測試用例提供了支持類別。</p>
+<div class="itemizedlist"><ul type="disc">
+<li>
+<p><code class="classname">AbstractTestNGSpringContextTests</code>：</p>
+<p>對整合了<span class="emphasis"><em>Spring TestContext Framework</em></span>與TestNG環境中的<code class="classname">ApplicationContext</code>測試支持的基礎測試類別進行了抽象。</p>
+<p>當你繼承<code class="classname">AbstractTestNGSpringContextTests</code>時，就可以存取到下列<code class="literal">protected</code>的成員變數：</p>
+<div class="itemizedlist"><ul type="circle"><li><p><code class="literal">applicationContext</code>：使用它進行顯式的bean尋找或者測試整個上下文的狀態。</p></li></ul></div>
+</li>
+<li>
+<p><code class="classname">AbstractTransactionalTestNGSpringContextTests</code>：</p>
+<p>對為JDBC存取增加便捷功能的<code class="classname">AbstractTestNGSpringContextTests</code>的<span class="emphasis"><em>事務</em></span>擴展進行抽象。
+              需要在<code class="classname">ApplicationContext</code>中定義一個<code class="classname">javax.sql.DataSource</code> bean和一個<code class="interfacename">PlatformTransactionManager</code> bean。</p>
+<p>當你繼承<code class="classname">AbstractTransactionalTestNGSpringContextTests</code>類別時，就可以存取下列<code class="literal">protected</code>的成員變數：</p>
+<div class="itemizedlist"><ul type="circle">
+<li><p><code class="literal">applicationContext</code>：繼承自父類別<code class="classname">AbstractTestNGSpringContextTests</code>。使用它執行bean的尋找或者測試整個上下文的狀態。</p></li>
+<li><p><code class="literal">simpleJdbcTemplate</code>：當通過查詢來確認狀態時非常有用。例如，應用程式碼要創建一個物件，
+                  然後使用ORM工具將其持久化，這時你想在測試程式碼執行前後對其進行查詢，以確定資料是否插入到資料庫中。（Spring會保證該查詢運行在相同事務內。）
+                  你需要告訴你的ORM工具『flush』其改變以正確完成任務，例如，使用Hibernate<code class="classname">Session</code>介面的<code class="methodname">flush()</code>方法。</p></li>
+</ul></div>
+</li>
+</ul></div>
+<div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">提示</h3>
+<p>這些類別僅僅為擴展提供了方便。 如果你不想將你的測試類別綁定到Spring的類別上 - 例如，如果你要直接擴展你想測試的類別 - 只需要通過
+            <code class="interfacename">@ContextConfiguration</code>、<code class="interfacename">@TestExecutionListeners</code>等註釋來配置你自己的測試類別就可以了。
+            並使用<code class="classname">TestContextManager</code>來手工監測你的測試類別。
+            請查看<code class="classname">AbstractTestNGSpringContextTests</code>的源程式碼以瞭解如何檢測你自己的測試類別。</p>
+</div>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="testcontext-annotations"></a>8.3.7.6.&#160;TestContext框架註釋支持</h4></div></div></div>
+<p>Spring TestContext Framework支持<a href="ch08s03.html#integration-testing-common-annotations" title="8.3.5.&#160;常用註釋">通用註釋</a>章節提到的所有註釋。
+        然而下面的這些註釋<span class="emphasis"><em>只有配合JUnit才能使用（比如搭配<a href="ch08s03.html#testcontext-junit4-runner" title="8.3.7.5.3.&#160;定制JUnit 4.4運行器">SpringJUnit4ClassRunner</a>或者
+        <a href="ch08s03.html#testcontext-support-classes-junit38" title="8.3.7.5.1.&#160;JUnit 3.8支持類別">JUnit 3.8</a>及<a href="ch08s03.html#testcontext-support-classes-junit44" title="8.3.7.5.2.&#160;JUnit 4.4支持類別">JUnit 4.4</a>支持類別）。</em></span></p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><code class="interfacename">@IfProfileValue</code></p></li>
+<li><p><code class="interfacename">@ProfileValueSourceConfiguration</code></p></li>
+<li>
+<p><code class="interfacename">@ExpectedException</code></p>
+<p>協同使用Spring的<code class="interfacename">@ExpectedException</code>註釋與JUnit 4的<code class="interfacename">@Test(expected=...)</code>會導致一個不可避免的衝突。
+            因此當與JUnit 4整合時，開發者必須選擇其中一個，在這種情況下建議使用顯式的JUnit 4配置。</p>
+</li>
+<li>
+<p><code class="interfacename">@Timed</code></p>
+<p>Spring的<code class="interfacename">@Timed</code>註釋與JUnit 4的<code class="interfacename">@Test(timeout=...)</code>支持具有不同的語義。
+            特別地，鑒於JUnit 4處理測試執行逾時（如通過在一個單獨的<code class="interfacename">執行緒</code>中執行測試方法）的方式，
+            我們不可能在一個事務上下文中的測試方法上使用JUnit的<code class="interfacename">@Test(timeout=...)</code>配置。因此，
+            如果你想將一個測試方法配置成<span class="emphasis"><em>計時</em></span>且<span class="emphasis"><em>具事務性</em></span>的，
+            你就必須聯合使用Spring的<code class="interfacename">@Timed</code>及<code class="interfacename">@Transactional</code>註釋。
+            還值得注意的是<code class="interfacename">@Test(timeout=...)</code>只管測試方法本身執行的次數，如果超出的話立刻就會失敗；
+            然而，<code class="interfacename">@Timed</code>關注的是測試執行的總時間（包括建立和銷毀操作以及重複），並且不會令測試失敗。
+            </p>
+</li>
+<li><p><code class="interfacename">@Repeat</code></p></li>
+</ul></div>
+<p>Spring TestContext Framework還支持下面這些非特定於測試的註釋，並且保持其語義不變。</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><code class="interfacename">@Autowired</code></p></li>
+<li><p><code class="interfacename">@Qualifier</code></p></li>
+<li><p><code class="interfacename">@Resource</code> (javax.annotation)<span class="emphasis"><em>如果JSR-250可用</em></span></p></li>
+<li><p><code class="interfacename">@PersistenceContext</code> (javax.persistence)<span class="emphasis"><em>如果JPA可用</em></span></p></li>
+<li><p><code class="interfacename">@PersistenceUnit</code> (javax.persistence)<span class="emphasis"><em>如果JPA可用</em></span></p></li>
+<li><p><code class="interfacename">@Required</code></p></li>
+<li><p><code class="interfacename">@Transactional</code></p></li>
+</ul></div>
+<p>下面的列表包含了特定於Spring TestContext Framework的所有註釋。請查看相應的JavaDoc以瞭解進一步的資訊，包括預設的屬性值等等。</p>
+<div class="itemizedlist"><ul type="disc">
+<li>
+<p><span class="bold"><strong><code class="interfacename">@ContextConfiguration</code></strong></span></p>
+<p>定義類別級別的元資料以決定如何載入和配置<code class="interfacename">ApplicationContext</code>。特別地，
+            @ContextConfiguration定義了要載入的應用上下文資源<code class="literal">位置</code>以及用來載入上下文的<code class="interfacename">ContextLoader</code>策略。</p>
+<pre class="programlisting">@ContextConfiguration(locations={"example/test-context.xml"}, loader=CustomContextLoader.class)
+public class CustomConfiguredApplicationContextTests {
+    <em class="lineannotation"><span class="lineannotation">// class body...</span></em>
+}</pre>
+<p>注意：<code class="interfacename">@ContextConfiguration</code>預設情況下為<span class="emphasis"><em>繼承</em></span>的資源位置提供了支持。
+            查看<a href="ch08s03.html#testcontext-ctx-management" title="8.3.7.2.&#160;上下文管理和快取記憶體">上下文管理和快取記憶體</a>章節及JavaDoc來瞭解更多的範例和細節資訊。</p>
+</li>
+<li>
+<p><span class="bold"><strong><code class="interfacename">@TestExecutionListeners</code></strong></span></p>
+<p>定義類別級別的元資料，<code class="interfacename">TestExecutionListener</code>s會使用<code class="classname">TestContextManager</code>進行註冊。
+            通常，<code class="interfacename">@TestExecutionListeners</code>與<code class="interfacename">@ContextConfiguration</code>會搭配使用。</p>
+<pre class="programlisting">@ContextConfiguration
+@TestExecutionListeners({CustomTestExecutionListener.class, AnotherTestExecutionListener.class})
+public class CustomTestExecutionListenerTests {
+    <em class="lineannotation"><span class="lineannotation">// class body...</span></em>
+}</pre>
+<p>注意：<code class="interfacename">@TestExecutionListeners</code>預設情況下為<span class="emphasis"><em>繼承</em></span>的監聽器提供了支持。查看JavaDoc來瞭解更多的範例和細節資訊。</p>
+</li>
+<li>
+<p><span class="bold"><strong><code class="interfacename">@TransactionConfiguration</code></strong></span></p>
+<p>為配置事務性測試定義了類別級別的元資料。特別地，如果需要的PlatformTransactionManager不是「transactionManager」的話，
+            那麼可以顯式配置驅動事務的<code class="interfacename">PlatformTransactionManager</code>的bean名字。此外，
+            可以將<code class="literal">defaultRollback</code>標誌改為<code class="literal">false</code>。通常，
+            <code class="interfacename">@TransactionConfiguration</code>與<code class="interfacename">@ContextConfiguration</code>搭配使用。</p>
+<pre class="programlisting">@ContextConfiguration
+@TransactionConfiguration(transactionManager="txMgr", defaultRollback=false)
+public class CustomConfiguredTransactionalTests {
+    <em class="lineannotation"><span class="lineannotation">// class body...</span></em>
+}</pre>
+</li>
+<li>
+<p><span class="bold"><strong><code class="interfacename">@BeforeTransaction</code></strong></span></p>
+<p>表明被註釋的<code class="literal">public void</code>方法應該在測試方法的事務開始<span class="emphasis"><em>之前</em></span>執行，
+            該事務是通過<code class="interfacename">@Transactional</code>註釋來配置的。
+           </p>
+<pre class="programlisting">@BeforeTransaction
+public void beforeTransaction() {
+    <em class="lineannotation"><span class="lineannotation">// logic to be executed before a transaction is started</span></em>
+}</pre>
+</li>
+<li>
+<p><span class="bold"><strong><code class="interfacename">@AfterTransaction</code></strong></span></p>
+<p>表明被註釋的<code class="literal">public void</code>方法應該在測試方法的事務結束<span class="emphasis"><em>之後</em></span>執行，
+            該事務是通過<code class="interfacename">@Transactional</code>註釋來配置的。
+           </p>
+<pre class="programlisting">@AfterTransaction
+public void afterTransaction() {
+    <em class="lineannotation"><span class="lineannotation">// logic to be executed after a transaction has ended</span></em>
+}</pre>
+</li>
+</ul></div>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="testing-examples-petclinic"></a>8.3.8.&#160;PetClinic範例</h3></div></div></div>
+<p>在Spring的完整發行包裡包含了PetClinic範例應用，它以JUnit 4.4環境闡述了<span class="emphasis"><em>Spring TestContext Framework</em></span>的幾個特性。
+      大多數功能包含在<code class="classname">AbstractClinicTests</code>裡，部分內容列舉如下：</p>
+<pre class="programlisting"><span class="bold"><strong>@ContextConfiguration</strong></span>
+public abstract class AbstractClinicTests <span class="bold"><strong>extends AbstractTransactionalJUnit4SpringContextTests</strong></span> {
+
+	<span class="bold"><strong>@Autowired</strong></span>
+	protected Clinic clinic;
+
+	@Test
+	public void getVets() {
+		Collection&lt;Vet&gt; vets = this.clinic.getVets();
+		assertEquals("JDBC query must show the same number of vets",
+			<span class="bold"><strong>super.countRowsInTable("VETS")</strong></span>, vets.size());
+		Vet v1 = EntityUtils.getById(vets, Vet.class, 2);
+		assertEquals("Leary", v1.getLastName());
+		assertEquals(1, v1.getNrOfSpecialties());
+		assertEquals("radiology", (v1.getSpecialties().get(0)).getName());
+		<em class="lineannotation"><span class="lineannotation">// ...</span></em>
+	}
+	
+	<em class="lineannotation"><span class="lineannotation">// ...</span></em>
+}</pre>
+<p>注意：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>該測試用例繼承了<code class="classname">AbstractTransactionalJUnit4SpringContextTests</code>類別，
+          從這裡它繼承了針對依賴注入的配置（通過<code class="classname">DependencyInjectionTestExecutionListener</code>）和事務性行為（通過<code class="classname">TransactionalTestExecutionListener</code>）。</p></li>
+<li><p><code class="literal">clinic</code>成員變數 - 要測試的應用程序物件 - 是通過<code class="interfacename">@Autowired</code>進行依賴注入的。</p></li>
+<li><p><code class="methodname">testGetVets()</code>方法說明如何使用繼承下來的<code class="methodname">countRowsInTable()</code>方法來輕鬆驗證表中的行數，
+          進而測試應用程式碼的正確行為。這點允許實作更強大的測試，減少了對確切測試資料的依賴。例如，無需打斷測試就可以向資料庫中增加新行。</p></li>
+<li><p>像很多使用資料庫的整合測試一樣，<code class="classname">AbstractClinicTests</code>中的大多數測試依賴於測試運行前資料庫中已有的最小量的資料。
+          但是你可能在測試用例中改變資料庫——當然，在同一個事務中。</p></li>
+</ul></div>
+<p>PetClinic應用支持三種資料存取技術 - JDBC、Hibernate及JPA。無需任何特定的資源位置，
+      只要宣告了<code class="interfacename">@ContextConfiguration</code>，那麼<code class="classname">AbstractClinicTests</code>類別就會從預設位置載入其應用上下文，
+      該預設位置為<code class="literal">"AbstractClinicTests-context.xml"</code>，這裡宣告了一個通用的<code class="classname">DataSource</code>。
+      子類別指定了額外的上下文位置，這就要求它必須宣告一個<code class="interfacename">PlatformTransactionManager</code>和<code class="interfacename">Clinic</code>的一個具體實作。</p>
+<p>例如，PetClinic測試的Hibernate實作包含以下實作。針對這個例子請注意，<code class="classname">HibernateClinicTests</code>沒有包含一行程式碼：
+      我們只需宣告<code class="interfacename">@ContextConfiguration</code>並且測試繼承於<code class="classname">AbstractClinicTests</code>。
+      既然無需任何特定的資源位置就可以宣告<code class="interfacename">@ContextConfiguration</code>，
+      那麼<span class="emphasis"><em>Spring TestContext Framework</em></span>就會從<code class="literal">"AbstractClinicTests-context.xml"</code> (例如繼承的位置)和
+      <code class="literal">"HibernateClinicTests-context.xml"</code>中載入應用上下文，
+      同時<code class="literal">"HibernateClinicTests-context.xml"</code> 中定義的bean會覆寫掉<code class="literal">"AbstractClinicTests-context.xml"</code>中定義的bean。</p>
+<pre class="programlisting"><span class="bold"><strong>@ContextConfiguration</strong></span>
+public class HibernateClinicTests extends AbstractClinicTests { }
+</pre>
+<p>正如你在PetClinic應用中所看到的，Spring配置檔案被劃分成多個檔案。對於大型應用來說都是這樣做的，
+      配置位置通常被指定在一個針對該應用程序整合測試的通用基類別中。
+      這樣的基類別還可以增加有用的實例變數 - 很自然地由依賴注入組裝 - 例如使用Hibernate的應用中的<code class="classname">HibernateTemplate</code>。</p>
+<p>從長遠來看，整合測試中的Spring配置檔案應該與部署環境中的一樣。一個可能的不同點是資料庫連接池和事務基礎設施。
+      如果你正部署到一個完整的應用伺服器上，那你可能會使用其連接池（通過JNDI存取）和JTA實作。
+      這樣依賴，在生產階段你會使用<code class="classname">JndiObjectFactoryBean</code>來獲得<code class="classname">DataSource</code>和<code class="classname">JtaTransactionManager</code>。
+      在容器外的整合測試中無法使用JNDI和JTA，因此你應該為他們使用一個替代的組合，
+      如Commons DBCP <code class="classname">BasicDataSource</code>和<code class="classname">DataSourceTransactionManager</code>或者<code class="classname">HibernateTransactionManager</code>。
+      你可以將這種不同的行為放到一個單獨的XML檔案中，在應用伺服器和獨立於其他配置的'本地'配置中自由選擇，這不會在測試和產品環境中造成差異。
+      此外，建議使用屬性檔案來存放連接資訊：請查看PetClinic應用以瞭解這些。</p>
+</div>
+</div></body>
+</html>

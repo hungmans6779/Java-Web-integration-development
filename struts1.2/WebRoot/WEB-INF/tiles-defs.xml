@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC 
+		"-//Apache Software Foundation//DTD Tiles Configuration 1.1//EN" 
+		"http://jakarta.apache.org/struts/dtds/tiles-config_1_1.dtd">
+
+<tiles-definitions>
+
+
+  <!-- 父佈局類型 -->
+  <definition name="parentLayout" path="/tiles/def/layout.jsp" >
+    <put name="title"      value="Layout JSP Page"         />     <!-- 標題 -->
+	<put name="header"     value="/tiles/def/header.jsp"   />     <!-- 頁標頭檔 --> 
+	<put name="menu"       value="/tiles/def/menu.jsp"     />     <!-- 選單檔案 -->
+	<put name="main"       value="/tiles/def/main.jsp"     />     <!-- 內容檔案 -->
+	<put name="footer"     value="/tiles/def/footer.jsp"   />     <!-- 頁尾檔案 -->
+  </definition>
+
+
+  <!-- list 佈局, 繼承自 parentLayout, 除了main 為 list.jsp 外其餘都一樣 -->
+  <definition name="listLayout" extends="parentLayout" >
+	<put name="main" value="/tiles/def/list.jsp" />   <!-- 重新設置 main 區域  -->
+  </definition>
+
+
+  <!-- view 佈局,繼承自parentLayout, 除了main為view.jsp 外其餘都一樣 -->
+  <definition name="viewLayout" extends="parentLayout" >
+	<put name="main" value="/tiles/def/view.jsp" />   <!-- 重新設置 main 區域  -->
+  </definition>
+
+
+</tiles-definitions>

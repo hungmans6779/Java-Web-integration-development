@@ -1,0 +1,203 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>7.9.&#160;使用「自動代理（autoproxy）」功能</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch07.html" title="第&#160;7&#160;章&#160;Spring AOP APIs">
+<link rel="prev" href="ch07s08.html" title="7.8.&#160;操作被通知物件">
+<link rel="next" href="ch07s10.html" title="7.10.&#160;使用TargetSource">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="aop-autoproxy"></a>7.9.&#160;使用「自動代理（autoproxy）」功能</h2></div></div></div>
+<p>到目前為止我們已經考慮了如何使用<code class="literal">ProxyFactoryBean</code>或者類似的處理器bean來顯式創建AOP代理。</p>
+<p>Spring也允許我們使用「自動代理」的bean定義，可以自動對被選中的bean定義進行代理。
+    這建立在Spring的「bean post processor」功能上，後者允許在容器載入時修改任何bean的定義。</p>
+<p>在這個模型下，你在你的XML bean定義檔案中建立一些特定的bean定義來配置自動代理功能。
+    這允許你僅僅宣告那些將被自動代理的適當目標：你不需要使用<code class="literal">ProxyFactoryBean</code>。</p>
+<p>有兩種方式可以做到這點：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>使用一個參考當前上下文中特定bean的自動代理創建器。</p></li>
+<li><p>一個專用自動代理的創建需要被單獨考慮；自動代理創建由源程式碼級別的元資料屬性驅動。</p></li>
+</ul></div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="aop-autoproxy-choices"></a>7.9.1.&#160;自動代理bean定義</h3></div></div></div>
+<p><code class="literal">org.springframework.aop.framework.autoproxy</code>包提供了下列標準自動代理創建器。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="aop-api-autoproxy"></a>7.9.1.1.&#160;BeanNameAutoProxyCreator</h4></div></div></div>
+<p>BeanNameAutoProxyCreator為名字匹配字元串或者通配符的bean自動創建AOP代理。</p>
+<p>
+                </p>
+<pre class="programlisting">&lt;bean class="org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator"&gt;
+                    &lt;property name="beanNames"&gt;&lt;value&gt;jdk*,onlyJdk&lt;/value&gt;&lt;/property&gt;
+                    &lt;property name="interceptorNames"&gt;
+                    &lt;list&gt;
+                    &lt;value&gt;myInterceptor&lt;/value&gt;
+                    &lt;/list&gt;
+                    &lt;/property&gt;
+                &lt;/bean&gt;</pre>
+<p>
+            </p>
+<p>和<code class="literal">ProxyFactoryBean</code>一樣，這裡有一個<code class="literal">interceptorNames</code>屬性而不是一個攔截器的列表，這允許使用原型（prototype）通知器。這裡的「攔截器」可以是通知器或任何通知型別。</p>
+<p>與通常的自動代理一樣，使用<code class="literal">BeanNameAutoProxyCreator</code>的主要目的是把相同的配置一致地應用到多個物件，
+            並且使用最少量的配置。一個串流行的選擇是把宣告式事務應用到多個物件上。</p>
+<p>那些名字匹配的Bean定義，例如上面的例子裡的「jdkMyBean」和「onlyJdk」，本身只是目標類別的普通bean定義。一個AOP物件將被<code class="literal">BeanNameAutoProxyCreator</code>自動創建。
+            相同的通知將被應用到全部匹配的bean上。注意如果通知器被使用（而不是像上面例子裡那樣使用攔截器），對於不同bean可以應用不同的切入點。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="aop-api-autoproxy-default"></a>7.9.1.2.&#160;DefaultAdvisorAutoProxyCreator</h4></div></div></div>
+<p>一個更加通用而且強大得多的自動代理創建器是<code class="literal">DefaultAdvisorAutoProxyCreator</code>。它自動應用當前上下文中適當的通知器，無需在自動代理通知器的bean定義中包括bean的名字。
+            比起<code class="literal">BeanNameAutoProxyCreator</code>，它提供了同樣關於一致性配置的優點而避免了前者的重複性。</p>
+<p>使用這個功能將涉及：</p>
+<div class="itemizedlist"><ul type="disc">
+<li>
+<p>Specifying a <code class="literal">DefaultAdvisorAutoProxyCreator</code> bean
+                    definition.</p>
+<p>說明一個
+                    <code class="literal">DefaultAdvisorAutoProxyCreator</code>的bean定義</p>
+</li>
+<li><p>在同一個或者相關的上下文中說明任意數量的通知器。注意這些<span class="emphasis"><em>必須</em></span>是通知器而不僅僅是攔截器或者其它通知。
+                        這點是必要的因為必須有一個切入點被評估，以便檢查每個通知候選bean定義的合適性。
+                    </p></li>
+</ul></div>
+<p><code class="literal">DefaultAdvisorAutoProxyCreator</code>將自動評估包括在每個通知器中的切入點，
+            來看看它應當應用哪個（如果有的話）通知到每個業務物件（例如例子裡的「businessObject1」和「businessObject2」）。</p>
+<p>這意味著可以向每個業務物件應用任意數量的通知器。
+            對於一個業務物件，如果所有通知器中的切入點都無法匹配它的任意方法，這個物件將不會被代理。當為新的業務物件加入bean定義時，如果有必要它們將自動被代理。</p>
+<p>通常自動代理的好處是它讓調用者或者被依賴物件不能得到一個沒有通知過的物件。
+                在這個ApplicationContext上調用getBean("businessObject1")將返回一個AOP代理，而不是目標業務物件。（前面顯示的「內部bean」也提供了同樣的優點。）
+            </p>
+<p>
+                </p>
+<pre class="programlisting">&lt;bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"/&gt;
+                    
+                    &lt;bean class="org.springframework.transaction.interceptor.TransactionAttributeSourceAdvisor"&gt;
+                    &lt;property name="transactionInterceptor" ref="transactionInterceptor"/&gt;
+                    &lt;/bean&gt;
+                    
+                    &lt;bean id="customAdvisor" class="com.mycompany.MyAdvisor"/&gt;
+                    
+                    &lt;bean id="businessObject1" class="com.mycompany.BusinessObject1"&gt;
+                    &lt;!-- Properties omitted --&gt;
+                    &lt;/bean&gt;
+                    
+                    &lt;bean id="businessObject2" class="com.mycompany.BusinessObject2"/&gt;
+                </pre>
+<p>
+            </p>
+<p>如果你想要把相同的通知一致性地應用到許多業務物件上，<code class="literal">DefaultAdvisorAutoProxyCreator</code>是非常有用的。
+                一旦框架的定義已經完成，你可以簡單地加入新的業務物件而不必包括特定的代理配置。你也可以很容易的去掉額外的切面--例如，跟蹤或者性能監視切面--僅僅對配置作很小的修改。
+            </p>
+<p>DefaultAdvisorAutoProxyCreator支持過濾（通過使用一個命名約定讓只有特定的通知器被評估，允許在同一個處理器裡使用多個不同配置的AdvisorAutoProxyCreator）和排序。通知器可以實作<code class="literal">org.springframework.core.Ordered</code>介面來確保以正確的順序被應用。
+                上面例子裡的TransactionAttributeSourceAdvisor 有一個可配置的序號值；缺省情況下是沒有排序的。
+            </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="aop-api-autoproxy-abstract"></a>7.9.1.3.&#160;AbstractAdvisorAutoProxyCreator</h4></div></div></div>
+<p>這是DefaultAdvisorAutoProxyCreator的父類別。如果在某些情況下框架提供的<code class="literal">DefaultAdvisorAutoProxyCreator</code>不能滿足你的需要，你可以通過繼承這個類別來創建你自己的自動代理創建器。</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="aop-autoproxy-metadata"></a>7.9.2.&#160;使用元資料驅動的自動代理</h3></div></div></div>
+<p>一個非常重要的自動代理型別是由元資料驅動的。這提供了一種和.NET <code class="literal">ServicedComponents</code>相似的程式模型。
+            作為使用類似EJB裡的XML描述符的替代，對於事務管理和其它企業服務的配置都將被保存在源程式碼級別的屬性裡。
+        </p>
+<p>在這個情況下，你使用<code class="literal">DefaultAdvisorAutoProxyCreator</code>和可以理解元資料屬性的通知器。
+        元資料被保存在候選通知器的切入點部分中，而不是在自動代理創建類別本身。</p>
+<p>這是一個<code class="literal">DefaultAdvisorAutoProxyCreator</code>的特殊例子，它本身沒有什麼特別。（元資料的相關程式碼保存在通知器的切入點裡，而不是AOP框架裡）。 </p>
+<p>JPetStore範例應用程序的<code class="literal">/attributes</code> 目錄顯示了如何使用參數驅動的自動代理。在這個例子裡，不需要使用<code class="literal">TransactionProxyFactoryBean</code>。因為使用了元資料相關的切入點，
+        所以簡單在業務物件上定義事務屬性就足夠了。在<code class="literal">/WEB-INF/declarativeServices.xml</code>裡的bean定義包括了下面的片斷，注意這是通用的，可以被用在JPetStore以外的地方：</p>
+<p>
+            </p>
+<pre class="programlisting">&lt;bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"/&gt;
+                
+                &lt;bean class="org.springframework.transaction.interceptor.TransactionAttributeSourceAdvisor"&gt;
+                &lt;property name="transactionInterceptor" ref="transactionInterceptor"/&gt;
+                &lt;/bean&gt;
+                
+                &lt;bean id="transactionInterceptor"
+                class="org.springframework.transaction.interceptor.TransactionInterceptor"&gt;
+                &lt;property name="transactionManager" ref="transactionManager"/&gt;
+                &lt;property name="transactionAttributeSource"&gt;
+                &lt;bean class="org.springframework.transaction.interceptor.AttributesTransactionAttributeSource"&gt;
+                &lt;property name="attributes" ref="attributes"/&gt;
+                &lt;/bean&gt;
+                &lt;/property&gt;
+                &lt;/bean&gt;
+                
+            &lt;bean id="attributes" class="org.springframework.metadata.commons.CommonsAttributes"/&gt;</pre>
+<p>
+        </p>
+<p><code class="literal">DefaultAdvisorAutoProxyCreator</code> bean定義（名字是不重要的，因此甚至可以在定義裡省略它）將在當前應用程序上下文中尋找所有合適的切入點。在這個例子裡，<code class="literal">TransactionAttributeSourceAdvisor</code>型別的「transactionAdvisor」bean定義將應用到帶有一個事務屬性的類別或方法上。
+            TransactionAttributeSourceAdvisor的建構器依賴於一個TransactionInterceptor。這個例子裡通過自動織入解決了這個問題。<code class="literal">AttributesTransactionAttributeSource</code>依賴於一個<code class="literal">org.springframework.metadata.Attributes</code>介面的實作。
+            在這個程式碼片斷裡，「attributes」bean使用Jakarta Commons Attributes API來獲取屬性資訊以滿足這個要求。（應用程序程式碼必須已經使用Commons Attribut來es的編譯任務編譯過了。）
+        </p>
+<p>JPetStore範例應用程序的 <code class="literal">/annotation</code> 目錄包括了一個由JDK 1.5+註釋驅動的自動代理的模擬例子。
+            下面的配置允許自動檢測Spring的<code class="literal">Transactional</code>註釋，這可以為包含註釋的bean提供隱式代理：
+        </p>
+<p>
+            </p>
+<pre class="programlisting">&lt;bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"/&gt;
+                
+                &lt;bean class="org.springframework.transaction.interceptor.TransactionAttributeSourceAdvisor"&gt;
+                &lt;property name="transactionInterceptor" ref="transactionInterceptor"/&gt;
+                &lt;/bean&gt;
+                
+                &lt;bean id="transactionInterceptor"
+                class="org.springframework.transaction.interceptor.TransactionInterceptor"&gt;
+                &lt;property name="transactionManager" ref="transactionManager"/&gt;
+                &lt;property name="transactionAttributeSource"&gt;
+                &lt;bean class="org.springframework.transaction.annotation.AnnotationTransactionAttributeSource"/&gt;
+                &lt;/property&gt;
+            &lt;/bean&gt;</pre>
+<p>
+        </p>
+<p>這裡定義的<code class="literal">TransactionInterceptor</code>依賴於一個<code class="literal">PlatformTransactionManager</code>定義，
+            後者沒有被包括在這個通用的檔案裡（雖然它可以被包括在這裡）因為它在應用程序的事務需求規範中指定（在這個例子裡使用JTA，而在其它情況下，可以是Hibernate，JDO或者JDBC）：
+        </p>
+<pre class="programlisting">&lt;bean id="transactionManager" 
+        class="org.springframework.transaction.jta.JtaTransactionManager"/&gt;</pre>
+<div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">提示</h3>
+<p>如果你只需要宣告式事務管理，使用這些通用的XML定義將導致Spring自動代理所有帶有事務屬性的類別或者方法。你將不需要直接使用AOP工作，
+            這個程式模型和.NET的ServicedComponents相似。</p>
+</div>
+<p>這個架構是可以擴展的。可以在自定義屬性的基礎上進行自動代理。你所需要做的是：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>定義你自己的自定義屬性</p></li>
+<li><p>使用必要的通知說明一個通知器，也包括一個切入點，後者可以被類別或者方法上的自定義屬性觸發。
+                    你也許能夠使用已有的通知，而僅僅實作一個能夠處理自定義屬性的靜態切入點。
+                </p></li>
+</ul></div>
+<p>可以讓這些通知器對於每個被通知物件（例如，mixins）都是唯一的：僅僅需要在bean定義中被定義為原型而不是單例。
+            例如，在上面所顯示的Spring測試集中的<code class="literal">LockMixin</code>引入攔截器可以和一個屬性驅動的切入點聯合定位一個mixin，
+            像這裡顯示的這樣。我們使用通用的<code class="literal">DefaultPointcutAdvisor</code>，使用JavaBean屬性進行配置：
+        </p>
+<p>
+            </p>
+<pre class="programlisting">&lt;bean id="lockMixin" class="org.springframework.aop.LockMixin"
+                scope="prototype"/&gt;
+                
+                &lt;bean id="lockableAdvisor" class="org.springframework.aop.support.DefaultPointcutAdvisor"
+                scope="prototype"&gt;
+                &lt;property name="pointcut" ref="myAttributeAwarePointcut"/&gt;
+                &lt;property name="advice" ref="lockMixin"/&gt;
+                &lt;/bean&gt;
+                
+            &lt;bean id="anyBean" class="anyclass" ...</pre>
+<p>
+        </p>
+<p>如果參數相關的切入點匹配<code class="literal">anyBean</code>或其它bean定義裡的任何方法，mixin將被應用。
+            注意<code class="literal">lockMixin</code>和<code class="literal">lockableAdvisor</code>的定義都是原型。
+            <code class="literal">myAttributeAwarePointcut</code>切入點可以是個單例，因為它沒有為單個被通知物件保持狀態。
+        </p>
+</div>
+</div></body>
+</html>

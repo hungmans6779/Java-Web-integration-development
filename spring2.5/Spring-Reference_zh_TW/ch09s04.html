@@ -1,0 +1,41 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>9.4.&#160;使用資源同步的事務</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch09.html" title="第&#160;9&#160;章&#160;事務管理">
+<link rel="prev" href="ch09s03.html" title="9.3.&#160;關鍵抽象">
+<link rel="next" href="ch09s05.html" title="9.5.&#160;宣告式事務管理">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="tx-resource-synchronization"></a>9.4.&#160;使用資源同步的事務</h2></div></div></div>
+<p>現在應該比較清楚的是：不同的事務管理器是如何創建的，以及它們如何被連接到相應的需要被同步到事務的資源上（例如，<code class="classname">DataSourceTransactionManager</code> 對應到JDBC <code class="interfacename">DataSource</code>，
+			<code class="classname">HibernateTransactionManager</code> 對應到Hibernate的 <code class="interfacename">SessionFactory</code> 等）。可是，剩下的問題是，直接或間接地使用一種持久化API（JDBC、Hibernate、JDO等）的應用程式碼，如何確保通過相關的 <code class="interfacename">PlatformTransactionManager</code> 來恰當地獲取並操作資源，來滿足事務同步，這些操作包括：創建、復用、清理 和 觸發（可能沒有）。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="tx-resource-synchronization-high"></a>9.4.1.&#160;高層次方案</h3></div></div></div>
+<p>首選的方法是使用Spring的高層持久化整合API。這種方式不會替換原始的API，而是在內部封裝了資源創建、復用、清理、事務同步以及異常映射等功能，這樣使用者的資料存取程式碼就不必關心這些，而集中精力於自己的持久化邏輯。通常，對所有持久化API都採用這種 <span class="emphasis"><em>模板</em></span> 方法，包括 <code class="classname">JdbcTemplate</code>、<code class="classname">HibernateTemplate</code>和<code class="classname">JdoTemplate</code>類別（這些在這份參考文檔後面的章節中詳細敘述）。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="tx-resource-synchronization-low"></a>9.4.2.&#160;低層次方案</h3></div></div></div>
+<p>在較低層次上，有以下這些類別：<code class="classname">DataSourceUtils</code>（針對JDBC），<code class="classname">SessionFactoryUtils</code>（針對Hibernate），<code class="classname">PersistenceManagerFactoryUtils</code>（針對JDO）等等。當對應用程式碼來說，直接同原始持久化API特有的資源型別打交道是更好的選擇時，這些類別確保應用程式碼獲取到正確的Spring框架所管理的bean，事務被正確同步，處理過程中的異常被映射到一致的API。</p>
+<p>例如，在JDBC環境下，你不再使用傳統的調用 <code class="interfacename">DataSource</code> 的 <code class="literal">getConnection()</code> 方法的方式，而是使用Spring的 <code class="classname">org.springframework.jdbc.datasource.DataSourceUtils</code>，像這樣：</p>
+<pre class="programlisting">Connection conn = DataSourceUtils.getConnection(dataSource);</pre>
+<p>如果已有一個事務及與之關聯的connection存在，該實例將被返回。否則，該方法調用將觸發起一個新的connection的創建動作，該connection（可選地）被同步到任何現有的事務，並可以在同一事務範圍內被後續的調用復用。正如上面提到的，這個過程有一個額外的好處，就是任何 <code class="exceptionname">SQLException</code>將被包裹為Spring框架的 <code class="exceptionname">CannotGetJdbcConnectionException</code>，該類別是Spring框架的unchecked的DataAccessExceptions層次體系中的一員。這將給你比從 <code class="exceptionname">SQLException</code> 中簡單所得更多的資訊，而且保證了跨資料庫——甚至其他持久化技術——的移植性。</p>
+<p>應該指出的是，這些類別同樣可以在沒有Spring事務管理的環境中工作良好（事務同步能力是可選的），所以無論你是否使用Spring的事務管理，你都可以使用這些類別。</p>
+<p>當然，一旦你用過Spring的JDBC支持或Hibernate支持，你一般就不再會選擇 <code class="classname">DataSourceUtils</code> 或是別的輔助類別了，因為你會更樂意與Spring抽像一起工作，而不是直接使用相關的API。例如，如果你使用Spring的 <code class="classname">JdbcTemplate</code> 或 <code class="literal">jdbc.object</code> 套件來簡化使用JDBC，Spring會在幕後替你正確地獲取連接，而你不需要寫任何特殊程式碼。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="tx-resource-synchronization-tadsp"></a>9.4.3.&#160;
+				<code class="classname">TransactionAwareDataSourceProxy</code>
+			</h3></div></div></div>
+<p>工作在最底層的是 <code class="classname">TransactionAwareDataSourceProxy</code> 類別。這是一個對目標 <code class="interfacename">DataSource</code> 的代理，它包裹了目標 <code class="interfacename">DataSource</code>，提供對Spring管理事務的可知性。在這點上，它類似於一個J2EE伺服器提供的事務性JNDI <code class="interfacename">DataSource</code>。</p>
+<p>該類別應該永遠不需要被應用程式碼使用，除非現有程式碼存在需要直接傳遞一個標準的JDBC的 <code class="interfacename">DataSource</code> 的情況。這時可以通過參與Spring管理事務讓這些程式碼仍然有用。書寫新的程式碼時，首選的方法是採用上面提到的Spring高層抽象。</p>
+</div>
+</div></body>
+</html>

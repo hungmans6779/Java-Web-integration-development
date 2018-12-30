@@ -1,0 +1,263 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>13.8.&#160;Spring對分段檔案上傳（multipart file upload）的支持</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch13.html" title="第&#160;13&#160;章&#160;Web MVC framework Web框架">
+<link rel="prev" href="ch13s07.html" title="13.7.&#160;使用主題">
+<link rel="next" href="ch13s09.html" title="13.9.&#160;使用Spring的表單標籤資源庫">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="mvc-multipart"></a>13.8.&#160;Spring對分段檔案上傳（multipart file upload）的支持</h2></div></div></div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-multipart-introduction"></a>13.8.1.&#160;介紹</h3></div></div></div>
+<p>
+			Spring支持web應用中的分段檔案上傳。這種支持是由即插即用的<code class="interfacename">MultipartResolver</code>來實作。
+			這些解析器都定義在<code class="literal">org.springframework.web.multipart</code>包裡。
+			Spring提供了現成的<code class="interfacename">MultipartResolver</code>可以支持<span class="emphasis"><em>Commons FileUpload</em></span>（<a href="http://jakarta.apache.org/commons/fileupload" target="_top">http://jakarta.apache.org/commons/fileupload</a>）和
+			<span class="emphasis"><em>COS FileUpload</em></span>(<a href="http://www.servlets.com/cos" target="_top">http://www.servlets.com/cos</a>)。
+			本章後面的部分描述了Spring是如何支持檔案上傳的。
+      </p>
+<p>
+			通常情況下，Spring是不處理檔案上傳的，因為一些開發者想要自己處理它們。
+			如果想使用Spring的這個功能，需要在web應用的上下文中添加分段檔案解析器。
+			這樣，每個請求就會被檢查是否包含檔案上傳。如果沒有，這個請求就被正常的處理，
+			否則，應用上下文中已經定義的<code class="classname">MultipartResolver</code>就會被調用。
+			然後，請求中的檔案屬性就會像其它屬性一樣被處理。
+		</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-multipart-resolver"></a>13.8.2.&#160;使用<code class="interfacename">MultipartResolver</code></h3></div></div></div>
+<p>
+			下面的例子說明了如何使用<code class="classname">CommonsMultipartResolver</code>：
+      </p>
+<pre class="programlisting">&lt;bean id="multipartResolver"
+    class="org.springframework.web.multipart.commons.CommonsMultipartResolver"&gt;
+
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- one of the properties available; the maximum file size in bytes --&gt;</span></em>
+    &lt;property name="maxUploadSize" value="100000"/&gt;
+&lt;/bean&gt;</pre>
+<p>
+			下面這個例子使用<code class="classname">CosMultipartResolver</code>：
+	  </p>
+<pre class="programlisting">&lt;bean id="multipartResolver" class="org.springframework.web.multipart.cos.CosMultipartResolver"&gt;
+
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- one of the properties available; the maximum file size in bytes --&gt;</span></em>
+    &lt;property name="maxUploadSize" value="100000"/&gt;
+&lt;/bean&gt;</pre>
+<p>
+			當然，需要在classpath中為分段檔案解析器提供正確的jar檔案。
+			如果是<code class="classname">CommonsMultipartResolver</code>，
+			需要使用<code class="literal">commons-fileupload.jar</code>，如果是<code class="classname">CosMultipartResolver</code>，
+			則使用<code class="literal">cos.jar</code>。
+	  </p>
+<p>
+			已經看到如何設置Spring處理檔案上傳請求，接下來我們看看如何使用它。
+			當Spring的<code class="classname">DispatcherServlet</code>發現檔案上傳請求時，它會啟動定義在上下文中的解析器來處理請求。
+			這個解析器隨後是將當前的<code class="classname">HttpServletRequest</code>封裝成<code class="classname">MultipartHttpServletRequest</code>，後者支持分段檔案上傳。
+			使用<code class="classname">MultipartHttpServletRequest</code>，可以獲取請求所包含的上傳資訊，甚至可以在控制器中獲取分段檔案的內容。
+		</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-multipart-forms"></a>13.8.3.&#160;在表單中處理分段檔案上傳</h3></div></div></div>
+<p>
+			在<code class="classname">MultipartResolver</code>完成分段檔案解析後，這個請求就會和其它請求一樣被處理。
+			為了使用檔案上傳，你需要創建一個帶檔案上傳域（upload field）的（HTML）表單，讓Spring將檔案綁定到你的表單上（如下所示）：
+      </p>
+<pre class="programlisting">&lt;html&gt;
+    &lt;head&gt;
+        &lt;title&gt;Upload a file please&lt;/title&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;h1&gt;Please upload a file&lt;/h1&gt;
+        &lt;form method="post" action="upload.form" enctype="multipart/form-data"&gt;
+            &lt;input type="file" name="file"/&gt;
+            &lt;input type="submit"/&gt;
+        &lt;/form&gt;
+    &lt;/body&gt;
+&lt;/html&gt;</pre>
+<p>
+			可以看到，在上面這個表單裡有一個input元素，這個元素的名字（「file」）和伺服器端處理這個表單的bean（在下面將會提到）中型別為<code class="literal">byte[]</code>的屬性名相同。 
+			在這個表單裡我們也宣告了編碼參數（<code class="literal">enctype="multipart/form-data"</code>）以便讓瀏覽器知道如何對這個檔案上傳表單進行編碼（千萬不要忘記這麼做！）。
+		</p>
+<p>
+			和其它不能自動轉為字元串型別或者基本型別（primitive type）的屬性一樣，為了將上傳的二進制資料存成bean的屬性，
+			必須通過<code class="classname">ServletRequestDatabinder</code>註冊一個屬性編輯器。
+			Spring中內置了幾個這樣的編輯器，它們可以處理檔案，然後將結果存成bean的屬性。
+			比如，<code class="classname">StringMultipartEditor</code>可以將檔案轉換成一個字元串（使用使用者宣告的字元集）。
+			<code class="classname">ByteArrayMultipartEditor</code>可以以將檔案轉換為byte陣列。
+			他們的功能和<code class="classname">CustomDateEditor</code>相似。
+      </p>
+<p>
+			總而言之，為了使用（HTML）表單上傳檔案，需要宣告一個解析器，一個控制器，再將檔案上傳的URL映射到控制器來處理這個請求。
+			下面是這幾個bean的宣告。
+	  </p>
+<pre class="programlisting">&lt;beans&gt;
+	<em class="lineannotation"><span class="lineannotation">&lt;!-- lets use the Commons-based implementation of the MultipartResolver interface --&gt;</span></em>
+    &lt;bean id="multipartResolver"
+        class="org.springframework.web.multipart.commons.CommonsMultipartResolver"/&gt;
+
+    &lt;bean id="urlMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping"&gt;
+        &lt;property name="mappings"&gt;
+            &lt;value&gt;
+                /upload.form=fileUploadController
+            &lt;/value&gt;
+        &lt;/property&gt;
+    &lt;/bean&gt;
+
+    &lt;bean id="fileUploadController" class="examples.FileUploadController"&gt;
+        &lt;property name="commandClass" value="examples.FileUploadBean"/&gt;
+        &lt;property name="formView" value="fileuploadform"/&gt;
+        &lt;property name="successView" value="confirmation"/&gt;
+    &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<p>
+			下面的程式碼定義了控制器和用來存放檔案的那個bean。
+	  </p>
+<pre class="programlisting">public class FileUploadController extends SimpleFormController {
+
+    protected ModelAndView onSubmit(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        Object command,
+        BindException errors) throws ServletException, IOException {
+
+        <em class="lineannotation"><span class="lineannotation"> // cast the bean</span></em>
+        FileUploadBean bean = (FileUploadBean) command;
+
+        <em class="lineannotation"><span class="lineannotation"> let's see if there's content there</span></em>
+        byte[] file = bean.getFile();
+        if (file == null) {
+            <em class="lineannotation"><span class="lineannotation"> // hmm, that's strange, the user did not upload anything</span></em>
+        }
+
+        <em class="lineannotation"><span class="lineannotation"> // well, let's do nothing with the bean for now and return</span></em>
+        return super.onSubmit(request, response, command, errors);
+    }
+
+    protected void initBinder(HttpServletRequest request, ServletRequestDataBinder binder)
+        throws ServletException {
+        // to actually be able to convert Multipart instance to byte[]
+        // we have to register a custom editor
+        binder.registerCustomEditor(byte[].class, new ByteArrayMultipartFileEditor());
+        // now Spring knows how to handle multipart object and convert them
+    }
+
+}
+
+public class FileUploadBean {
+
+    private byte[] file;
+
+    public void setFile(byte[] file) {
+        this.file = file;
+    }
+
+    public byte[] getFile() {
+        return file;
+    }
+}</pre>
+<p>
+			<code class="classname">FileUploadBean</code>用一個<code class="literal">byte[]</code>型別的屬性來存放檔案。
+			前面已經提到過，通常控制器註冊一個自定義的編輯器以便讓Spring知道如何將解析器找到的multipart物件轉換成bean指定的屬性，
+			但在上面的例子中，我們除了將byte陣列記錄下來以外，沒有對這個檔案進行任何操作，
+			在實際的應用程序中你可以做任何你想做的事情（比如將檔案存儲在資料庫中，通過電子郵件發送給某人等等）。
+      </p>
+<p>
+			在下面這個例子裡，上傳的檔案被綁定為（表單支持的）物件（form backing）的String屬性：
+      </p>
+<pre class="programlisting">public class FileUploadController extends SimpleFormController {
+
+    protected ModelAndView onSubmit(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        Object command,
+        BindException errors) throws ServletException, IOException {
+
+        <em class="lineannotation"><span class="lineannotation"> // cast the bean</span></em>
+        FileUploadBean bean = (FileUploadBean) command;
+
+        <em class="lineannotation"><span class="lineannotation"> let's see if there's content there</span></em>
+        String file = bean.getFile();
+        if (file == null) {
+            <em class="lineannotation"><span class="lineannotation"> // hmm, that's strange, the user did not upload anything</span></em>
+        }
+
+        <em class="lineannotation"><span class="lineannotation"> // well, let's do nothing with the bean for now and return</span></em>
+        return super.onSubmit(request, response, command, errors);
+    }
+
+    protected void initBinder(HttpServletRequest request, ServletRequestDataBinder binder)
+        throws ServletException {
+        // to actually be able to convert Multipart instance to a String
+        // we have to register a custom editor
+        binder.registerCustomEditor(String.class, new StringMultipartFileEditor());
+        // now Spring knows how to handle multipart object and convert them
+    }
+
+}
+
+public class FileUploadBean {
+
+    private String file;
+
+    public void setFile(String file) {
+        this.file = file;
+    }
+
+    public String getFile() {
+        return file;
+    }
+}</pre>
+<p>
+            如果僅僅是處理一個文本檔案的上傳，上面這個例子的做法還是合理的（但如果上傳的是一張圖片，
+			那段程式碼就會出問題）。
+        </p>
+<p>
+            最後的解決方法就是將表單支持物件（form backing）的相關屬性設成<code class="interfacename">MultipartFile</code>型別。
+			這樣的話，沒有型別轉換的需要，我們也就不需要宣告任何屬性編輯器（<code class="interfacename">PropertyEditor</code>）。
+        </p>
+<pre class="programlisting">public class FileUploadController extends SimpleFormController {
+
+    protected ModelAndView onSubmit(
+        HttpServletRequest request,
+        HttpServletResponse response,
+        Object command,
+        BindException errors) throws ServletException, IOException {
+
+        <em class="lineannotation"><span class="lineannotation"> // cast the bean</span></em>
+        FileUploadBean bean = (FileUploadBean) command;
+
+        <em class="lineannotation"><span class="lineannotation"> let's see if there's content there</span></em>
+        MultipartFile file = bean.getFile();
+        if (file == null) {
+            <em class="lineannotation"><span class="lineannotation"> // hmm, that's strange, the user did not upload anything</span></em>
+        }
+
+        <em class="lineannotation"><span class="lineannotation"> // well, let's do nothing with the bean for now and return</span></em>
+        return super.onSubmit(request, response, command, errors);
+    }
+}
+
+public class FileUploadBean {
+
+    private MultipartFile file;
+
+    public void setFile(MultipartFile file) {
+        this.file = file;
+    }
+
+    public MultipartFile getFile() {
+        return file;
+    }
+}</pre>
+</div>
+</div></body>
+</html>

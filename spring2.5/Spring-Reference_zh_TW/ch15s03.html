@@ -1,0 +1,81 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>15.3.&#160;JavaServer Faces</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch15.html" title="第&#160;15&#160;章&#160;整合其它Web框架">
+<link rel="prev" href="ch15s02.html" title="15.2.&#160;通用配置">
+<link rel="next" href="ch15s04.html" title="15.4.&#160;Struts">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="jsf"></a>15.3.&#160;JavaServer Faces</h2></div></div></div>
+<p>
+			JavaServer Faces (JSF) 是一個基於元件的，事件驅動的 Web 框架。這個框架很受歡迎。
+			Spring 與 JSF 整合的關鍵類別是 <code class="classname">DelegatingVariableResolver</code>。
+		</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jsf-delegatingvariableresolver"></a>15.3.1.&#160;DelegatingVariableResolver</h3></div></div></div>
+<p>
+				將 Spring 中間層與 JSF Web 層整合的最簡單辦法就是使用
+				<a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/web/jsf/DelegatingVariableResolver.html" target="_top">
+				<code class="classname">DelegatingVariableResolver</code></a> 類別。
+				要在應用中配置變數解析器（Variable Resolver），你需要編輯 <span class="emphasis"><em>faces-context.xml</em></span> 檔案。
+				在 <code class="literal">&lt;faces-config/&gt;</code> 元素裡面增加一個 <code class="literal">&lt;application/&gt;</code>
+				元素和一個 <code class="literal">&lt;variable-resolver/&gt;</code> 元素。
+				變數解析器的值將參考 Spring 的 <code class="classname">DelegatingVariableResolver</code>。例如：
+			</p>
+<pre class="programlisting">&lt;faces-config&gt;
+  &lt;application&gt;
+    &lt;variable-resolver&gt;org.springframework.web.jsf.DelegatingVariableResolver&lt;/variable-resolver&gt;
+      &lt;locale-config&gt;
+        &lt;default-locale&gt;en&lt;/default-locale&gt;
+        &lt;supported-locale&gt;en&lt;/supported-locale&gt;
+        &lt;supported-locale&gt;es&lt;/supported-locale&gt;
+      &lt;/locale-config&gt;
+      &lt;message-bundle&gt;messages&lt;/message-bundle&gt;
+    &lt;/application&gt;
+&lt;/faces-config&gt;</pre>
+<p>
+				<code class="classname">DelegatingVariableResolver</code> 首先會將查詢請求委派到 JSF 實作的
+				預設的解析器中，然後才是 Spring 的「business context」 <code class="classname">WebApplicationContext</code>。
+				這使得在JSF 所管理的 bean 中使用依賴注射非常容易。
+			</p>
+<p>
+				JSF 所管理的 bean 都定義在 <code class="literal">faces-config.xml</code> 檔案中。
+				下面例子中的 <code class="literal">#{userManager}</code> 是一個取自 Spring 的「business context」的 bean。
+			</p>
+<pre class="programlisting">&lt;managed-bean&gt;
+  &lt;managed-bean-name&gt;userList&lt;/managed-bean-name&gt;
+	&lt;managed-bean-class&gt;com.whatever.jsf.UserList&lt;/managed-bean-class&gt;
+  &lt;managed-bean-scope&gt;request&lt;/managed-bean-scope&gt;
+  &lt;managed-property&gt;
+    &lt;property-name&gt;userManager&lt;/property-name&gt;
+    &lt;value&gt;#{userManager}&lt;/value&gt;
+  &lt;/managed-property&gt;
+&lt;/managed-bean&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="jsf-facescontextutils"></a>15.3.2.&#160;FacesContextUtils</h3></div></div></div>
+<p>
+				如果所有屬性已經映射到 <span class="emphasis"><em>faces-config.xml</em></span> 檔案中相關的bean，
+				一個自定義的 <code class="interfacename">VariableResolver</code> 也可以工作的很好。
+				但是有些情況下你需要顯式獲取一個bean。這時，
+				<a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/web/jsf/FacesContextUtils.html" target="_top">
+				<code class="classname">FacesContextUtils</code></a> 可以使這個任務變得很容易。它類似於
+				<code class="classname">WebApplicationContextUtils</code>，
+				不過它接受 <code class="classname">FacesContext</code> 而不是 <span class="interface">ServletContext</span> 作為參數。
+			</p>
+<pre class="programlisting">ApplicationContext ctx = FacesContextUtils.getWebApplicationContext(FacesContext.getCurrentInstance());</pre>
+<p>
+				我們推薦使用 <code class="classname">DelegatingVariableResolver</code> 實作 JSF 和 Spring 的整合。
+				如果你想要更全面的整合，可以看看 
+				<a href="http://jsf-spring.sourceforge.net/" target="_top">JSF-Spring</a> 這個項目。
+			</p>
+</div>
+</div></body>
+</html>

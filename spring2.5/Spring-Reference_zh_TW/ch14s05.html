@@ -1,0 +1,203 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>14.5.&#160;XSLT</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch14.html" title="第&#160;14&#160;章&#160;整合視圖技術">
+<link rel="prev" href="ch14s04.html" title="14.4.&#160;Velocity和FreeMarker">
+<link rel="next" href="ch14s06.html" title="14.6.&#160;文檔視圖（PDF/Excel）">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="view-xslt"></a>14.5.&#160;XSLT</h2></div></div></div>
+<p>
+			XSLT是一種用於XML的轉換語言，並作為一種在web應用中使用的view層技術廣為人知。
+			如果你的應用本來就要處理XML，或者模型資料可以很容易轉化為XML，那麼XSLT是一個很好的選擇。
+			下面的內容展示了在一個Spring MVC 應用中如何產生XML格式的模型資料，並用XSLT進行轉換。
+		</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="view-xslt-firstwords"></a>14.5.1.&#160;寫在段首</h3></div></div></div>
+<p>
+				這是一個很小的Spring應用的例子，它只是在
+				<code class="interfacename">Controller</code>
+				中創建一個詞語列表，並將它們加至模型資料（model map）。模型資料和我們的XSLT視圖名一同返回。
+				請參考<a href="ch13s03.html" title="13.3.&#160;控制器">第&#160;13.3&#160;節 「控制器」</a>
+				中關於Spring MVC<code class="interfacename">Controller</code>
+				介面的細節。XSLT視圖把詞語列表轉化為一段簡單XML，等待後續轉換。
+			</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="view-xslt-beandefs"></a>14.5.1.1.&#160;Bean 定義</h4></div></div></div>
+<p>
+					這是一個簡單的Spring應用的標準配置。dispatcher servlet配置檔案包含一個指向
+					<code class="interfacename">ViewResolver</code>的參考、URL映射和一個簡單的實作了我們的詞語產生邏輯的controller bean：
+				</p>
+<pre class="programlisting">&lt;bean id="homeController"class="xslt.HomeController"/&gt;</pre>
+<p>它實作了我們的詞語產生「邏輯」。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="view-xslt-controllercode"></a>14.5.1.2.&#160;標準MVC控制器程式碼</h4></div></div></div>
+<p>
+					控制器邏輯封裝在一個<code class="classname">AbstractController</code>的子類別，它的handler方法定義如下：
+				</p>
+<pre class="programlisting">protected ModelAndView handleRequestInternal(
+    HttpServletRequest request,
+    HttpServletResponse response) throws Exception {
+        
+    Map map = new HashMap();
+    List wordList = new ArrayList();
+        
+    wordList.add("hello");
+    wordList.add("world");
+       
+    map.put("wordList", wordList);
+      
+    return new ModelAndView("home", map);
+}</pre>
+<p>
+					到目前為止，我們還沒有做什麼特定於XSLT的事情。在任何一種Spring
+					MVC應用中，模型資料都以同樣的方式被創建。
+					現在根據應用的配置，詞語列表可以作為請求屬性加入從而被JSP/JSTL渲染，或者通過加入
+					<code class="classname">VelocityContext</code>來被Velocity處理。
+					為了使用XSLT渲染它們，應該以某種方式把它們轉化為XML文檔。有些軟體套件能自動完成物件圖到XML文檔物件模型的轉化。
+					但在Spring中，你有完全的自由度，能以任何方式完成從模型資料到XML的轉化。
+					這可以防止XML轉化部分在你的模型結構中佔據太大的比重，使用額外工具來管理轉化過程是一種風險。
+				</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="view-xslt-subclassing"></a>14.5.1.3.&#160;把模型資料轉化為XML</h4></div></div></div>
+<p>
+					為了從詞語列表或任何其他模型資料創建XML文檔，我們必須創建一個
+					<code class="classname">
+						org.springframework.web.servlet.view.xslt.AbstractXsltView
+					</code>的子類別， 通常我們也必須實作抽象方法
+					<code class="methodname">createXsltSource(..)</code>s。其第一個參數即model Map。 下面是我們這個小應用中
+					<code class="classname">HomePage</code>類別的完整程式碼:
+				</p>
+<pre class="programlisting">
+package xslt;
+
+<em class="lineannotation"><span class="lineannotation">// imports omitted for brevity</span></em>
+					
+
+public class HomePage extends AbstractXsltView {
+
+    protected Source createXsltSource(Map model, String rootName, HttpServletRequest
+        request, HttpServletResponse response) throws Exception {
+
+        Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+        Element root = document.createElement(rootName);
+
+        List words = (List) model.get("wordList");
+        for (Iterator it = words.iterator(); it.hasNext();) {
+            String nextWord = (String) it.next();
+            Element wordNode = document.createElement("word");
+            Text textNode = document.createTextNode(nextWord);
+            wordNode.appendChild(textNode);
+            root.appendChild(wordNode);
+        }
+        return new DOMSource(root);
+    }
+
+}</pre>
+<p>
+					你可以在上述子類別中定義一些傳給轉化物件的參數，它們由健值對（name/value pairs）構成，
+					其中參數名必須與XSLT模板中定義的
+					<code class="literal">
+						&lt;xsl:param
+						name="myParam"&gt;defaultValue&lt;/xsl:param&gt;
+					</code>
+					一致。 為了指定這些參數，你需要覆寫繼承自
+					<code class="classname">AbstractXsltView</code>的<code class="methodname">getParameters()</code>
+					方法並返回一個套件含健值對的
+					<code class="interfacename">Map</code>。 如果你需要從當前請求中獲取資訊，你可以選擇覆寫
+					<code class="methodname">
+						getParameters(HttpServletRequest request)
+					</code>
+					方法。（這個方法只有Spring 1.1以後的版本才支持。）
+				</p>
+<p>
+					比起JSTL和Velocity，XSLT對本地貨幣和日期格式的支持相對較弱。
+					基於這點，Spring提供了一個輔助類別，你可以在
+					<code class="methodname">createXsltSource(..)</code>
+					方法中調用它來獲得這樣的支持。 請參考
+					<code class="classname">
+						org.springframework.web.servlet.view.xslt.FormatHelper
+					</code>類別的Javadoc。
+				</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="view-xslt-viewdefinitions"></a>14.5.1.4.&#160;定義視圖屬性</h4></div></div></div>
+<p>
+					對於「寫在段首」中的只有一個視圖的情況來說，views.properties檔案（或者等價的xml檔案，如果你用一種基於XML的視圖解析器的話，就像在上面的Velocity例子中）看起來是這樣的：
+				</p>
+<pre class="programlisting">home.class=xslt.HomePage
+home.stylesheetLocation=/WEB-INF/xsl/home.xslt
+home.root=words</pre>
+<p>
+					這裡你可以看到，第一個屬性
+					<code class="literal">'.class'</code>
+					指定了視圖類別，即我們的<code class="classname">HomePage</code>
+					，其中完成從模型資料到XML文檔的轉化。 第二個屬性
+					<code class="literal">'stylesheetLocation'</code>
+					指定了XSLT檔案的位置，它用於完成從XML到HTML的轉化。 最後一個屬性
+					<code class="literal">'.root'</code>
+					指定了用作XML文檔根元素的名字，它被作為
+					<code class="methodname">createXsltSource(..)</code>
+					方法的第二個參數傳給<code class="classname">HomePage</code>類別。
+				</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="view-xslt-transforming"></a>14.5.1.5.&#160;文檔轉換</h4></div></div></div>
+<p>
+					最後，我們有一段轉換上述文檔的XSLT程式碼。 正如在
+					<code class="filename">'views.properties'</code>中看到的，它被命名為
+					<code class="filename">'home.xslt'</code>，存放在war檔案中的
+					<code class="filename">'WEB-INF/xsl'</code>目錄下。
+				</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"&gt;
+
+    &lt;xsl:output method="html" omit-xml-declaration="yes"/&gt;
+
+    &lt;xsl:template match="/"&gt;
+        &lt;html&gt;
+            &lt;head&gt;&lt;title&gt;Hello!&lt;/title&gt;&lt;/head&gt;
+            &lt;body&gt;
+                &lt;h1&gt;My First Words&lt;/h1&gt;
+                &lt;xsl:apply-templates/&gt;
+            &lt;/body&gt;
+        &lt;/html&gt;
+    &lt;/xsl:template&gt;
+
+    &lt;xsl:template match="word"&gt;
+        &lt;xsl:value-of select="."/&gt;&lt;br/&gt;
+    &lt;/xsl:template&gt;
+
+&lt;/xsl:stylesheet&gt;</pre>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="view-xslt-summary"></a>14.5.2.&#160;小結</h3></div></div></div>
+<p>下面是一個簡化的WAR目錄結構，其中總結了上面提到的檔案和它們在WAR中的位置：</p>
+<pre class="programlisting">
+				ProjectRoot | +- WebContent | +- WEB-INF | +- classes |
+				| | +- xslt | | | | | +- HomePageController.class | | +-
+				HomePage.class | | | +- views.properties | +- lib | | |
+				+- spring.jar | +- xsl | | | +- home.xslt | +-
+				frontcontroller-servlet.xml
+			</pre>
+<p>
+				你要確保classpath下存在XML解析器和XSLT引擎。JDK1.4預設已提供了這些，多數J2EE容器也提供，但還是要警惕，它可能是一些錯誤的根源。
+			</p>
+</div>
+</div></body>
+</html>

@@ -1,0 +1,61 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>2.2.&#160;控制反轉(IoC)容器</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch02.html" title="第&#160;2&#160;章&#160;Spring 2.0和 2.5的新特性">
+<link rel="prev" href="ch02.html" title="第&#160;2&#160;章&#160;Spring 2.0和 2.5的新特性">
+<link rel="next" href="ch02s03.html" title="2.3.&#160;切面導向程式(AOP)">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="new-in-2-ioc"></a>2.2.&#160;控制反轉(IoC)容器</h2></div></div></div>
+<p>Spring 2.0 相當大的改進之一就是Spring的IoC容器。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="new-in-2-ioc-scopes"></a>2.2.1.&#160;新的bean作用域</h3></div></div></div>
+<p>Spring上個版本的IoC容器支持兩個不同的bean作用域（單例與原型）。Spring 2.0改進了這一點，不僅提供了一些依賴於Spring部署環境（比如說，在web環境中的request和session作用域bean）的額外的作用域,而且提供了所謂的'鉤子'（'hooks'）（因為找不到更好的表達）使Spring使用者可以創造自己的作用域。</p>
+<p>應該注意的是，即使單例與原型作用域beans的基本（內在）實作發生了變化，上述變化對最終使用者來說是透明的...現有的配置不需要改變或放棄。</p>
+<p>在標題為 <a href="ch03s04.html" title="3.4.&#160;Bean的作用域">第&#160;3.4&#160;節 「Bean的作用域」</a> 的部分有對新增的作用域與原有作用域的詳細描述。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="new-in-2-ioc-configuration"></a>2.2.2.&#160;更簡單的XML配置</h3></div></div></div>
+<p>多虧了新的基於XML Schema的XML配置語法的產生，Spring的XML配置變的更加簡單了。如果你想充分利用Spring提供的新標籤（Spring團隊當然建議你這麼做，因為他們使配置變的不再繁瑣，更加易於閱讀），請閱讀標題為 <a href="apa.html" title="附錄&#160;A.&#160;XML Schema-based configuration">附錄&#160;A, <i>XML Schema-based configuration</i></a> 的部分。</p>
+<p>相關提示，有一個新的更新過的Spring 2.0的DTD。如果你不能使用基於Schema的XML配置，你可以使用它。下面給出了DOCTYPE宣告，如果有興趣的讀者可以詳細閱讀Spring 2.0發佈套件的
+			<code class="filename">'dist/resources'</code>目錄中的<code class="filename">'spring-beans-2.0.dtd'</code> DTD。</p>
+<pre class="programlisting">&lt;!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN 2.0//EN"
+			  "http://www.springframework.org/dtd/spring-beans-2.0.dtd"&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="new-in-2-ioc-custom-configuration"></a>2.2.3.&#160;可擴展的XML編寫</h3></div></div></div>
+<p>XML配置不僅更加易於書寫，而且也具有可擴展性。</p>
+<p>這裡'可擴展性'的含義是，作為一個應用程序開發人員，或著（更可能）作為第三方框架或產品的供應商，可以開發自定義標籤，供其他開發人員把這些標籤嵌入到自己的Spring配置檔案裡。你可以在元件的特定配置中定義你自己的DSL（domain specific language，這個詞在這裡用得比較寬泛）。</p>
+<p>對於開發人員或者在項目中運用Spring的企業架構師來說，實作自定義Spring標籤可能不是每個人都感興趣的。我們期待著第三方供應商能夠對開發在Spring配置檔案裡使用的自定義配置標籤予於足夠的關注。</p>
+<p>可擴展的配置機制在 <a href="apb.html" title="附錄&#160;B.&#160;Extensible XML authoring">附錄&#160;B, <i>Extensible XML authoring</i></a> 裡有更充分的描述。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="new-in-2-ioc-annotations"></a>2.2.4.&#160;Annotation(註釋)驅動配置</h3></div></div></div>
+<p>Spring 2.0 引入了一些用於配置的annotation, 套件括 <code class="interfacename">@Transactional</code>,
+      <code class="interfacename">@Required</code> and <code class="interfacename">@PersistenceContext</code>
+      /<code class="interfacename">@PersistenceUnit</code>.</p>
+<p>Spring 2.5 引入了用於配置的完整的Annotation集合: <code class="interfacename">@Autowired</code>，以及對JSR-250註釋<code class="interfacename">@Resource</code>,
+      <code class="interfacename">@PostConstruct</code> and <code class="interfacename">@PreDestroy</code>的支持。
+      </p>
+<p>Annotation驅動的bean 配置在<a href="ch03s11.html" title="3.11.&#160;基於註釋（Annotation-based）的配置">第&#160;3.11&#160;節 「基於註釋（Annotation-based）的配置」</a>中討論。也請查閱對Spring MVC的annotation的支持<a href="ch02s05.html#new-in-2-web-annotations" title="2.5.3.&#160;基於Annotation的控制器">第&#160;2.5.3&#160;節 「基於Annotation的控制器」</a>。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="new-in-2-ioc-component-scanning"></a>2.2.5.&#160;在classpath中自動搜尋元件</h3></div></div></div>
+<p>Spring2.5 引入了元件搜尋功能：在classpath中自動搜尋帶有annotation的元件。典型的，下列元件類別會註釋為stereotype: <code class="interfacename">@Component</code>,
+      <code class="interfacename">@Repository</code>, <code class="interfacename">@Service</code>,
+      <code class="interfacename">@Controller</code>. 取決於程序的上下文配置，這些元件會被自動搜尋到，並且轉變為Spring bean定義，而不需要為每個類別都進行明確的配置。</p>
+<p>Annotation-driven bean configuration is discussed in <a href="ch03s12.html#beans-stereotype-annotations" title="3.12.1.&#160;@Component和更多典型化註釋">第&#160;3.12.1&#160;節 「<code class="interfacename">@Component</code>和更多典型化註釋」</a>.</p>
+<p>Annotation驅動的bean配置在<a href="ch03s12.html#beans-stereotype-annotations" title="3.12.1.&#160;@Component和更多典型化註釋">第&#160;3.12.1&#160;節 「<code class="interfacename">@Component</code>和更多典型化註釋」</a>討論。</p>
+</div>
+</div></body>
+</html>

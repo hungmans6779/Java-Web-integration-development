@@ -1,0 +1,54 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>21.5.&#160;事務</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch21.html" title="第&#160;21&#160;章&#160;JCA CCI">
+<link rel="prev" href="ch21s04.html" title="21.4.&#160;建模CCI存取為操作物件">
+<link rel="next" href="ch22.html" title="第&#160;22&#160;章&#160;Spring郵件抽象層">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="cci-tx"></a>21.5.&#160;事務</h2></div></div></div>
+<p>
+  JCA為資源適配器（resource adapters）指定了幾個級別的事務支持。
+  你可以在 <code class="filename">ra.xml</code> 檔案中指定你的資源適配器支持的事務型別。
+  它本質上有三個選項：none(例如CICS EPI 連接器)，本地事務（例如CICS ECI 連接器），全局事務（例如IMS 連接器）。</p>
+<pre class="programlisting">&lt;connector&gt;
+
+ &lt;resourceadapter&gt;
+
+  <em class="lineannotation"><span class="lineannotation">&lt;!-- &lt;transaction-support&gt;NoTransaction&lt;/transaction-support&gt; --&gt;</span></em>
+  <em class="lineannotation"><span class="lineannotation">&lt;!-- &lt;transaction-support&gt;LocalTransaction&lt;/transaction-support&gt; --&gt;</span></em>
+  &lt;transaction-support&gt;XATransaction&lt;/transaction-support&gt;
+
+ &lt;resourceadapter&gt;
+
+&lt;connector&gt;</pre>
+<p>對於全局事務，可以使用Spring中常見的事務機制來劃分事務，
+  並以 <code class="classname">JtaTransactionManager</code> 為後端（委託給後面的J2EE分佈式事務協調程序）。
+</p>
+<p>對於單獨CCI <code class="interfacename">ConnectionFactory</code> 上的本地事務，
+  Spring為CCI提供了一個專門的事務管理策略，
+	類似於JDBC中的 <code class="classname">DataSourceTransactionManager</code>，
+	CCI API定義了一個本地事務物件和相應的本地事務劃分方法。
+	Spring的 <code class="classname">CciLocalTransactionManager</code> 執行這樣的本地CCI事務，
+	完全依照Spring中常見的 <code class="interfacename">PlatformTransactionManager</code> 抽象。</p>
+<pre class="programlisting">&lt;bean id="eciConnectionFactory" class="org.springframework.jndi.JndiObjectFactoryBean"&gt;
+ &lt;property name="jndiName" value="eis/cicseci"/&gt;
+&lt;/bean&gt;
+
+&lt;bean id="eciTransactionManager"
+  class="org.springframework.jca.cci.connection.CciLocalTransactionManager"&gt;
+ &lt;property name="connectionFactory" ref="eciConnectionFactory"/&gt;
+&lt;/bean&gt;</pre>
+<p>
+			宣告式或程式式的事務策略都能被用於任意的Spring事務劃分功能。
+			這是Spring通用的 <code class="interfacename">PlatformTransactionManager</code> 抽象的結果，它解耦了實際運行策略中的事務劃分。
+			你可以保持現在的事務劃分，只需要在 <code class="classname">JtaTransactionManager</code> 和 <code class="classname">CciLocalTransactionManager</code> 之間轉換即可。
+		</p>
+<p>有關Spring的事務機制，請參見 <a href="ch09.html" title="第&#160;9&#160;章&#160;事務管理">第&#160;9&#160;章 <i>事務管理</i></a> 一章。</p>
+</div></body>
+</html>

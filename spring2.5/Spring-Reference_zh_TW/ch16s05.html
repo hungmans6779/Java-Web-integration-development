@@ -1,0 +1,169 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>16.5.&#160;處理器映射</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch16.html" title="第&#160;16&#160;章&#160;Portlet MVC框架">
+<link rel="prev" href="ch16s04.html" title="16.4.&#160;控制器">
+<link rel="next" href="ch16s06.html" title="16.6.&#160;視圖和它們的解析">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="portlet-handlermapping"></a>16.5.&#160;處理器映射</h2></div></div></div>
+<p>通過處理器映射，可以把進來的portlet請求對應到合適的處理器上。已經有一些
+		現成的處理器映射可以使用，比如<code class="classname">PortletModeHandlerMapping</code>。
+		但還是讓我們先看一下<code class="interfacename">HandlerMapping</code>的一般概念。</p>
+<p>注意，我們這裡有意使用「處理器」來代替「控制器」。
+		<code class="classname">DispatcherPortlet</code>是設計用來和多種方式一起處理請求的，
+		而不僅僅是和Spring Portlet MVC自己的控制器。處理器是任意可以處理Portlet請求的物件。
+		控制器當然缺省是一種處理器。要將<code class="classname">DispatcherPortlet</code>
+		和一些其他的框架一起使用，只需要實作相應的<code class="interfacename">HandlerAdapter</code>就可以了。</p>
+<p><code class="interfacename">HandlerMapping</code>提供的基本功能是提供一個
+		<code class="classname">HandlerExecutionChain</code>，後者必須包含匹配進來請求的
+		的處理器，也可能包含需要應用到請求的處理器攔截器的列表。當一個請求進來時，
+		<code class="classname">DispatcherPortlet</code>會把它交給處理器射映，讓它來檢查
+		請求並得到合適的<code class="classname">HandlerExecutionChain</code>。然後
+		<code class="classname">DispatcherPortlet</code>會執行處理器以及chain裡的攔截器。這些
+		概念和Spring Web MVC中的完全一致。</p>
+<p>可配置的處理器映射非常強大，它可以包含攔截器(在實際的處理前、後進行預處理或後處理
+		或兩者都執行)。可以通過自定義一個<code class="interfacename">HandlerMapping</code>來加入許多功能。
+		想像一下，一個自定義的處理器映射，它不僅可以根據指定的portlet模式來選擇處理器，
+		也可以根據請求相聯繫的session裡的指定狀態來選擇。</p>
+<p>在Spring Web MVC裡，處理器映射通常是基於URL的。因為在Portlet裡確實沒有URL，
+		必須使用其它的機制來控制映射。最常見的兩個是portlet模式和請求參數，
+		但在portlet請求裡的任何對象都可以用在自定義的處理器映射中。</p>
+<p>餘下的章節會介紹在Spring Portlet MVC裡最常見的三種處理器射映，
+		它們都繼承<code class="classname">AbstractHandlerMapping</code>並且共享以下的屬性：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><code class="literal">interceptors</code>: 需要使用的攔截器列表。
+			<code class="interfacename">HandlerInterceptor</code>在 
+			<a href="ch16s05.html#portlet-handlermapping-interceptor" title="16.5.4.&#160;增加 HandlerInterceptors">第&#160;16.5.4&#160;節 「增加 <code class="interfacename">HandlerInterceptor</code>s」</a>有討論。</p></li>
+<li><p><code class="literal">defaultHandler</code>: 在找不到匹配的處理器時，缺省的處理器。
+			</p></li>
+<li><p><code class="literal">order</code>: Spring會按照order屬性值
+			(見<code class="interfacename">org.springframework.core.Ordered</code>介面)
+			對context裡的所有處理器映射進行排序，並且應用第一個匹配的處理器。</p></li>
+<li><p><code class="literal">lazyInitHandlers</code>: 用來Lazy初始化單例
+			處理器(prototype處理器是始終lazy初始化的)。缺省值是false。這個屬性是在這三個具體處理器裡直接實作。
+			</p></li>
+</ul></div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="portlet-handlermapping-portletmode"></a>16.5.1.&#160;<code class="classname">PortletModeHandlerMapping</code></h3></div></div></div>
+<p>這是一個簡單的處理器映射，它是基於當前的portlet模式（比如：'view', 'edit', 'help'）。如下：</p>
+<pre class="programlisting">&lt;bean id="portletModeHandlerMapping"
+      class="org.springframework.web.portlet.handler.PortletModeHandlerMapping"&gt;
+    &lt;property name="portletModeMap"&gt;
+        &lt;map&gt;
+            &lt;entry key="view" value-ref="viewHandler"/&gt;
+            &lt;entry key="edit" value-ref="editHandler"/&gt;
+            &lt;entry key="help" value-ref="helpHandler"/&gt;
+        &lt;/map&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="portlet-handlermapping-parameter"></a>16.5.2.&#160;<code class="classname">ParameterHandlerMapping</code></h3></div></div></div>
+<p>如果需要在不改變portlet模式的情況下而在多個控制器間切換，
+			最簡單的方法是把一個請求參數作為key來控制映射。</p>
+<p><code class="classname">ParameterHandlerMapping</code>使用一個特定的請求參數來控制映射。
+			這個參數的缺省名是<code class="literal">'action'</code>，可以通過<code class="literal">'parameterName'</code>屬性來改變。</p>
+<p>這個映射的bean設置會是這樣：</p>
+<pre class="programlisting">&lt;bean id="parameterHandlerMapping"
+      class="org.springframework.web.portlet.handler.ParameterHandlerMapping」&gt;
+    &lt;property name="parameterMap"&gt;
+        &lt;map&gt;
+            &lt;entry key="add" value-ref="addItemHandler"/&gt;
+            &lt;entry key="edit" value-ref="editItemHandler"/&gt;
+            &lt;entry key="delete" value-ref="deleteItemHandler"/&gt;
+        &lt;/map&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="portlet-handlermapping-portletmodeparameter"></a>16.5.3.&#160;<code class="classname">PortletModeParameterHandlerMapping</code></h3></div></div></div>
+<p>最強大的內置處理映射
+			<code class="classname">PortletModeParameterHandlerMapping</code> 結合了前兩者的功能，
+			能夠在每種portlet模式下進行不同的切換。</p>
+<p>同樣，參數的缺省名是「action」，但可以通過 <code class="literal">parameterName</code> 來修改。</p>
+<p>缺省情況下，同樣的參數值不能在兩個不同的portlet模式下使用，
+			因為如果portlet自己改變了portlet模式，那麼請求在映射中將不在有效。
+			把 <code class="literal">allowDupParameters</code> 屬性設為true可以改變這種行為，但這種做法是不推薦的。</p>
+<p>這個映射的bean設置會是這樣：</p>
+<pre class="programlisting">&lt;bean id="portletModeParameterHandlerMapping"
+      class="org.springframework.web.portlet.handler.PortletModeParameterHandlerMapping"&gt;
+    &lt;property name="portletModeParameterMap"&gt;
+        &lt;map&gt;
+            &lt;entry key="view"&gt; <em class="lineannotation"><span class="lineannotation">&lt;!-- 'view' portlet mode --&gt;</span></em>
+                &lt;map&gt;
+                    &lt;entry key="add" value-ref="addItemHandler"/&gt;
+                    &lt;entry key="edit" value-ref="editItemHandler"/&gt;
+                    &lt;entry key="delete" value-ref="deleteItemHandler"/&gt;
+                &lt;/map&gt;
+            &lt;/entry&gt;
+            &lt;entry key="edit"&gt; <em class="lineannotation"><span class="lineannotation">&lt;!-- 'edit' portlet mode --&gt;</span></em>
+                &lt;map&gt;
+                    &lt;entry key="prefs" value-ref="prefsHandler"/&gt;
+                    &lt;entry key="resetPrefs" value-ref="resetPrefsHandler"/&gt;
+                &lt;/map&gt;
+            &lt;/entry&gt;
+        &lt;/map&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;</pre>
+<p>這個映射可以在處理鏈中放在
+		<code class="classname">PortletModeHandlerMapping</code> 前面，它可以為每個模式以及全局提供缺省的映射。
+		</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="portlet-handlermapping-interceptor"></a>16.5.4.&#160;增加 <code class="interfacename">HandlerInterceptor</code>s</h3></div></div></div>
+<p>Spring的處理器映射機制裡有處理器攔截器的概念，在希望對於特定的請求
+			應用不同的功能時，它是非常有用。比如，檢查使用者名（principal）。同樣，Spring
+			Portlet MVC以Web MVC相同的方式實作了這些概念。</p>
+<p>在處理器映射裡的攔截器必須實作<code class="literal">org.springframework.web.portlet</code>
+			裡的<code class="interfacename">HandlerInterceptor</code>介面。
+			和servlet的版本一樣，這個介面定義了三個方法：一個在實際的處理器執行前被調用
+			(<code class="literal">preHandle</code>)，一個在執行後被調用(<code class="literal">postHandle</code>)
+			還有一個是在請求完全結束時被調用(<code class="literal">afterCompletion</code>)。
+			這三個方法應該可以為各種前置和後置處理提供足夠的靈活。</p>
+<p><code class="literal">preHandle</code>返回一個布林值。可以使用這個方法來中斷或者繼續執行鏈的處理。
+			當返回<code class="literal">true</code>時，處理執行鏈會繼續，當返回<code class="literal">false</code>時，
+			<code class="classname">DispatcherPortlet</code>
+			假設這個攔截器已經處理請求（比如，顯示了合適的視圖）並且不需要繼續執行其它的
+			攔截器和在執行鏈中實際的處理器。</p>
+<p><code class="literal">postHandle</code>只會在<code class="interfacename">RenderRequest</code>
+			中被調用。<code class="interfacename">ActionRequest</code>和<code class="interfacename">RenderRequest</code>
+			都會調用<code class="literal">preHandle</code>和<code class="literal">afterCompletion</code>方法。
+			如果希望只在其中的一種請求中執行你的程式碼，務必在處理前檢查請求的型別。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="portlet-handlermapping-interceptoradapter"></a>16.5.5.&#160;<code class="classname">HandlerInterceptorAdapter</code></h3></div></div></div>
+<p>和servlet包類似，portlet包裡也有一個 <code class="interfacename">HandlerInterceptor</code>
+			的具體實作 <code class="classname">HandlerInterceptorAdapter</code> 。這個類別所有方法都是空的，
+			所以可以繼承它，實作一個或兩個你所需要的方法。
+			</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="portlet-handlermapping-parameterinterceptor"></a>16.5.6.&#160;<code class="classname">ParameterMappingInterceptor</code></h3></div></div></div>
+<p>Portlet包也帶一個名為<code class="classname">ParameterMappingInterceptor</code>
+			的具體攔截器，它可以和<code class="classname">ParameterHandlerMapping</code>
+			以及<code class="classname">PortletModeParameterHandlerMapping</code>一起使用。
+			這個攔截器可以把用來控制映射的參數從<code class="interfacename">ActionRequest</code>
+			帶到隨後的<code class="interfacename">RenderRequest</code>，這能夠確保
+			<code class="interfacename">RenderRequest</code>映射到和
+			<code class="interfacename">ActionRequest</code>相同的處理器。這些都是在
+			<code class="literal">preHandle</code>方法裡完成的，所以在你的處理器裡仍然可以改變決定
+			<code class="interfacename">RenderRequest</code>映射的參數值。</p>
+<p>注意這個攔截器會調用<code class="interfacename">ActionResponse</code>
+			的<code class="literal">setRenderParameter</code>方法，這意味著在使用它的時候，
+			不能在處理器裡調用<code class="literal">sendRedirect</code>。如果確實需要重定向，
+			可以手工地把映射參數向前傳，或者另寫一個攔截器來處理。</p>
+</div>
+</div></body>
+</html>

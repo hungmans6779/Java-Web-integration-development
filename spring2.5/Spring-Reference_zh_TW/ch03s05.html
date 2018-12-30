@@ -1,0 +1,277 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>3.5.&#160;定制bean特性</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch03.html" title="第&#160;3&#160;章&#160;IoC(控制反轉)容器">
+<link rel="prev" href="ch03s04.html" title="3.4.&#160;Bean的作用域">
+<link rel="next" href="ch03s06.html" title="3.6.&#160;bean定義的繼承">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="beans-factory-nature"></a>3.5.&#160;定制bean特性</h2></div></div></div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="beans-factory-lifecycle"></a>3.5.1.&#160;生命週期回調</h3></div></div></div>
+<p>Spring提供了幾個標誌介面（marker interface），這些介面用來改變容器中bean的行為；它們包括<code class="literal">InitializingBean</code>和<code class="literal">DisposableBean</code>。實作這兩個介面的bean在初始化和析構時容器會調用前者的<code class="methodname">afterPropertiesSet()</code>方法，以及後者的<code class="methodname">destroy()</code>方法。 </p>
+<p>Spring在內部使用<code class="literal">BeanPostProcessor</code>實作來處理它能找到的任何標誌介面並調用相應的方法。如果你需要自定義特性或者生命週期行為，你可以實作自己的 <code class="literal">BeanPostProcessor</code>。關於這方面更多的內容可以看<a href="ch03s07.html" title="3.7.&#160;容器擴展點">第&#160;3.7&#160;節 「容器擴展點」</a>。</p>
+<p>下面講述了幾個生命週期標誌介面。在附錄中會提供相關的示意圖來展示Spring如何管理bean，以及生命週期特性如何改變bean的內在特性。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="beans-factory-lifecycle-initializingbean"></a>3.5.1.1.&#160;初始化回調</h4></div></div></div>
+<p>實作<code class="literal">org.springframework.beans.factory.InitializingBean</code>介面允許容器在設置好bean的所有必要屬性後，執行初始化事宜。<code class="interfacename">InitializingBean</code>介面僅指定了一個方法：</p>
+<pre class="programlisting">void afterPropertiesSet() throws Exception;</pre>
+<p>通常，要避免使用<code class="interfacename">InitializingBean</code>介面並且不鼓勵使用該介面，因為這樣會將程式碼和Spring耦合起來，有一個可選的方案是，可以在Bean定義中指定一個普通的初始化方法，然後在XML配置檔案中通過指定<code class="literal">init-method</code>屬性來完成。如下面的定義所示：</p>
+<pre class="programlisting">&lt;bean id="exampleInitBean" class="examples.ExampleBean" init-method="init"/&gt;</pre>
+<pre class="programlisting">public class ExampleBean {
+    
+    public void init() {
+        <em class="lineannotation"><span class="lineannotation">// do some initialization work</span></em>
+    }
+}</pre>
+<p>...效果與下面完全一樣...</p>
+<pre class="programlisting">&lt;bean id="exampleInitBean" class="examples.AnotherExampleBean"/&gt;</pre>
+<pre class="programlisting">public class AnotherExampleBean implements InitializingBean {
+    
+    public void afterPropertiesSet() {
+        <em class="lineannotation"><span class="lineannotation">// do some initialization work</span></em>
+    }
+}</pre>
+<p>... 但是沒有將程式碼與Spring耦合在一起。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="beans-factory-lifecycle-disposablebean"></a>3.5.1.2.&#160;析構回調</h4></div></div></div>
+<p>實作<code class="interfacename">org.springframework.beans.factory.DisposableBean</code>介面的bean允許在容器銷毀該bean的時候獲得一次回調。<code class="interfacename">DisposableBean</code>介面也只規定了一個方法：</p>
+<pre class="programlisting">void destroy() throws Exception;</pre>
+<p>通常，要避免使用<code class="interfacename">DisposableBean</code>標誌介面而且不鼓勵使用該介面，因為這樣會將程式碼與Spring耦合在一起，有一個可選的方案是，在bean定義中指定一個普通的析構方法，然後在XML配置檔案中通過指定<code class="literal">destroy-method</code>屬性來完成。如下面的定義所示：</p>
+<pre class="programlisting">&lt;bean id="exampleInitBean" class="examples.ExampleBean" destroy-method="cleanup"/&gt;</pre>
+<pre class="programlisting">public class ExampleBean {
+
+    public void cleanup() {
+        <em class="lineannotation"><span class="lineannotation">// do some destruction work (like releasing pooled connections)</span></em>
+    }
+}</pre>
+<p>...效果與下面完全一樣...</p>
+<pre class="programlisting">&lt;bean id="exampleInitBean" class="examples.AnotherExampleBean"/&gt;</pre>
+<pre class="programlisting">public class AnotherExampleBean implements DisposableBean {
+
+    public void destroy() {
+        <em class="lineannotation"><span class="lineannotation">// do some destruction work (like releasing pooled connections)</span></em>
+    }
+}</pre>
+<p>... 但是沒有將程式碼與Spring耦合在一起。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="beans-factory-lifecycle-default-init-destroy-methods"></a>3.5.1.3.&#160;缺省的初始化和析構方法</h4></div></div></div>
+<p>如果有人沒有採用Spring所指定的<code class="interfacename">InitializingBean</code>和<code class="interfacename">DisposableBean</code>回調介面來編寫初始化和析構方法回調，會發現自己正在編寫的方法，其名稱莫過於<code class="literal">init()</code>， <code class="literal">initialize()</code>，<code class="literal">dispose()</code>等等。這種生命週期回調方法的名稱最好在一個項目範圍內標準化，這樣團隊中的開發人員就可以使用同樣的方法名稱，並且確保了某種程度的一致性。</p>
+<p>Spring容器通過配置可以實作對<span class="emphasis"><em>每個</em></span> bean初始化時的尋找和銷毀時的回調調用。這也就是說，一個應用的開發者可以借助於初始化的回調方法<code class="literal">init()</code> 輕鬆的寫一個類別（不必想XML配置檔案那樣為每個bean都配置一個<code class="literal">'init-method="init"'</code>屬性）。Spring IoC容器在創建bean的時候<span class="emphasis"><em>將</em></span>調用這個方法 （這和之前描述的標準生命週期回調一致）。</p>
+<p>		為了完全弄清如何使用該特性，讓我們看一個例子。出於示範的目的，假設一個項目的編碼規範中約定所有的初始化回調方法都被命名為<code class="literal">init()</code>而析構回調方法被命名為<code class="literal">destroy()</code>。遵循此規則寫成的類別如下所示：</p>
+<pre class="programlisting">public class DefaultBlogService implements BlogService {
+
+    private BlogDao blogDao;
+
+    public void setBlogDao(BlogDao blogDao) {
+        this.blogDao = blogDao;
+    }
+
+    <em class="lineannotation"><span class="lineannotation">// this is (unsurprisingly) the initialization callback method</span></em>
+    public void init() {
+        if (this.blogDao == null) {
+            throw new IllegalStateException("The [blogDao] property must be set.");
+        }
+    }
+}</pre>
+<pre class="programlisting">&lt;beans <span class="bold"><strong>default-init-method="init"</strong></span>&gt;
+
+    &lt;bean id="blogService" class="com.foo.DefaultBlogService"&gt;
+        &lt;property name="blogDao" ref="blogDao" /&gt;
+    &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<p>注意在頂級的<code class="literal">&lt;beans/&gt;</code>元素中的<code class="literal">'default-init-method'</code>屬性。這個屬性的含義是Spring IoC容器在bean創建和裝配的時候會將<code class="literal">'init'</code>方法作為實例化回調方法。如果類別有這個方法，則會在適當的時候執行。</p>
+<p>銷毀回調方法配置是相同的 (XML配置)，在頂級的<code class="literal">&lt;beans/&gt;</code>元素中使用 <code class="literal">'default-destroy-method'</code> 屬性。</p>
+<p>使用這個功能可以把你從位每個bean指定初始化和銷毀回調的繁雜工作中解救出來。為了一致性，應該強制性的為初始化和銷毀回調方法採用一致的命名規則。</p>
+<p>當已經存在的類別的初始化方法的命名規則與慣例有差異的時候，你應該<span class="emphasis"><em>始終</em></span>使用<code class="literal">&lt;bean/&gt;</code>元素中的<code class="literal">'init-method'</code>和<code class="literal">'destroy-method'</code>屬性(在XML配置中)來覆寫預設的方式。</p>
+<p>最後，請注意Spring容器保證在bean的所有依賴都滿足後立即執行配置的初始化回調。這意味著初始化回調在原生bean上調用，這也意味著這個時候任何諸如AOP攔截器之類別的將不能被應用。一個目標bean是<span class="emphasis"><em>首先</em></span>完全創建，<span class="emphasis"><em>然後</em></span>才應用諸如AOP代理等攔截器鏈。注意，如果目標bean和代理是分開定義了，你的程式碼甚至可以繞開代理直接和原生bean通信。因此，在初始化方法上使用攔截器將產生未知的結果，因為這將目標bean和它的代理/攔截器的生命週期綁定並且留下了和初始bean直接通信這樣奇怪的方式。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="beans-factory-lifecycle-combined-effects"></a>3.5.1.4.&#160;組合生命週期機制</h4></div></div></div>
+<p>As of Spring 2.5, there are three options for controlling bean
+        lifecycle behavior: the <a href="ch03s05.html#beans-factory-lifecycle-initializingbean" title="3.5.1.1.&#160;初始化回調">
+						<code class="interfacename">InitializingBean</code>
+					</a>
+        and <a href="ch03s05.html#beans-factory-lifecycle-disposablebean" title="3.5.1.2.&#160;析構回調">
+						<code class="interfacename">DisposableBean</code>
+					</a>
+        callback interfaces; custom <code class="literal">init()</code> and
+        <code class="literal">destroy()</code> methods; and the <a href="ch03s11.html#beans-postconstruct-and-predestroy-annotations" title="3.11.5.&#160;@PostConstruct 與 @PreDestroy">
+						<code class="interfacename">@PostConstruct</code>
+        and <code class="interfacename">@PreDestroy</code>
+        annotations</a>.</p>
+<p>在Spring2.5中有三種方式可以控制bean的生命週期行為：<a href="ch03s05.html#beans-factory-lifecycle-initializingbean" title="3.5.1.1.&#160;初始化回調">
+						<code class="interfacename">InitializingBean</code>
+					</a>
+         和<a href="ch03s05.html#beans-factory-lifecycle-disposablebean" title="3.5.1.2.&#160;析構回調">
+						<code class="interfacename">DisposableBean</code>
+					</a>
+         回調介面;自定義<code class="literal">init()</code> 和
+        <code class="literal">destroy()</code> 方法; <a href="ch03s11.html#beans-postconstruct-and-predestroy-annotations" title="3.11.5.&#160;@PostConstruct 與 @PreDestroy">
+						<code class="interfacename">@PostConstruct</code>
+         和<code class="interfacename">@PreDestroy</code>
+        annotations</a>.</p>
+<p>當組合不同的生命週期機制時 - 例如，類別層次中使用了不同的生命週期機制 - 開發者必須注意這些機制的應用順序，下面是初始化方法中的順序：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>
+							<code class="interfacename">@PostConstruct</code>元註釋</p></li>
+<li><p>
+							<code class="interfacename">InitializingBean</code>的<code class="literal">afterPropertiesSet()</code>定義</p></li>
+<li><p>自定義<code class="literal">init()</code>方法配置</p></li>
+</ul></div>
+<p>析構方法調用順序是相同的:</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>
+							<code class="interfacename">@PreDestroy</code>元註釋</p></li>
+<li><p>
+							<code class="interfacename">DisposableBean</code>的<code class="literal">destroy()</code>定義</p></li>
+<li><p>自定義<code class="literal">destroy()</code>方法</p></li>
+</ul></div>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>如果bean存在多種的生命週期機制配置並且每種機制都配置為不同的方法名，
+          	那所有配置的方法將會按照上面的順利執行。然而如果配置了相同的方法名 - 例如，
+          <code class="literal">init()</code>初始化方法 - 採用多種機制配置後，只會執行一次。</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="beans-factory-shutdown"></a>3.5.1.5.&#160;在非web應用中優雅地關閉Spring IoC容器</h4></div></div></div>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>在基於web的<code class="interfacename">ApplicationContext</code>實作中已有相應的程式碼來處理關閉web應用時如何恰當地關閉Spring IoC容器。</p>
+</div>
+<p>如果你正在一個非web應用的環境下使用Spring的IoC容器，例如在桌面富客戶端環境下，你想讓容器優雅的關閉，並調用singleton bean上的相應析構回調方法，你需要在JVM裡註冊一個「關閉鉤子」（shutdown hook）。這一點非常容易做到，並且將會確保你的Spring IoC容器被恰當關閉，以及所有由單例持有的資源都會被釋放（當然，為你的單例配置銷毀回調，並正確實作銷毀回調方法，依然是你的工作）。</p>
+<p>為了註冊「關閉鉤子」，你只需要簡單地調用在<code class="classname">AbstractApplicationContext</code>實作中的<code class="methodname">registerShutdownHook()</code>方法即可。也就是：</p>
+<pre class="programlisting">import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public final class Boot {
+
+    public static void main(final String[] args) throws Exception {
+        AbstractApplicationContext ctx
+            = new ClassPathXmlApplicationContext(new String []{"beans.xml"});
+
+        <em class="lineannotation"><span class="lineannotation">// add a shutdown hook for the above context... </span></em>
+        ctx.registerShutdownHook();
+
+        <em class="lineannotation"><span class="lineannotation">// app runs here...</span></em>
+					<em class="lineannotation"><span class="lineannotation">// main method exits, hook is called prior to the app shutting down...</span></em>
+    }
+}</pre>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="beans-factory-aware"></a>3.5.2.&#160;瞭解自己</h3></div></div></div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="beans-factory-aware-beanfactoryaware"></a>3.5.2.1.&#160;
+					<code class="interfacename">BeanFactoryAware</code>
+				</h4></div></div></div>
+<p>對於實作了<code class="literal">org.springframework.beans.factory.BeanFactoryAware</code>介面的類別，當它被BeanFactory創建後，它會擁有一個指向創建它的BeanFactory的參考。</p>
+<pre class="programlisting">public interface BeanFactoryAware {
+
+    void setBeanFactory(BeanFactory beanFactory) throws BeansException;
+}</pre>
+<p>這樣bean可以以程式的方式操控創建它們的<code class="interfacename">BeanFactory</code>，當然我們可以將參考的BeanFactory造型（cast）為已知的子型別來獲得更多的功能。它主要用於通過程式來取得BeanFactory所管理的其他bean。雖然在有些場景下這個功能很有用，但是一般來說應該盡量避免使用，因為這樣將使程式碼與Spring耦合在一起，而且也有違反轉控制的原則（協作者應該作為屬性提供給bean）。</p>
+<p>與<code class="interfacename">BeanFactoryAware</code>等效的另一種選擇是使用<code class="classname">org.springframework.beans.factory.config.ObjectFactoryCreatingFactoryBean</code>。不過該方法依然沒有降低與Spring的耦合，但是它並沒有像<code class="interfacename">BeanFactoryAware</code>那樣，違反IoC原則。）</p>
+<p>
+					<code class="classname">ObjectFactoryCreatingFactoryBean</code>是<a href="ch03s07.html#beans-factory-extension-factorybean" title="3.7.3.&#160;使用FactoryBean定制實例化邏輯">
+						<code class="interfacename">FactoryBean</code>
+					</a>的一個實作，它返回一個指向處理器物件的參考，該物件將執行bean的尋找。<code class="classname">ObjectFactoryCreatingFactoryBean</code>類別實作了<code class="interfacename">BeanFactoryAware</code>介面；被實際注入到客戶端bean的是<code class="interfacename">ObjectFactory</code>介面的一個實例。這是Spring提供的一個介面（因而依舊沒有完全與Spring解耦），客戶端可以使用<code class="interfacename">ObjectFactory</code>的<code class="methodname">getObject()</code>方法來尋找bean（在其背後，<code class="interfacename">ObjectFactory</code>實例只是簡單的將調用委派給<code class="interfacename">BeanFactory</code>，讓其根據bean的名稱執行實際的尋找）。你要做的全部事情就是給<code class="classname">ObjectFactoryCreatingFactoryBean</code>提供待尋找bean的名字。讓我們看一個例子：</p>
+<pre class="programlisting">package x.y;
+
+public class NewsFeed {
+    
+    private String news;
+
+    public void setNews(String news) {
+        this.news = news;
+    }
+
+    public String getNews() {
+        return this.toString() + ": '" + news + "'";
+    }
+}</pre>
+<pre class="programlisting">package x.y;
+
+import org.springframework.beans.factory.ObjectFactory;
+
+public class NewsFeedManager {
+
+    private ObjectFactory factory;
+
+    public void setFactory(ObjectFactory factory) {
+        this.factory = factory;
+    }
+
+    public void printNews() {
+        // here is where the lookup is performed; note that there is no
+        // need to hard code the name of the bean that is being looked up...
+        NewsFeed news = (NewsFeed) factory.getObject();
+        System.out.println(news.getNews());
+    }
+}</pre>
+<p>下述是XML配置：</p>
+<pre class="programlisting">&lt;beans&gt;
+    &lt;bean id="newsFeedManager" class="x.y.NewsFeedManager"&gt;
+        &lt;property name="factory"&gt;
+            &lt;bean
+class="org.springframework.beans.factory.config.ObjectFactoryCreatingFactoryBean"&gt;
+                &lt;property name="targetBeanName"&gt;
+                    &lt;idref local="newsFeed" /&gt;
+                &lt;/property&gt;
+            &lt;/bean&gt;
+        &lt;/property&gt;
+    &lt;/bean&gt;
+    &lt;bean id="newsFeed" class="x.y.NewsFeed" scope="prototype"&gt;
+        &lt;property name="news" value="... that's fit to print!" /&gt;
+    &lt;/bean&gt;
+&lt;/beans&gt;</pre>
+<p>這裡有一個測試用的小程序：在<code class="classname">NewsFeedManager</code>的<code class="methodname">printNews()</code>方法裡，每次針對被注入的<code class="interfacename">ObjectFactory</code>的調用，實際上返回的是一個新的（prototype）<code class="literal">newsFeed</code> bean實例。</p>
+<pre class="programlisting">import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import x.y.NewsFeedManager;
+
+public class Main {
+
+    public static void main(String[] args) throws Exception {
+
+        ApplicationContext ctx = new ClassPathXmlApplicationContext("beans.xml");
+        NewsFeedManager manager = (NewsFeedManager) ctx.getBean("newsFeedManager");
+        manager.printNews();
+        manager.printNews();
+    }
+}</pre>
+<p>上述程序的執行輸出如下所示（當然，返回結果會根據你機器的不同而不同）</p>
+<pre class="programlisting">x.y.NewsFeed@1292d26: '... that's fit to print!'
+x.y.NewsFeed@5329c5: '... that's fit to print!'</pre>
+<p>在Spring2.5中，可以利用<code class="interfacename">BeanFactory</code>的自動裝配作為實作 <code class="interfacename">BeanFactoryAware</code>介面的可選方式。
+        "傳統"的<code class="literal">constructor</code>和<code class="literal">byType</code> 自動裝配模式（在<a href="ch03s03.html#beans-factory-autowire" title="3.3.5.&#160;自動裝配（autowire）協作者">第&#160;3.3.5&#160;節 「自動裝配（autowire）協作者」</a>中有描述）對無論是建構器參數或setter方法都能提供 <code class="interfacename">BeanFactory</code>型別的 依賴。這有更多的靈活性（包括自動裝配屬性和多參數方法）。如果使用新的基於元註釋的自動裝配特性，只要屬性、
+        建構器、方法包含有<code class="interfacename">@Autowired</code>元註釋時，<code class="interfacename">BeanFactory</code>將會自動裝配到對應的屬性、建構器、方法中。請參閱<a href="ch03s11.html#beans-autowired-annotation" title="3.11.1.&#160;@Autowired">第&#160;3.11.1&#160;節 「<code class="interfacename">@Autowired</code>」</a>。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h4 class="title">
+<a name="beans-factory-aware-beannameaware"></a>3.5.2.2.&#160;
+					<code class="interfacename">BeanNameAware</code>
+				</h4></div></div></div>
+<p>如果一個bean實作了<code class="interfacename">org.springframework.beans.factory.BeanNameAware</code>介面，並且部署入<code class="interfacename">BeanFactory</code>，
+        <code class="interfacename">BeanFactory</code>將通過（BeanNameAware）介面來通知這個bean部署在其下的bean來調用這個bean。這個回調方法應該在bean的所有一般屬性被設置後調用，但應該在初始化回調之前，如<code class="interfacename">InitializingBean</code>的<span class="emphasis"><em>afterPropertiesSet</em></span>方法或者自定義的初始化方法。</p>
+</div>
+</div>
+</div></body>
+</html>

@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts-config PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 1.2//EN" "http://struts.apache.org/dtds/struts-config_1_2.dtd">
+
+<struts-config>
+  
+  
+  
+  <!-- 設定資料來源，可以設定多個資料來源  -->
+  <data-sources>
+	<data-source type="org.apache.commons.dbcp.BasicDataSource" >
+	  <set-property property="driverClassName" value="com.mysql.jdbc.Driver"                              />
+	  <set-property property="url" value="jdbc:mysql://localhost:3306/struts1_2?characterEncoding=UTF-8"  />
+	  <set-property property="username" value="root"                                                      />
+	  <set-property property="password" value="19786779"                                                  />
+	</data-source>
+  </data-sources>
+  
+  
+  
+  <form-beans>
+    <form-bean name="helloForm"     type="com.helloweenvsfei.struts.form.HelloForm"       />
+    <form-bean name="useBeanForm"   type="com.helloweenvsfei.struts.form.UseBeanForm"     />   <!--  FormBean 實現類別 -->
+    <form-bean name="personForm"    type="com.helloweenvsfei.struts.form.PersonForm"      />
+    <form-bean name="tagForm"       type="com.helloweenvsfei.struts.form.TagForm"         />
+    <form-bean name="nestedTagForm" type="com.helloweenvsfei.struts.form.NestedTagForm"   />
+    <form-bean name="tileForm"      type="com.helloweenvsfei.struts.form.TileForm"        />
+    <form-bean name="dispatchForm"  type="com.helloweenvsfei.struts.form.DispatchForm"    />
+    <form-bean name="uploadForm"    type="com.helloweenvsfei.struts.form.UploadForm"      />
+    <form-bean name="validatorForm" type="com.helloweenvsfei.struts.form.ValidatorForm"   />
+    <!-- 動態屬性 FormBean -->
+    <form-bean name="dynaForm"      type="org.apache.struts.action.DynaActionForm"         >
+      <form-property name="birthday" type="java.sql.Date"      initial=""    />  <!-- 動態屬性 -->
+      <form-property name="age"      type="java.lang.Integer"  initial="18"  />  <!-- 動態屬性,初始值18 -->
+      <form-property name="name"     type="java.lang.String"   initial=""    />  <!-- 動態屬性 -->
+    </form-bean>  
+  </form-beans>
+
+
+
+
+
+  
+  <!-- 全域例外捕捕捉器  -->
+  <global-exceptions>
+  
+    <!-- 
+                  設定例外處理。
+                   配置多個例外捉器，最好把子類別的捕捉配置在前面，父類別的放在後面。
+                   跟 Java 中 的 try .... catch 的順序是一樣的，catch 時，子類別的在前面，父類別在後面 
+    -->
+    <exception key="login.key" 
+               type="javax.security.auth.login.AccountException" 
+               handler="com.helloweenvsfei.struts.exceptoinhandler.AccountExceptionHandler" />  <!-- 例外，對應的捕捉器 -->
+               
+  </global-exceptions>    
+  
+  
+  
+  
+  
+  
+  <!-- 設定全域 JSP 頁面 -->
+  <global-forwards >        
+     <forward name="list" path="/form/beanTagList.jsp" ></forward>
+  </global-forwards>
+
+
+
+  
+  <action-mappings>
+    <action 
+      attribute="helloForm"                      
+      input="/form/hello.jsp"                         
+      name="helloForm"                                        
+      path="/hello"                                       
+      scope="request"                                       
+      type="com.helloweenvsfei.struts.action.HelloAction" >     
+      <!-- attribute： request.getAttribute("helloForm") -->
+      <!-- input： 輸入頁面  -->
+      <!-- name： FormBean 屬性類型 -->
+      <!-- path： 存在"hello.do" 時被呼叫該Action  -->
+      <!-- scope： 作用域 -->
+      <!-- type： Action 實現類別 -->
+     
+      <set-property property="cancellable" value="true" />  
+      <forward name="success" path="/form/helloSuccess.jsp" />  <!-- 成功頁面 -->
+      <forward name="fail"    path="/form/helloFail.jsp"    />  <!-- 失敗頁面 --> <!-- 可以輸出其它類型，如圖片、PDF、Word 等或者用於產生圖片、PDF或 Word 的Servlet。 -->
+    </action>
+    
+    
+    
+    <action
+      attribute="useBeanForm"
+      input="/form/useBean.jsp"
+      name="useBeanForm"
+      path="/useBean"
+      scope="request"
+      type="com.helloweenvsfei.struts.action.UseBeanAction" >
+      <set-property property="cancellable" value="true" />
+    </action>
+
+
+
+
+
+
+
+
+    <!-- 把 JSP 設定為  Action
+                        對於簡單的沒有業務邏輯的 Action，只顯示一個JSP就夠了。這時可以設定一下，像存取 Action 一樣使用*.do的形式存取JSP頁面。   
+    -->
+    <action path="/login"   forward="/form/loginNoAction.jsp"   />
+    <action path="/logout"  forward="/form/logoutNoAction.jsp"  />
+   
+    
+    
+    
+    
+    
+    
+    
+    
+    <!-- 《FormBean 使用 POJO 實體類別》:資料庫存取範例  -->
+    <action
+      attribute="personForm"
+      input="/form/addPerson.jsp"
+      name="personForm"
+      path="/person"
+      scope="request"
+      type="com.helloweenvsfei.struts.action.PersonAction" >
+      <set-property property="cancellable" value="true" />
+      <forward name="success" path="/form/addPersonSuccess.jsp" />  <!--  成功頁面  -->
+      <forward name="list"    path="/form/listPerson.jsp"       />  <!--  清單頁面  -->
+    </action>
+    
+    
+    
+    
+    
+    <!-- 《html 標籤函式庫》：用於產生 html 程式碼  -->
+    <action
+      attribute="tagForm"
+      input="/form/tag.jsp"
+      name="tagForm"
+      path="/tag"
+      scope="request"
+      type="com.helloweenvsfei.struts.action.TagAction" >
+      <set-property property="cancellable" value="true" />
+    </action>
+    
+    
+    
+    
+    
+    
+    <!-- 《bean 標籤函式庫》：用於操作POJO、Cookie、Header 以及 Struts 物件等。
+          <bean:write /> 標籤可輸出 POJO及其屬性。filter 屬性為 true 時，會對輸出內容進行 html 編碼，預設為 true。
+                           如果 propety 不為空，則輸出屬性，否則輸出 POJO本身(本身 toString()方法)。當輸出"屬性的屬性"時，可使用"."的操作符號。
+    -->
+    <action path="/beanTag"  forward="/form/beanTag.jsp"  />
+    
+ 
+ 
+ 
+ 
+ 
+    <!-- 《logic 標籤函式庫》：由於bean 標籤經常拋出例外，因此常與logic 標籤一起使用。
+          <logic:present>、<logic:notPresent> 標籤能夠判斷物件是否存在。
+                            指定：Cookie 屬性時判斷Coolie，指定 header 屬性時判斷 header，指定 parameter 時判斷 parameter，例如：
+    -->
+    <action path="/logicTag"  forward="/form/logicTag.jsp"  />
+    
+    
+    
+    
+    
+    
+    <!-- 《nested 標籤函式庫》：能夠自動將傳送的資料設置到 Form Bean 屬性中，但是 Form Bean 並不是業務物件，
+                                                                                  還需要把資料從Form Bean 中搬運到純正的業務元件POJO 中。
+    -->
+    <action
+      attribute="nestedTagForm"
+      input="/form/nestedTag1.jsp"
+      name="nestedTagForm"
+      path="/nestedTag"
+      scope="request"
+      type="com.helloweenvsfei.struts.action.NestedTagAction" >
+      <set-property property="cancellable" value="true" />
+      <forward name="success" path="/form/nestedTagSuccess.jsp"      />      <!--  成功頁面  -->
+      <forward name="list"    path="/form/nestedTagListPerson.jsp"   />  <!--  清單頁面  -->
+    </action>
+    
+
+
+
+
+    <!-- 《tiles 標籤函式庫》： tiles 在處理網頁佈局以及佈局的再使用性、可維護性上做得非常好,能將頁面或者部份頁面元件化。
+                                                                                 開發Struts 專案時，結合使用tiles，在處理JSP檔案樣式上會得心應手，簡單明瞭。
+                              tiles 也可以獨立於 Struts 單獨使用。單獨使用時需配置 tiles 類庫以及 tld 檔案。
+    -->
+    <action path="/case2"  forward="/tiles/case2.jsp"  />
+    
+    
+    
+    
+    
+    
+    <!-- 《tiles 標籤函式庫》： 使用 tiles-defs.xml 及  struts-config.xml plugin   -->
+    <action
+      attribute="tileForm"
+      input="/form/tiles.jsp"
+      name="tileForm"
+      path="/tiles"
+      scope="request"
+      type="com.helloweenvsfei.struts.action.TileAction" >
+      <set-property property="cancellable" value="true" />
+      <forward name="list" path="listLayout"  />    <!-- 使用 listLayout 視圖佈局 -->
+      <forward name="view" path="viewLayout"  />    <!-- 使用 viewLayout 視圖佈局 -->
+    </action>
+    
+    
+    
+    
+    
+    <!-- DispatchAction： 
+         Struts1.x 內建了通用的分發器 DispatchAction ，只需要繼承 DispatchAction 類別，並指定按照哪個參數進行分發。
+	              注意 execute() 方法要執行 super.execute() ，因為父類別的 execute() 實現了分發。如果覆蓋了該方法，分發器就失效。
+	-->
+	<!-- parameter 屬性設為 action -->
+    <action
+      attribute="dispatchForm"
+      input="/form/dispatch.jsp"
+      name="dispatchForm"
+      parameter="action"
+      path="/dispatch"
+      scope="request"
+      type="com.helloweenvsfei.struts.action.DispatchAction" >
+      <set-property property="cancellable" value="true" />
+    </action>
+    
+    
+    
+    
+    <!-- 
+                      檔案上傳：
+        Struts 提供了 <html:file> 標籤，整合了Apache 的 commons-upload 工具包。
+                    上傳檔案變得更加簡單，不再需要解析 request、檢查所有的輸入域、判斷是否為檔案等。
+    -->
+    <action
+      attribute="uploadForm"
+      input="/form/upload.jsp"
+      name="uploadForm"
+      path="/upload"
+      scope="request"
+      type="com.helloweenvsfei.struts.action.UploadAction">
+      <set-property property="cancellable" value="true" />
+    </action>
+    
+    
+    
+    
+    
+    <!--
+       Validateor：自動驗證資料
+                   除了Form Bean 中的 validate() 方法，Struts 還提供 Validator 外掛進行資料驗證。
+       Validator 外掛能在 JSP 頁面裡產生 JavaScript 指令稿，利用訂製的 JavaScript 指令稿在用戶端瀏覽器進行資料驗證。
+    -->
+    <action
+      attribute="validatorForm"
+      input="/form/validator.jsp"
+      name="validatorForm"
+      path="/validator"
+      scope="request"
+      type="com.helloweenvsfei.struts.action.ValidatorAction" >
+      <set-property property="cancellable" value="true" />
+    </action>
+    
+    
+    <!-- 
+                        從 DynaActionForm 中取值與從 request 中取值類似，不同的是 DynaActionForm 中可以取到封裝好的類物件。
+                        例如：Date、Time 甚至 POJO 等。而且 DynaActionForm 也可以使用 Struts 提供的 Validator。
+    -->
+    <action
+      attribute="dynaForm"
+      input="/form/dyna.jsp"
+      name="dynaForm"
+      path="/dyna"
+      scope="request"
+      type="com.helloweenvsfei.struts.action.DynaAction">
+      <set-property property="cancellable" value="true" />
+    </action>
+
+
+
+
+
+    <!-- 
+                  一個大版本的 Struts 項目可能有許多的 Action ，struts-config.xml 會因此變得很複雜。為解決這個問題，
+                  從 Struts1.2 版本的 struts-config.xml 中允許使用萬用字元。使用萬用字元，多個 Action 可以共用一個配置，
+       struts-config.xml 會變得簡潔很多。
+                   
+                   其中的  "*" 便是配置萬用字元，{1} 代表一個萬用字元表示的內容。如果 path="/editPerson"，則 * 就代表 Person,
+       type 就為  "com.helloweenvsfei.struts.action.special.EditPersonAction"。另外 Struts 還支援  "**" 與逸出字元 "\" 兩種萬用字元。
+                  它們代表的意義為：
+       "*" 比對任何不包括 "/" 的任意長度(包括 0)的字串。
+       "**" 比對任何包括 "/" 的任意長度(包括0)的字串。
+       "\" 為逸出字元，同Java 中一樣。例如 "\*" 表示  "*"，"\\" 表示 "\"。  
+
+
+
+                 提示：萬用字元配置很強大，但如果出現問題比較難定位。因此使用時一定要小心、謹慎。
+                                最好一點一點改，步步為營，確定沒有問題了，再增加一個萬用字元。
+    -->
+    <action 
+       path="/edit*"
+       type="com.helloweenvsfei.struts.action.special.{1}Action"
+       name="{1}Form"
+       scope="request"
+       validate="false" >
+       <forward name="failure" path="/form/special/fail.jsp"        />
+       <forward name="success" path="/form/special/{1}Success.jsp"  />
+    </action>
+      
+         
+  </action-mappings>
+
+
+
+
+
+
+
+  <!-- 國際化資源  -->
+  <message-resources parameter="com.helloweenvsfei.struts.ApplicationResources" />  
+ 
+ 
+  <!-- 驗證器外掛
+       驗證規則配置完成後，還需要連同驗證規則庫(/WEB-INF/validator-rules.xml)
+   --> 
+  <plug-in className="org.apache.struts.validator.ValidatorPlugIn">
+    <set-property property="pathnames" value="/WEB-INF/validator-rules.xml, /WEB-INF/validation.xml" />  <!-- 驗證規則檔案  -->
+    <set-property property="stopOnFirstError" value="false" /> <!-- 如果前面驗證失敗，是否停止後面的驗證(如有錯，是否繼續驗證)  -->
+  </plug-in>
+
+
+
+  <!-- Tiles 外掛 -->
+  <plug-in className="org.apache.struts.tiles.TilesPlugin" >
+    <set-property property="definitions-config" value="/WEB-INF/tiles-defs.xml"  />  <!-- Tiles 配置 設定檔 -->
+  </plug-in>
+
+
+
+</struts-config>

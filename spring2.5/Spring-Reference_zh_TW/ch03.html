@@ -1,0 +1,123 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>第&#160;3&#160;章&#160;IoC(控制反轉)容器</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="pt01.html" title="部分&#160;I.&#160;核心技術">
+<link rel="prev" href="pt01.html" title="部分&#160;I.&#160;核心技術">
+<link rel="next" href="ch03s02.html" title="3.2.&#160;基本原理 - 容器和bean">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="chapter" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title">
+<a name="beans"></a>第&#160;3&#160;章&#160;IoC(控制反轉)容器</h2></div></div></div>
+<div class="toc">
+<p><b>目錄</b></p>
+<dl>
+<dt><span class="section"><a href="ch03.html#beans-introduction">3.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch03s02.html">3.2. 基本原理 - 容器和bean</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch03s02.html#beans-factory">3.2.1. 容器</a></span></dt>
+<dt><span class="section"><a href="ch03s02.html#beans-factory-instantiation">3.2.2. 實例化容器</a></span></dt>
+<dt><span class="section"><a href="ch03s02.html#beans-definition">3.2.3. 多種bean</a></span></dt>
+<dt><span class="section"><a href="ch03s02.html#beans-factory-client">3.2.4. 使用容器</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch03s03.html">3.3. 依賴</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch03s03.html#beans-factory-collaborators">3.3.1. 注入依賴</a></span></dt>
+<dt><span class="section"><a href="ch03s03.html#beans-factory-properties-detailed">3.3.2. 依賴配置詳解</a></span></dt>
+<dt><span class="section"><a href="ch03s03.html#beans-factory-dependson">3.3.3. 使用<code class="literal">depends-on</code></a></span></dt>
+<dt><span class="section"><a href="ch03s03.html#beans-factory-lazy-init">3.3.4. 延遲初始化bean</a></span></dt>
+<dt><span class="section"><a href="ch03s03.html#beans-factory-autowire">3.3.5. 自動裝配（autowire）協作者</a></span></dt>
+<dt><span class="section"><a href="ch03s03.html#beans-factory-dependencies">3.3.6. 依賴檢查</a></span></dt>
+<dt><span class="section"><a href="ch03s03.html#beans-factory-method-injection">3.3.7. 方法注入</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch03s04.html">3.4. Bean的作用域</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch03s04.html#beans-factory-scopes-singleton">3.4.1. Singleton作用域</a></span></dt>
+<dt><span class="section"><a href="ch03s04.html#beans-factory-scopes-prototype">3.4.2. Prototype作用域</a></span></dt>
+<dt><span class="section"><a href="ch03s04.html#beans-factory-scopes-sing-prot-interaction">3.4.3. Singleton beans和prototype-bean的依賴</a></span></dt>
+<dt><span class="section"><a href="ch03s04.html#beans-factory-scopes-other">3.4.4. 其他作用域</a></span></dt>
+<dt><span class="section"><a href="ch03s04.html#beans-factory-scopes-custom">3.4.5. 自定義作用域</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch03s05.html">3.5. 定制bean特性</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch03s05.html#beans-factory-lifecycle">3.5.1. 生命週期回調</a></span></dt>
+<dt><span class="section"><a href="ch03s05.html#beans-factory-aware">3.5.2. 瞭解自己</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch03s06.html">3.6. bean定義的繼承</a></span></dt>
+<dt><span class="section"><a href="ch03s07.html">3.7. 容器擴展點</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch03s07.html#beans-factory-extension-bpp">3.7.1. 用<code class="literal">BeanPostProcessor</code>定制bean</a></span></dt>
+<dt><span class="section"><a href="ch03s07.html#beans-factory-extension-factory-postprocessors">3.7.2. 用<code class="literal">BeanFactoryPostProcessor</code>定制配置元資料</a></span></dt>
+<dt><span class="section"><a href="ch03s07.html#beans-factory-extension-factorybean">3.7.3. 使用<code class="literal">FactoryBean</code>定制實例化邏輯</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch03s08.html">3.8. The <code class="interfacename">ApplicationContext</code></a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch03s08.html#context-introduction-ctx-vs-beanfactory">3.8.1. <code class="interfacename">BeanFactory</code> 還是
+      <code class="interfacename">ApplicationContext</code>?</a></span></dt>
+<dt><span class="section"><a href="ch03s08.html#context-functionality-messagesource">3.8.2. 利用<code class="literal">MessageSource</code>實作國際化</a></span></dt>
+<dt><span class="section"><a href="ch03s08.html#context-functionality-events">3.8.3. 事件</a></span></dt>
+<dt><span class="section"><a href="ch03s08.html#context-functionality-resources">3.8.4. 底層資源的存取</a></span></dt>
+<dt><span class="section"><a href="ch03s08.html#context-create">3.8.5. <code class="interfacename">ApplicationContext</code>在WEB應用中的實例化</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch03s09.html">3.9. 粘合程式碼和可怕的singleton</a></span></dt>
+<dt><span class="section"><a href="ch03s10.html">3.10. 以J2EE RAR檔案的形式部署Spring ApplicationContext</a></span></dt>
+<dt><span class="section"><a href="ch03s11.html">3.11. 基於註釋（Annotation-based）的配置</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch03s11.html#beans-autowired-annotation">3.11.1. <code class="interfacename">@Autowired</code></a></span></dt>
+<dt><span class="section"><a href="ch03s11.html#beans-autowired-annotation-qualifiers">3.11.2. 基於註釋的自動連接微調</a></span></dt>
+<dt><span class="section"><a href="ch03s11.html#beans-custom-autowire-configurer">3.11.3. <code class="classname">CustomAutowireConfigurer</code></a></span></dt>
+<dt><span class="section"><a href="ch03s11.html#beans-resource-annotation">3.11.4. <code class="interfacename">@Resource</code></a></span></dt>
+<dt><span class="section"><a href="ch03s11.html#beans-postconstruct-and-predestroy-annotations">3.11.5. <code class="interfacename">@PostConstruct</code> 與 <code class="interfacename">@PreDestroy</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch03s12.html">3.12. 對受管元件的Classpath掃瞄</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch03s12.html#beans-stereotype-annotations">3.12.1. <code class="interfacename">@Component</code>和更多典型化註釋</a></span></dt>
+<dt><span class="section"><a href="ch03s12.html#beans-scanning-autodetection">3.12.2. 自動檢測元件</a></span></dt>
+<dt><span class="section"><a href="ch03s12.html#beans-scanning-filters">3.12.3. 使用過濾器自定義掃瞄</a></span></dt>
+<dt><span class="section"><a href="ch03s12.html#beans-scanning-name-generator">3.12.4. 自動檢測元件的命名</a></span></dt>
+<dt><span class="section"><a href="ch03s12.html#beans-scanning-scope-resolver">3.12.5. 為自動檢測的元件提供一個作用域</a></span></dt>
+<dt><span class="section"><a href="ch03s12.html#beans-scanning-qualifiers">3.12.6. 用註釋提供限定符元資料</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch03s13.html">3.13. 註冊一個<code class="interfacename">LoadTimeWeaver</code></a></span></dt>
+</dl>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="beans-introduction"></a>3.1.&#160;簡介</h2></div></div></div>
+<p>本章覆寫了Spring框架對控制反轉(Inversion of Control，IoC)<sup>[<a name="id436871" href="#ftn.id436871">1</a>]</sup>理論的實作。</p>
+<div class="sidebar">
+<p class="title"><b><code class="interfacename">BeanFactory</code> 還是
+      <code class="interfacename">ApplicationContext</code>?</b></p>
+<p>在實際應用中，使用者有時候不知道到底是選擇<code class="interfacename">BeanFactory</code>介面
+      還是<code class="interfacename">ApplicationContext</code>介面。 
+      <code class="interfacename">BeanFactory</code>介面擅長於處理bean的初始化和配置，而<code class="interfacename">
+      ApplicationContext</code>介面除了處理上述工作外，它<span class="emphasis"><em>還</em></span>針對企業參考
+      提供了<span class="emphasis"><em>許多</em></span>基礎支持，比如事務處理和AOP。</p>
+<p><span class="bold"><strong>簡而言之，一般把<code class="interfacename">ApplicationContext</code>接
+      口作為首選。</strong></span></p>
+<p>（至於這樣做的原由，大家可參見<a href="ch03s08.html#context-introduction-ctx-vs-beanfactory" title="3.8.1.&#160;BeanFactory 還是 ApplicationContext?">章節內容</a>。）</p>
+</div>
+<p><code class="literal">org.springframework.beans</code>及<code class="literal">org.springframework.context</code>包
+	是Spring IoC容器的基礎。<code class="interfacename"><a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/beans/factory/BeanFactory.html" target="_top">BeanFactory</a>
+	</code>提供的高層級配置機制，使得管理各種物件成為可能。<code class="literal">
+	<a href="http://static.springframework.org/spring/docs/2.5.x/api/org/springframework/context/ApplicationContext.html" target="_top">ApplicationContext</a></code>
+	是<code class="interfacename">BeanFactory</code>的擴展，功能得到了進一步增強，比如更易
+	與Spring AOP整合、資源處理(國際化處理)、事件傳遞及各種不同應用層的context實作
+	(如針對web應用的<code class="interfacename">WebApplicationContext</code>)。</p>
+<p>簡而言之，<code class="interfacename">BeanFactory</code>提供了配製框架及基本功能，而
+  <code class="interfacename">ApplicationContext</code>  則增加了更多支持企業核心內容的功能。
+  <code class="interfacename">ApplicationContext</code>完全由<code class="interfacename">BeanFactory</code>擴展而來，
+  因而<code class="interfacename">BeanFactory</code>所具備的能力和行為也適用於<code class="interfacename">ApplicationContext</code>。</p>
+<p>本章分為兩部份，<a href="ch03s02.html" title="3.2.&#160;基本原理 - 容器和bean">第一部份</a>講解<code class="interfacename">
+   BeanFactory</code>及<code class="interfacename">ApplicationContext</code>的基本原理，
+   而<a href="ch03s08.html" title="3.8.&#160;The ApplicationContext">第二部份</a>則針對<code class="interfacename">ApplicationContext</code>的功能進行講解。</p>
+</div>
+<div class="footnotes">
+<br><hr width="100" align="left">
+<div class="footnote"><p><sup>[<a name="ftn.id436871" href="#id436871">1</a>] </sup>參見<a href="ch01.html#background-ioc" title="背景">背景</a>的相關內容</p></div>
+</div>
+</div></body>
+</html>

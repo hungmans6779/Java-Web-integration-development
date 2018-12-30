@@ -1,0 +1,298 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>3.8.&#160;The ApplicationContext</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch03.html" title="第&#160;3&#160;章&#160;IoC(控制反轉)容器">
+<link rel="prev" href="ch03s07.html" title="3.7.&#160;容器擴展點">
+<link rel="next" href="ch03s09.html" title="3.9.&#160;粘合程式碼和可怕的singleton">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="context-introduction"></a>3.8.&#160;The <code class="interfacename">ApplicationContext</code></h2></div></div></div>
+<p><code class="literal">beans</code>包提供了以程式的方式管理和操控bean的基本功能，而<code class="literal">context</code>包下的<code class="literal"><a href="http://www.springframework.org/docs/api/org/springframework/context/ApplicationContext.html" target="_top">ApplicationContext</a></code>以一種更加導向框架的方式增強了<code class="interfacename">BeanFactory</code>的功能。多數使用者可以採用宣告的方式來使用<code class="interfacename">ApplicationContext</code>，甚至不用手動創建它，而通過<code class="classname">ContextLoader</code>這樣的支持類別，把它作為J2EE web應用的一部分自動啟動。當然，我們仍然可以採用程式的方式創建一個ApplicationContext。</p>
+<p>context套件的核心是<code class="interfacename">ApplicationContext</code>介面。它由<code class="interfacename">BeanFactory</code>介面派生而來，因而提供了<code class="interfacename">BeanFactory</code>所有的功能。為了以一種更向導向框架的方式工作以及對上下文進行分層和實作繼承，context包還提供了以下的功能：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><code class="interfacename">MessageSource</code>, 提供國際化的訊息存取</p></li>
+<li><p><span class="emphasis"><em>資源存取</em></span>，如URL和檔案</p></li>
+<li><p><span class="emphasis"><em>事件傳播</em></span>，實作了<code class="interfacename">ApplicationListener</code>介面的bean</p></li>
+<li><p><span class="emphasis"><em>載入多個（有繼承關係）上下文</em></span> ，使得每一個上下文都專注於一個特定的層次，比如應用的web層</p></li>
+</ul></div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="context-introduction-ctx-vs-beanfactory"></a>3.8.1.&#160;<code class="interfacename">BeanFactory</code> 還是
+      <code class="interfacename">ApplicationContext</code>?</h3></div></div></div>
+<p>簡單的說：<span class="emphasis"><em>除非你有更好的理由，否則盡量使用<code class="interfacename">ApplicationContext</code>，下面是對於哪些"為什麼"等等更深入的建議</em></span></p>
+<p><code class="interfacename">ApplicationContext</code>包含<code class="interfacename">BeanFactory</code>的所有功能。通常建議比<code class="interfacename">BeanFactory</code>優先，除非有一些限制的場合如位元組長度對記憶體有很大的影響時（<code class="classname">Applet</code>）。然後，絕大多數"典型的"企業應用和系統，<code class="interfacename">ApplicationContext</code>就是你需要使用的。Spring2.0及以上版本，<span class="emphasis"><em>大量</em></span>使用了link linkend="beans-factory-extension-bpp"&gt;<code class="interfacename">BeanPostProcessor</code>擴展（以便應用代理等功能），如果你選擇<code class="interfacename">BeanFactory</code>則無法使用相當多的支持功能，如事務和AOP，這可能會導致混亂，因為配置並沒有錯誤。</p>
+<p>下面的功能矩陣列出了<code class="interfacename">BeanFactory</code>提供的功能和<code class="interfacename">ApplicationContext</code>提供的功能（包括其實作）。（下一節更深度的描述了<code class="interfacename">ApplicationContext</code>比<code class="interfacename">BeanFactory</code>更強的功能。）
+      </p>
+<div class="table">
+<a name="context-introduction-ctx-vs-beanfactory-feature-matrix"></a><p class="title"><b>表&#160;3.5.&#160;Feature Matrix特性表</b></p>
+<div class="table-contents"><table summary="Feature Matrix" width="100%" border="1">
+<colgroup>
+<col align="left">
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th align="center">特性</th>
+<th align="center"><code class="interfacename">BeanFactory</code></th>
+<th align="center"><code class="interfacename">ApplicationContext</code></th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="left"><p>Bean 實例化/裝配</p></td>
+<td align="center"><p>Yes</p></td>
+<td align="center"><p>Yes</p></td>
+</tr>
+<tr>
+<td align="left"><p>自動
+              <code class="interfacename">BeanPostProcessor</code>
+                註冊</p></td>
+<td align="center"><p>No</p></td>
+<td align="center"><p>Yes</p></td>
+</tr>
+<tr>
+<td align="left"><p>自動
+              <code class="interfacename">BeanFactoryPostProcessor</code>
+                註冊</p></td>
+<td align="center"><p>No</p></td>
+<td align="center"><p>Yes</p></td>
+</tr>
+<tr>
+<td align="left"><p>便捷的
+              <code class="interfacename">MessageSource</code> 存取(
+              i18n)</p></td>
+<td align="center"><p>No</p></td>
+<td align="center"><p>Yes</p></td>
+</tr>
+<tr>
+<td align="left"><p><code class="interfacename">ApplicationEvent</code>
+                發送</p></td>
+<td align="center"><p>No</p></td>
+<td align="center"><p>Yes</p></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break">
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="context-functionality-messagesource"></a>3.8.2.&#160;利用<code class="literal">MessageSource</code>實作國際化</h3></div></div></div>
+<p><code class="interfacename">ApplicationContext</code>介面擴展了<code class="interfacename">MessageSource</code>介面，因而提供了訊息處理的功能（i18n或者國際化）。與<code class="classname">HierarchicalMessageSource</code>一起使用，它還能夠處理巢狀的訊息，這些是Spring提供的處理訊息的基本介面。讓我們快速瀏覽一下它所定義的方法：</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><code class="literal">String getMessage(String code, Object[] args, String default, Locale loc)：用來從<code class="interfacename">MessageSource</code>獲取訊息的基本方法。如果在指定的locale中沒有找到訊息，則使用預設的訊息。args中的參數將使用標準類別資源庫中的<code class="literal">MessageFormat</code>來作訊息中替換值。</code></p></li>
+<li><p><code class="literal">String getMessage(String code, Object[] args, Locale loc)：本質上和上一個方法相同，其區別在：沒有指定預設值，如果沒找到訊息，會拋出一個<code class="classname">NoSuchMessageException</code>異常。</code></p></li>
+<li><p><code class="literal">String getMessage(MessageSourceResolvable resolvable, Locale locale)</code>：上面方法中所使用的屬性都封裝到一個<code class="interfacename">MessageSourceResolvable</code>實作中，而本方法可以指定<code class="interfacename">MessageSourceResolvable</code>實作。</p></li>
+</ul></div>
+<p>當一個<code class="interfacename">ApplicationContext</code>被載入時，它會自動在context中尋找已定義為<code class="interfacename">MessageSource</code>型別的bean。此bean的名稱須為<code class="literal">messageSource</code>。如果找到，那麼所有對上述方法的調用將被委託給該bean。否則<code class="interfacename">ApplicationContext</code>會在其父類別中尋找是否含有同名的bean。如果有，就把它作為<code class="interfacename">MessageSource</code>。如果它最終沒有找到任何的訊息源，一個空的<code class="classname">StaticMessageSource</code>將會被實例化，使它能夠接受上述方法的調用。</p>
+<p>Spring目前提供了兩個<code class="interfacename">MessageSource</code>的實作:<code class="classname">ResourceBundleMessageSource</code>和<code class="classname">StaticMessageSource</code>。它們都繼承<code class="classname">NestingMessageSource</code>以便能夠處理巢狀的訊息。<code class="classname">StaticMessageSource</code>很少被使用，但能以程式的方式向訊息源添加訊息。<code class="classname">ResourceBundleMessageSource</code>會用得更多一些，為此提供了一下範例：</p>
+<pre class="programlisting">&lt;beans&gt;
+  &lt;bean id="messageSource"
+        class="org.springframework.context.support.ResourceBundleMessageSource"&gt;
+    &lt;property name="basenames"&gt;
+      &lt;list&gt;
+        &lt;value&gt;format&lt;/value&gt;
+        &lt;value&gt;exceptions&lt;/value&gt;
+        &lt;value&gt;windows&lt;/value&gt;
+      &lt;/list&gt;
+    &lt;/property&gt;
+  &lt;/bean&gt;
+&lt;/beans&gt;</pre>
+<p>這段配置假定在你的classpath中有三個資源檔案（resource bundle），它們是<code class="literal">format</code>，      <code class="literal">exceptions</code>和<code class="literal">windows</code>。通過ResourceBundle，使用JDK中解析訊息的標準方式，來處理任何解析訊息的請求。出於範例的目的，假定上面的兩個資源檔案的內容為…</p>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation"># in 'format.properties'</span></em>
+message=Alligators rock!</pre>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation"># in 'exceptions.properties'</span></em>
+argument.required=The '{0}' argument is required.</pre>
+<p>下面是測試程式碼。因為<code class="classname">ApplicationContext</code>實作也都實作了<code class="classname">MessageSource</code>介面，所以能被轉型為<code class="classname">MessageSource</code>介面</p>
+<pre class="programlisting">public static void main(String[] args) {
+    MessageSource resources = new ClassPathXmlApplicationContext("beans.xml");
+    String message = resources.getMessage("message", null, "Default", null);
+    System.out.println(message);
+}</pre>
+<p>上述程序的輸出結果將會是...</p>
+<pre class="programlisting">Alligators rock!</pre>
+<p>總而言之，我們在<code class="literal">'beans.xml'</code>的檔案中（在classpath根目錄下）定義了一個<code class="literal">messageSource</code> bean，通過它的<code class="literal">basenames</code>屬性參考多個資源檔案；而<code class="literal">basenames</code>屬性值由list元素所指定的三個值傳入，它們以檔案的形式存在並被放置在classpath的根目錄下（分別為<code class="literal">format.properties</code>，<code class="literal">exceptions.properties</code>和<code class="literal">windows.properties</code>）。</p>
+<p>再分析個例子，這次我們將著眼於傳遞參數給尋找的訊息，這些參數將被轉換為字元串並插入到已尋找到的訊息中的佔位符（譯註：資源檔案中花括號裡的數字即為佔位符）。</p>
+<pre class="programlisting">&lt;beans&gt;
+
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- this <code class="interfacename">MessageSource</code> is being used in a web application --&gt;</span></em>
+    &lt;bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource"&gt;
+        &lt;property name="baseName" value="WEB-INF/test-messages"/&gt;
+    &lt;/bean&gt;
+    
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- let's inject the above <code class="interfacename">MessageSource</code> into this POJO --&gt;</span></em>
+    &lt;bean id="example" class="com.foo.Example"&gt;
+        &lt;property name="messages" ref="messageSource"/&gt;
+    &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<pre class="programlisting">public class Example {
+
+    private MessageSource messages;
+
+    public void setMessages(MessageSource messages) {
+        this.messages = messages;
+    }
+
+    public void execute() {
+        String message = this.messages.getMessage("argument.required",
+            new Object [] {"userDao"}, "Required", null);
+        System.out.println(message);
+    }
+
+}</pre>
+<p>調用<code class="methodname">execute()</code>方法的輸出結果是...</p>
+<pre class="programlisting">The 'userDao' argument is required.</pre>
+<p>對於國際化（i18n），Spring中不同的<code class="classname">MessageResource</code>實作與JDK標準ResourceBundle中的locale解析規則一樣。比如在上面例子中定義的<code class="literal">messageSource</code> bean，如果你想解析British (en-GB) locale的訊息，那麼需要創建<code class="literal">format_en_GB.properties</code>，<code class="literal">exceptions_en_GB.properties</code>和<code class="literal">windows_en_GB.properties</code>三個資源檔案。</p>
+<p>Locale解析通常由應用程序根據運行環境來指定。出於範例的目的，我們對將要處理的(British)訊息手工指定locale參數值。</p>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation"># in 'exceptions_en_GB.properties'</span></em>
+argument.required=Ebagum lad, the '{0}' argument is required, I say, required.</pre>
+<pre class="programlisting">public static void main(final String[] args) {
+    MessageSource resources = new ClassPathXmlApplicationContext("beans.xml");
+    String message = resources.getMessage("argument.required",
+        new Object [] {"userDao"}, "Required", Locale.UK);
+    System.out.println(message);
+}</pre>
+<p>上述程序運行時的輸出結果是...</p>
+<pre class="programlisting">Ebagum lad, the 'userDao' argument is required, I say, required.</pre>
+<p><code class="classname">MessageSourceAware</code>介面還能用於獲取任何已定義的<code class="classname">MessageSource</code>參考。任何實作了<code class="classname">MessageSourceAware</code>介面的bean將在創建和配置的時候與<code class="classname">MessageSource</code>一同被注入。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="context-functionality-events"></a>3.8.3.&#160;事件</h3></div></div></div>
+<p><code class="interfacename">ApplicationContext</code>中的事件處理是通過<code class="literal">ApplicationEvent</code>類別和<code class="literal">ApplicationListener</code>介面來提供的。如果在上下文中部署一個實作了<code class="literal">ApplicationListener</code>介面的bean，那麼每當一個<code class="literal">ApplicationEvent</code>發佈到<code class="interfacename">ApplicationContext</code>時，這個bean就得到通知。實質上，這是標準的<span class="emphasis"><em>Observer</em></span>設計模式。Spring提供了三個標準事件：</p>
+<div class="table">
+<a name="beans-ctx-events-tbl"></a><p class="title"><b>表&#160;3.6.&#160;內置事件</b></p>
+<div class="table-contents"><table summary="內置事件" border="1">
+<colgroup>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th>事件</th>
+<th>解釋</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><code class="classname">ContextRefreshedEvent</code></td>
+<td>
+                    當<code class="interfacename">ApplicationContext</code>初始化或刷新時發送的事件。如使用<code class="interfacename">ConfigurableApplicationContext</code>介面的<code class="methodname">refresh()</code>方法。這裡的初始化意味著：所有的bean被裝載，後處理bean被檢測和啟動，singleton被預實例化，以及<code class="interfacename">ApplicationContext</code>已就緒可用。刷新在context關閉會觸發多次。選擇<code class="interfacename">ApplicationContext</code>可以提供「熱」刷新的功能(如：<code class="classname">XmlWebApplicationContext</code> 可以但是<code class="classname">GenericApplicationContext</code> 則不可以.)
+              </td>
+</tr>
+<tr>
+<td><code class="classname">ContextStartedEvent</code></td>
+<td>當<code class="interfacename">ApplicationContext</code>啟動時發送的事件,使用<code class="interfacename">ConfigurableApplicationContext</code>介面的<code class="methodname">start()</code>方法。這裡"啟動"意味著<code class="interfacename">生命週期</code> beans將獲得一個確實的啟動信號。這經常使用在確實停止後重新啟動的場合，但也可以用在啟動一個沒有被配置為自動啟動的元件中(如：在完成初始化後還沒有啟動)。
+              </td>
+</tr>
+<tr>
+<td><code class="classname">ContextStoppedEvent</code></td>
+<td>當使用<code class="interfacename">ConfigurableApplicationContext</code>介面的<code class="methodname">stop()</code> 方法使<code class="interfacename">ApplicationContext</code>停止時候發送的事件。這裡"停止"意味著<code class="interfacename">生命週期</code> beans將獲得一個確實的停止信號. 停止的context可以通過調用<code class="methodname">start()</code>來重新啟動。
+              </td>
+</tr>
+<tr>
+<td><code class="classname">ContextClosedEvent</code></td>
+<td>當使用<code class="interfacename">ConfigurableApplicationContext</code>介面<code class="methodname">close()</code> 方法使<code class="interfacename">ApplicationContext</code> 關閉時候發送的事件。                這裡關閉意味著所有的singleton bean都被銷毀。關閉的context不能刷新和重新啟動。</td>
+</tr>
+<tr>
+<td><code class="classname">RequestHandledEvent</code></td>
+<td>web特性的事件通告所有的bean有一個http request（將在request結束後才會發送）。注意這種事件只相容於使用Spring<code class="classname">DispatcherServlet</code>相容的web應用。
+              </td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break"><p>只要在<code class="interfacename">ApplicationContext</code>調用<code class="methodname">publishEvent()</code>方法可以很方便的實作自定義事件，將一個實作了<code class="classname">ApplicationEvent</code>的自定義事件類別作為參數就可以了。事件監聽器同步的接收事件。這意味著<code class="methodname">publishEvent()</code>方法將被阻塞，直到所有的監聽器都處理完事件(可以通過一個<code class="interfacename">ApplicationEventMulticaster</code>的實作提供可選的事件發送策略)。此外，如果事務context可用，監聽器會接收到一含有發送者事務context的事件。
+      </p>
+<p>看一個例子,首先是<code class="interfacename">ApplicationContext</code>:</p>
+<pre class="programlisting">&lt;bean id="emailer" class="example.EmailBean"&gt;
+  &lt;property name="blackList"&gt;
+    &lt;list&gt;
+      &lt;value&gt;black@list.org&lt;/value&gt;
+      &lt;value&gt;white@list.org&lt;/value&gt;
+      &lt;value&gt;john@doe.org&lt;/value&gt;
+    &lt;/list&gt;
+  &lt;/property&gt;
+&lt;/bean&gt;
+
+&lt;bean id="blackListListener" class="example.BlackListNotifier"&gt;
+  &lt;property name="notificationAddress" value="spam@list.org"/&gt;
+&lt;/bean&gt;</pre>
+<p>再看一下實際的類別:</p>
+<pre class="programlisting">public class EmailBean implements ApplicationContextAware {
+
+    private List blackList;
+	private ApplicationContext ctx;
+
+    public void setBlackList(List blackList) {
+        this.blackList = blackList;
+    }
+
+    public void setApplicationContext(ApplicationContext ctx) {
+        this.ctx = ctx;
+    }
+
+    public void sendEmail(String address, String text) {
+        if (blackList.contains(address)) {
+            BlackListEvent event = new BlackListEvent(address, text);
+            ctx.publishEvent(event);
+            return;
+        }
+        <em class="lineannotation"><span class="lineannotation">// send email...</span></em>
+    }
+}</pre>
+<pre class="programlisting">public class BlackListNotifier implements ApplicationListener {
+
+    private String notificationAddress;
+    
+    public void setNotificationAddress(String notificationAddress) {
+        this.notificationAddress = notificationAddress;
+    }
+
+    public void onApplicationEvent(ApplicationEvent event) {
+        if (event instanceof BlackListEvent) {
+            <em class="lineannotation"><span class="lineannotation">// notify appropriate person...</span></em>
+        }
+    }
+}</pre>
+<p>當然，這個例子可以使用更好的方法實作（如採用AOP特性） ，但應該足以說明事件的基本機制。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="context-functionality-resources"></a>3.8.4.&#160;底層資源的存取</h3></div></div></div>
+<p>為了更好的使用和理解應用上下文，通常使用者應當對Spring的<code class="interfacename">Resource</code>有所瞭解，詳見<a href="ch04.html" title="第&#160;4&#160;章&#160;資源">第&#160;4&#160;章 <i>資源</i></a></p>
+<p>應用上下文同時也是個資源載入器（ResourceLoader），能被用來載入多個<code class="interfacename">Resource</code>。一個<code class="interfacename">Resource</code>實質上可以當成一個<code class="literal">java.net.URL</code>，可被用來從大多數位置以透明的方式獲取底層的資源，包括從classpath、檔案系統位置、任何以標準URL描述的位置以及其它一些變種。如果資源位置串是一個沒有任何前綴的簡單路徑，這些資源來自何處取決於實際應用上下文的型別。</p>
+<p>為了讓bean能存取靜態資源，可以像其它屬性一樣注入Resource。被注入的<code class="interfacename">Resource</code>屬性值可以是簡單的路徑字元串，ApplicationContext會使用已註冊的<code class="interfacename">PropertyEditor</code>，來將字元串轉換為實際的<code class="interfacename">Resource</code>物件。</p>
+<p><code class="interfacename">ApplicationContext</code>建構器的路徑就是實際的資源串，根據不同的上下文實作，字元串可視為不同的形式（例如：<code class="classname">ClassPathXmlApplicationContext</code>會把路徑字元串看作一個classpath路徑）。然而，它也可以使用特定的前綴來強制地從classpath或URL載入bean定義檔案，而不管實際的上下文型別。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="context-create"></a>3.8.5.&#160;<code class="interfacename">ApplicationContext</code>在WEB應用中的實例化</h3></div></div></div>
+<p>與<code class="interfacename">BeanFactory</code>通常以程式的方式被創建不同的是，<code class="interfacename">ApplicationContext</code>能以宣告的方式創建，如使用<code class="interfacename">ContextLoader</code>。當然你也可以使用<code class="interfacename">ApplicationContext</code>的實作之一來以程式的方式創建<code class="interfacename">ApplicationContext</code>實例。首先，讓我們先分析<code class="interfacename">ContextLoader</code>介面及其實作。</p>
+<p><code class="classname">ContextLoader</code>機制有兩種方式，<code class="classname">ContextLoaderListener</code> 和<code class="classname">ContextLoaderServlet</code>，他們功能相同但是listener不能在Servlet2.3容器下使用。Servlet2.4規範中servlet context listeners需要在web應用啟動並能處理初始請求時立即運行。(servlet context listener關閉的時候也是相同的)。servlet context listener是初始化Spring <code class="interfacename">ApplicationContext</code>理想的方式。你可能願意選擇<code class="classname">ContextLoaderListener</code>，雖然是一樣的，但決定權在於你。你可以查看<code class="classname">ContextLoaderServlet</code>的Javadoc來獲得更詳細的資訊。</p>
+<p>可以像下面所範例的一樣使用<code class="classname">ContextLoaderListener</code>註冊一個<code class="interfacename">ApplicationContext</code></p>
+<pre class="programlisting">&lt;context-param&gt;
+  &lt;param-name&gt;contextConfigLocation&lt;/param-name&gt;
+  &lt;param-value&gt;/WEB-INF/daoContext.xml /WEB-INF/applicationContext.xml&lt;/param-value&gt;
+&lt;/context-param&gt;
+
+&lt;listener&gt;
+  &lt;listener-class&gt;org.springframework.web.context.ContextLoaderListener&lt;/listener-class&gt;
+&lt;/listener&gt;
+
+<em class="lineannotation"><span class="lineannotation">&lt;!-- or use the <code class="classname">ContextLoaderServlet</code> instead of the above listener</span></em><span class="emphasis"><em>
+&lt;servlet&gt;
+  &lt;servlet-name&gt;context&lt;/servlet-name&gt;
+  &lt;servlet-class&gt;org.springframework.web.context.ContextLoaderServlet&lt;/servlet-class&gt;
+  &lt;load-on-startup&gt;1&lt;/load-on-startup&gt;
+&lt;/servlet&gt;
+--</em></span>&gt;</pre>
+<p>監聽器首先檢查<code class="literal">contextConfigLocation</code>參數，如果它不存在，它將使用<code class="literal">/WEB-INF/applicationContext.xml</code>作為預設值。如果已存在，它將使用分隔符（逗號、冒號或空格）將字元串分解成應用上下檔案位置路徑。可以支持ant-樣式的路徑模式，如<code class="literal">/WEB-INF/*Context.xml</code>(WEB-INF檔案夾下所有以"Context.xml"結尾的檔案)。或者<code class="literal">/WEB-INF/**/*Context.xml</code>(WEB-INF檔案夾及子檔案夾下的以"Context.xml"結尾的檔案)。
+      </p>
+<p><code class="classname">ContextLoaderServlet</code>同<code class="classname">ContextLoaderListener</code>一樣使用<code class="literal">'contextConfigLocation'</code>參數。</p>
+</div>
+</div></body>
+</html>

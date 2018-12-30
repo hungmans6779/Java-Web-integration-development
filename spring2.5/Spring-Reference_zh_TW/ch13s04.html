@@ -1,0 +1,234 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>13.4.&#160;處理器映射（handler mapping）</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch13.html" title="第&#160;13&#160;章&#160;Web MVC framework Web框架">
+<link rel="prev" href="ch13s03.html" title="13.3.&#160;控制器">
+<link rel="next" href="ch13s05.html" title="13.5.&#160;視圖與視圖解析">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="mvc-handlermapping"></a>13.4.&#160;處理器映射（handler mapping）</h2></div></div></div>
+<p>通過處理器映射，可以將web請求映射到正確的處理器（handler）上。
+      Spring內置了很多處理器映射策略，例如：<code class="classname">SimpleUrlHandlerMapping</code>或者<code class="classname">BeanNameUrlHandlerMapping</code>。
+      現在我們先來看一下<code class="interfacename">HandlerMapping</code>的基本概念。
+      </p>
+<p><code class="interfacename">HandlerMapping</code>的基本功能是將請求傳遞到<code class="literal">HandlerExecutionChain</code>上。
+      首先，這個<code class="literal">HandlerExecutionChain</code>必須包含一個能處理該請求的處理器。
+      其次，這個鏈也可以包含一系列可以攔截請求的攔截器。
+      當收到請求時，<code class="classname">DispatcherServlet</code>將請求交給處理器映射，讓它檢查請求並找到一個適當的<code class="literal">HandlerExecutionChain</code>。
+      然後，<code class="classname">DispatcherServlet</code>執行定義在鏈中的處理器和攔截器（interceptor）。
+      </p>
+<p>在處理器映射中通過配置攔截器（包括處理器執行前、執行後、或者執行前後運行攔截器）將使其功能更強大。
+      同時也可以通過自定義<code class="interfacename">HandlerMapping</code>來支持更多的功能。
+      比如，一個自定義的處理器映射不僅可以根據請求的URL，而且還可以根據和請求相關的特定session狀態來選擇處理器。
+	</p>
+<p>下面我們將講述Spring中最常用的兩個處理器映射。
+      它們都是<code class="literal">AbstractHandlerMapping</code>的子類別，同時繼承了下面這些屬性：
+      </p>
+<div class="itemizedlist"><ul type="disc" compact>
+<li><p><code class="literal">interceptors</code>： 在映射中使用的攔截器列表。
+          <code class="interfacename">HandlerInterceptor</code>將在<a href="ch13s04.html#mvc-handlermapping-interceptor" title="13.4.3.&#160;攔截器（HandlerInterceptor）">第&#160;13.4.3&#160;節 「攔截器（<code class="interfacename">HandlerInterceptor</code>）」</a>這一節講述。
+          </p></li>
+<li><p><code class="literal">defaultHandler</code>： 缺省的處理器。
+          當沒有合適的處理器可以匹配請求時，該處理器就會被使用。
+          </p></li>
+<li><p><code class="literal">order</code>： 根據每個映射的order屬性值 (由<code class="literal">org.springframework.core.Ordered</code> 介面定義)，Spring 將上下文中可用的映射進行排序，然後選用第一個和請求匹配的處理器。
+          </p></li>
+<li><p><code class="literal">alwaysUseFullPath</code>：如果這個屬性被設成<code class="literal">true</code>，Spring 將會使用絕對路徑在當前的servlet context中尋找合適的處理器。 
+          這個屬性的預設值是<code class="literal">false</code>，在這種情況下，Spring會使用當前servlet context中的相對路徑。
+          例如，如果一個servlet在servlet-mapping中用的值是<code class="literal">/testing/*</code>，當<code class="literal">alwaysUseFullPath</code> 設成true時，
+          處理器映射中的URL格式應該使用<code class="literal">/testing/viewPage.html</code>，當這個屬性設成false，同一個URL應該寫成
+		  <code class="literal">/viewPage.html</code>。
+		  </p></li>
+<li><p><code class="literal">urlDecode</code>：這個屬性的預設值是<code class="literal">true</code>，和2.5版本一樣。
+          如果想比較編碼後的路徑，可以把這個屬性設為<code class="literal">false</code>。
+          不過，需要注意的是，<code class="interfacename">HttpServletRequest</code>總是返回解碼後的servlet路徑，
+          與編碼後的格式進行比較時可能不會匹配。
+          </p></li>
+<li><p><code class="literal">lazyInitHandlers</code>：這個屬性允許設置是否延遲<span class="emphasis"><em>singleton</em></span>處理器的初始化工作（prototype處理器的初始化都是延遲的)。
+          這個屬性的預設值是<code class="literal">false</code>。
+          </p></li>
+</ul></div>
+<p>（<span class="emphasis"><em>注意：最後三個屬性只有<code class="classname">org.springframework.web.servlet.handler.AbstractUrlHandlerMapping</code>的子類別才有。</em></span>）
+      </p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-handlermapping-beanname"></a>13.4.1.&#160;<code class="classname">BeanNameUrlHandlerMapping</code></h3></div></div></div>
+<p><code class="classname">BeanNameUrlHandlerMapping</code>是一個簡單但很強大的處理器映射，它將收到的HTTP請求映射到bean的名稱（這些bean需要在web應用上下文中定義）。
+        例如，為了實作一個使用者新建賬號的功能，我們提供了FormController
+	  （關於CommandController和FormController請參考<a href="ch13s03.html#mvc-controller-command" title="13.3.4.&#160;命令控制器">第&#160;13.3.4&#160;節 「命令控制器」</a>）和顯示表單的JSP視圖（或Velocity模版）。
+	  當使用<code class="classname">BeanNameUrlHandlerMapping</code>時，我們用如下方式將包含<code class="literal">http://samples.com/editaccount.form</code>的存取請求映射到指定的FormController上：
+	  </p>
+<pre class="programlisting">&lt;beans&gt;
+  &lt;bean id="handlerMapping" class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping"/&gt;
+
+  &lt;bean name="/editaccount.form" class="org.springframework.web.servlet.mvc.SimpleFormController"&gt;
+    &lt;property name="formView" value="account"/&gt;
+    &lt;property name="successView" value="account-created"/&gt;
+    &lt;property name="commandName" value="account"/&gt;
+    &lt;property name="commandClass" value="samples.Account"/&gt;
+  &lt;/bean&gt;
+&lt;beans&gt;</pre>
+<p><code class="literal">所有對/editaccount.form</code>的請求就會由上面的FormController處理。
+        當然我們得在<code class="literal">web.xml</code>中定義servlet-mapping，接受所有以<code class="literal">.form</code>結尾的請求。
+        </p>
+<pre class="programlisting">&lt;web-app&gt;
+    ...
+    &lt;servlet&gt;
+        &lt;servlet-name&gt;sample&lt;/servlet-name&gt;
+        &lt;servlet-class&gt;org.springframework.web.servlet.DispatcherServlet&lt;/servlet-class&gt;
+        &lt;load-on-startup&gt;1&lt;/load-on-startup&gt;
+    &lt;/servlet&gt;
+
+   <em class="lineannotation"><span class="lineannotation">&lt;!-- maps the sample dispatcher to <code class="literal">*.form</code> --&gt;</span></em>
+    &lt;servlet-mapping&gt;
+        &lt;servlet-name&gt;sample&lt;/servlet-name&gt;
+        &lt;url-pattern&gt;*.form&lt;/url-pattern&gt;
+    &lt;/servlet-mapping&gt;
+    ...
+&lt;/web-app&gt;</pre>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>要使用<code class="classname">BeanNameUrlHandlerMapping</code>，無須（如上所示）在web應用上下文中定義它。
+          缺省情況下，如果在上下文中沒有找到處理器映射，<code class="classname">DispatcherServlet</code>會為你創建一個<code class="classname">BeanNameUrlHandlerMapping</code>！
+          </p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-handlermapping-urlhandlermapping"></a>13.4.2.&#160;<code class="classname">SimpleUrlHandlerMapping</code></h3></div></div></div>
+<p>另一個更加強大的處理器映射是<code class="classname">SimpleUrlHandlerMapping</code>。
+        它在應用上下文中可以進行配置，並且有Ant樣式的路徑匹配功能。
+       （請參考<code class="classname">org.springframework.util.PathMatcher</code>的JavaDoc）。下面幾個例子可以說明理解：
+        </p>
+<pre class="programlisting">&lt;web-app&gt;
+    ...
+    &lt;servlet&gt;
+        &lt;servlet-name&gt;sample&lt;/servlet-name&gt;
+        &lt;servlet-class&gt;org.springframework.web.servlet.DispatcherServlet&lt;/servlet-class&gt;
+        &lt;load-on-startup&gt;1&lt;/load-on-startup&gt;
+    &lt;/servlet&gt;
+
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- maps the sample dispatcher to *.form --&gt;</span></em>
+    &lt;servlet-mapping&gt;
+        &lt;servlet-name&gt;sample&lt;/servlet-name&gt;
+        &lt;url-pattern&gt;*.form&lt;/url-pattern&gt;
+    &lt;/servlet-mapping&gt;
+
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- maps the sample dispatcher to *.html --&gt;</span></em>
+    &lt;servlet-mapping&gt;
+        &lt;servlet-name&gt;sample&lt;/servlet-name&gt;
+        &lt;url-pattern&gt;*.html&lt;/url-pattern&gt;
+    &lt;/servlet-mapping&gt;
+    ...
+&lt;/web-app&gt;</pre>
+<p>上面的web.xml設置允許所有以<code class="literal">.html</code>和<code class="literal">.form</code>結尾的請求都由這個sample <code class="classname">DispatcherServlet</code>處理。</p>
+<pre class="programlisting">&lt;beans&gt;
+        
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- no <code class="literal">'id'</code> required, <code class="interfacename">HandlerMapping</code> beans are automatically detected by the <code class="classname">DispatcherServlet</code> --&gt;</span></em>
+    &lt;bean class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping"&gt;
+        &lt;property name="mappings"&gt;
+            &lt;value&gt;
+                /*/account.form=editAccountFormController
+                /*/editaccount.form=editAccountFormController
+                /ex/view*.html=helpController
+                /**/help.html=helpController
+            &lt;/value&gt;
+        &lt;/property&gt;
+    &lt;/bean&gt;
+
+    &lt;bean id="helpController"
+          class="org.springframework.web.servlet.mvc.UrlFilenameViewController"/&gt;
+
+    &lt;bean id="editAccountFormController"
+          class="org.springframework.web.servlet.mvc.SimpleFormController"&gt;
+        &lt;property name="formView" value="account"/&gt;
+        &lt;property name="successView" value="account-created"/&gt;
+        &lt;property name="commandName" value="Account"/&gt;
+        &lt;property name="commandClass" value="samples.Account"/&gt;
+    &lt;/bean&gt;
+&lt;beans&gt;</pre>
+<p>這個處理器映射首先將對所有目錄中檔案名為<code class="literal">help.html</code>的請求傳遞給<code class="literal">helpController</code>。 
+        <code class="literal">helpController</code>是一個<code class="classname">UrlFilenameViewController</code>
+        （要瞭解更多關於控制器的資訊，請參閱<a href="ch13s03.html" title="13.3.&#160;控制器">第&#160;13.3&#160;節 「控制器」</a>）。
+        對<code class="literal">ex</code>目錄中所有以<code class="literal">view</code>開始，以<code class="literal">.html</code>
+		結尾的請求都會被傳遞給<code class="literal">helpController</code>。
+		同樣的，我們也為<code class="literal">editAccountFormController</code>定義了兩個映射。
+		</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-handlermapping-interceptor"></a>13.4.3.&#160;攔截器（<code class="interfacename">HandlerInterceptor</code>）</h3></div></div></div>
+<p>Spring的處理器映射支持攔截器。當你想要為某些請求提供特殊功能時，例如對使用者進行身份認證，這就非常有用。</p>
+<p>處理器映射中的攔截器必須實作<code class="literal">org.springframework.web.servlet</code>包中的<code class="interfacename">HandlerInterceptor</code>介面。
+        這個介面定義了三個方法，一個在處理器<span class="emphasis"><em>執行前</em></span>被調用，一個在處理器<span class="emphasis"><em>執行後</em></span>被調用，另一個<span class="emphasis"><em>在整個請求處理完後</em></span>調用。
+        這三個方法提供你足夠的靈活度做任何處理前後的操作。
+        </p>
+<p><code class="literal">preHandle(..)</code>方法有一個boolean返回值。
+        使用這個值，可以調整執行鏈的行為。
+        當返回<code class="literal">true</code>時，處理器執行鏈將繼續執行，當返回<code class="literal">false</code>時，<code class="classname">DispatcherServlet</code>認為該攔截器已經處理完了請求（比如顯示正確的視圖），而不繼續執行執行鏈中的其它攔截器和處理器。
+        </p>
+<p>下面的例子提供了一個攔截器，它攔截所有請求，如果當前時間不是在上午9點到下午6點，它將使用者重定向到某個頁面。</p>
+<pre class="programlisting">&lt;beans&gt;
+    &lt;bean id="handlerMapping"
+          class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping"&gt;
+        &lt;property name="interceptors"&gt;
+            &lt;list&gt;
+                &lt;ref bean="officeHoursInterceptor"/&gt;
+            &lt;/list&gt;
+        &lt;/property&gt;
+        &lt;property name="mappings"&gt;
+            &lt;value&gt;
+                /*.form=editAccountFormController
+                /*.view=editAccountFormController
+            &lt;/value&gt;
+        &lt;/property&gt;
+    &lt;/bean&gt;
+
+    &lt;bean id="officeHoursInterceptor"
+          class="samples.TimeBasedAccessInterceptor"&gt;
+        &lt;property name="openingTime" value="9"/&gt;
+        &lt;property name="closingTime" value="18"/&gt;
+    &lt;/bean&gt;
+&lt;beans&gt;</pre>
+<pre class="programlisting">package samples;
+
+public class TimeBasedAccessInterceptor extends HandlerInterceptorAdapter {
+
+    private int openingTime;
+    private int closingTime;
+
+    public void setOpeningTime(int openingTime) {
+        this.openingTime = openingTime;
+    }
+
+    public void setClosingTime(int closingTime) {
+        this.closingTime = closingTime;
+    }
+
+    public boolean preHandle(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Object handler) throws Exception {
+
+        Calendar cal = Calendar.getInstance();
+        int hour = cal.get(HOUR_OF_DAY);
+        if (openingTime &lt;= hour &lt; closingTime) {
+            return true;
+        } else {
+            response.sendRedirect("http://host.com/outsideOfficeHours.html");
+            return false;
+        }
+    }
+}</pre>
+<p>所有的請求都將被<code class="classname">TimeBasedAccessInterceptor</code>截獲，
+        如果當前時間不在上班時間，使用者會被重定向到一個靜態html頁面，提供諸如只有上班時間才能存取網站之類別的告示。
+        </p>
+<p>Spring還提供了一個adapter類別<code class="classname">HandlerInterceptorAdapter</code>讓使用者更方便的擴展<code class="interfacename">HandlerInterceptor</code>介面。</p>
+</div>
+</div></body>
+</html>

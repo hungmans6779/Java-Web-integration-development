@@ -1,0 +1,310 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>21.4.&#160;建模CCI存取為操作物件</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch21.html" title="第&#160;21&#160;章&#160;JCA CCI">
+<link rel="prev" href="ch21s03.html" title="21.3.&#160;使用Spring的 CCI存取支持">
+<link rel="next" href="ch21s05.html" title="21.5.&#160;事務">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="cci-object"></a>21.4.&#160;建模CCI存取為操作物件</h2></div></div></div>
+<p>
+  <code class="literal">org.springframework.jca.cci.object</code> 套件中包含的支持類別允許你以另一種樣式存取EIS：
+  通過可重用的操作物件，類似於Spring的JDBC操作物件（參見JDBC一章）。
+  它通常都封裝了 CCI 的API：將應用級的輸入物件傳入到操作物件，
+  從而它能創建輸入record然後轉換接收到的record資料到一個應用級輸出對象並返回它。
+  </p>
+<p><span class="emphasis"><em>注意</em></span>: 這種方法內在地基於 <code class="classname">CciTemplate</code> 類別和
+  <code class="interfacename">RecordCreator</code> / <code class="interfacename">RecordExtractor</code> 介面，重用了Spring核心CCI支持的機制。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="cci-object-mapping-record"></a>21.4.1.&#160;<code class="classname">MappingRecordOperation</code></h3></div></div></div>
+<p> <code class="classname">MappingRecordOperation</code> 本質上與 <code class="classname">CciTemplate</code> 做的事情是一樣的，
+   但是它表達了一個明確的、預配置（pre-configured）的操作作為物件。它提供了兩個模板方法來指明如何將一個輸入物件轉換為輸入記錄，
+   以及如何將一個輸出記錄轉換為輸出物件（記錄映射）：
+		</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p><code class="literal">createInputRecord(..)</code> 指定了如何將一個輸入物件轉換為輸入<code class="interfacename">Record</code></p></li>
+<li><p><code class="literal">extractOutputData(..)</code> 指定了如何從輸出 <code class="interfacename">Record</code> 中提取輸出物件</p></li>
+</ul></div>
+<p>下面是這些方法的簽章：</p>
+<pre class="programlisting">public abstract class MappingRecordOperation extends EisOperation {
+ ...
+ protected abstract Record createInputRecord(RecordFactory recordFactory, Object inputObject)
+   throws ResourceException, DataAccessException { ... }
+
+ protected abstract Object extractOutputData(Record outputRecord)
+   throws ResourceException, SQLException, DataAccessException { ... }
+ ...
+}</pre>
+<p> 此後，為了執行一個 EIS 操作，你需要使用一個單獨的execute方法，傳遞一個應用級（application-level）
+   輸入物件，並接收一個應用級輸出物件作為結果：
+			</p>
+<pre class="programlisting">public abstract class MappingRecordOperation extends EisOperation {
+ ...
+ public Object execute(Object inputObject) throws DataAccessException {
+ ...
+}</pre>
+<p>
+   正如你所看到的，與 <code class="classname">CciTemplate</code> 類別相反，
+   這個<code class="literal">execute</code>方法並沒有 <code class="interfacename">InteractionSpec</code> 參數，
+   然而，<code class="interfacename">InteractionSpec</code> 對操作是全局的。
+   下面的建構方法必須使用指定的 <code class="interfacename">InteractionSpec</code> 來初始化一個操作物件：
+   </p>
+<pre class="programlisting">InteractionSpec spec = ...;
+MyMappingRecordOperation eisOperation = new MyMappingRecordOperation(getConnectionFactory(), spec);
+...</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="cci-object-mapping-comm-area"></a>21.4.2.&#160;<code class="classname">MappingCommAreaOperation</code></h3></div></div></div>
+<p>
+   一些連接器使用了基於COMMAREA的記錄，該記錄包含了發送給EIS的參數和返回資料的位元組陣列。
+   Spring提供了一個專門的操作類別用於直接操作COMMAREA而不是操作記錄。
+   <code class="classname">MappingCommAreaOperation</code> 類別擴展了 <code class="classname">MappingRecordOperation</code> 類別以提供這種專門的COMMAREA支持。
+   它隱含地使用了 <code class="classname">CommAreaRecord</code>類別作為輸入和輸出record型別，
+   並提供了兩個新的方法來轉換輸入物件到輸入COMMAREA，以及轉換輸出COMMAREA到輸出物件。
+   </p>
+<pre class="programlisting">public abstract class MappingCommAreaOperation extends MappingRecordOperation {
+ ...
+ protected abstract byte[] objectToBytes(Object inObject)
+   throws IOException, DataAccessException;
+
+ protected abstract Object bytesToObject(byte[] bytes)
+   throws IOException, DataAccessException;
+ ...
+}</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="cci-automatic-record-gen"></a>21.4.3.&#160;自動產生輸出記錄</h3></div></div></div>
+<p>
+	由於每個 <code class="classname">MappingRecordOperation</code> 子類別的內部都是基於 <code class="classname">CciTemplate</code> 的，所以
+	用 <code class="classname">CciTemplate</code> 以相同的方式自動產生輸出record都是有效的。
+	每個操作物件提供一個相應的 <code class="literal">setOutputRecordCreator(..)</code> 方法。
+	更多的資訊，請參見前面的<a href="ch21s03.html#automatic-output-generation" title="21.3.4.&#160;自動輸出記錄產生">第&#160;21.3.4&#160;節 「自動輸出記錄產生」</a>一節。
+			</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="cci-object-summary"></a>21.4.4.&#160;總結</h3></div></div></div>
+<p>操作物件方法使用了跟 <code class="classname">CciTemplate</code> 相同的方式來使用記錄。</p>
+<div class="table">
+<a name="cci-interaction-methods"></a><p class="title"><b>表&#160;21.2.&#160;Usage of Interaction execute methods</b></p>
+<div class="table-contents"><table summary="Usage of Interaction execute methods" border="1">
+<colgroup>
+<col>
+<col>
+<col>
+</colgroup>
+<thead><tr>
+<th align="center">
+<code class="classname">MappingRecordOperation</code> method
+        signature</th>
+<th align="center">
+<code class="classname">MappingRecordOperation</code>
+        <code class="literal">outputRecordCreator</code> property</th>
+<th align="center">execute method called on the CCI
+        <code class="interfacename">Interaction</code>
+</th>
+</tr></thead>
+<tbody>
+<tr>
+<td align="center">Object execute(Object)</td>
+<td align="center">not set</td>
+<td align="center">Record execute(InteractionSpec,
+        Record)</td>
+</tr>
+<tr>
+<td align="center">Object execute(Object)</td>
+<td align="center">set</td>
+<td align="center">boolean execute(InteractionSpec, Record,
+        Record)</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<br class="table-break">
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="cci-objects-mappring-record-example"></a>21.4.5.&#160;<code class="classname">MappingRecordOperation</code> 使用範例</h3></div></div></div>
+<p>
+	   在本節中，將通過展示使用 Blackbox CCI 連接器存取一個資料庫來說明 <code class="classname">MappingRecordOperation</code> 的用法。
+   </p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>該連接器的最初版本是由SUN提供的J2EE SDK（1.3版本）。</p>
+</div>
+<p>
+   首先，必須在 CCI <code class="interfacename">InteractionSpec</code> 中進行一些初始化動作來指定執行哪些SQL請求。
+	在這個例子中，我們直接定義了將請求參數轉換為CCI record以及將CCI結果記錄轉換為一個 <code class="classname">Person</code> 類別的實例的方法。
+   </p>
+<pre class="programlisting">public class PersonMappingOperation extends MappingRecordOperation {
+
+ public PersonMappingOperation(ConnectionFactory connectionFactory) {
+  setConnectionFactory(connectionFactory);
+  CciInteractionSpec interactionSpec = new CciConnectionSpec();
+  interactionSpec.setSql("select * from person where person_id=?");
+  setInteractionSpec(interactionSpec);
+ }
+
+ protected Record createInputRecord(RecordFactory recordFactory, Object inputObject)
+   throws ResourceException {
+  Integer id = (Integer) inputObject;
+  IndexedRecord input = recordFactory.createIndexedRecord("input");
+  input.add(new Integer(id));
+  return input;
+ }
+
+ protected Object extractOutputData(Record outputRecord)
+   throws ResourceException, SQLException {
+  ResultSet rs = (ResultSet) outputRecord;
+  Person person = null;
+  if (rs.next()) {
+   Person person = new Person();
+   person.setId(rs.getInt("person_id"));
+   person.setLastName(rs.getString("person_last_name"));
+   person.setFirstName(rs.getString("person_first_name"));
+  }
+  return person;
+ }
+}</pre>
+<p>然後應用程序會以person標識符作為參數來得到操作物件。注意：操作對象可以被設為共享實例，因為它是執行緒安全的。
+</p>
+<pre class="programlisting">public class MyDaoImpl extends CciDaoSupport implements MyDao {
+
+ public Person getPerson(int id) {
+  PersonMappingOperation query = new PersonMappingOperation(getConnectionFactory());
+  Person person = (Person) query.execute(new Integer(id));
+  return person;
+ }
+}</pre>
+<p>對應的Spring beans的配置看起來類似於下面非托管模式（non-managed mode）的配置：</p>
+<pre class="programlisting">&lt;bean id="managedConnectionFactory"
+  class="com.sun.connector.cciblackbox.CciLocalTxManagedConnectionFactory"&gt;
+ &lt;property name="connectionURL" value="jdbc:hsqldb:hsql://localhost:9001"/&gt;
+ &lt;property name="driverName" value="org.hsqldb.jdbcDriver"/&gt;
+&lt;/bean&gt;
+
+&lt;bean id="targetConnectionFactory"
+  class="org.springframework.jca.support.LocalConnectionFactoryBean"&gt;
+ &lt;property name="managedConnectionFactory" ref="managedConnectionFactory"/&gt;
+&lt;/bean&gt;
+
+&lt;bean id="connectionFactory"
+  class="org.springframework.jca.cci.connection.ConnectionSpecConnectionFactoryAdapter"&gt;
+ &lt;property name="targetConnectionFactory" ref="targetConnectionFactory"/&gt;
+ &lt;property name="connectionSpec"&gt;
+  &lt;bean class="com.sun.connector.cciblackbox.CciConnectionSpec"&gt;
+   &lt;property name="user" value="sa"/&gt;
+   &lt;property name="password" value=""/&gt;
+  &lt;/bean&gt;
+ &lt;/property&gt;
+&lt;/bean&gt;
+
+&lt;bean id="component" class="MyDaoImpl"&gt;
+ &lt;property name="connectionFactory" ref="connectionFactory"/&gt;
+&lt;/bean&gt;</pre>
+<p>在托管模式（managed mode）（也就是說，在一個J2EE環境中)），配置可能看起來像這樣：</p>
+<pre class="programlisting">&lt;bean id="targetConnectionFactory" class="org.springframework.jndi.JndiObjectFactoryBean"&gt;
+ &lt;property name="jndiName" value="eis/blackbox"/&gt;
+&lt;/bean&gt;
+
+&lt;bean id="connectionFactory"
+  class="org.springframework.jca.cci.connection.ConnectionSpecConnectionFactoryAdapter"&gt;
+ &lt;property name="targetConnectionFactory" ref="targetConnectionFactory"/&gt;
+ &lt;property name="connectionSpec"&gt;
+  &lt;bean class="com.sun.connector.cciblackbox.CciConnectionSpec"&gt;
+   &lt;property name="user" value="sa"/&gt;
+   &lt;property name="password" value=""/&gt;
+  &lt;/bean&gt;
+ &lt;/property&gt;
+&lt;/bean&gt;
+
+&lt;bean id="component" class="MyDaoImpl"&gt;
+ &lt;property name="connectionFactory" ref="connectionFactory"/&gt;
+&lt;/bean&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="cci-objects-mapping-comm-area-example"></a>21.4.6.&#160;<code class="classname">MappingCommAreaOperation</code> 使用範例</h3></div></div></div>
+<p>
+   在本節中，將展示 <code class="classname">MappingCommAreaOperation</code>類別的用法：通過IBM ECI連接器以ECI的模式存取一個CICS。
+   </p>
+<p>
+   	首先，CCI <code class="interfacename">InteractionSpec</code> 需要進行初始化以指定那個CICS程序去存取它以及如何與它交互。
+   </p>
+<pre class="programlisting">public abstract class EciMappingOperation extends MappingCommAreaOperation {
+
+ public EciMappingOperation(ConnectionFactory connectionFactory, String programName) {
+  setConnectionFactory(connectionFactory);
+  ECIInteractionSpec interactionSpec = new ECIInteractionSpec(),
+  interactionSpec.setFunctionName(programName);
+  interactionSpec.setInteractionVerb(ECIInteractionSpec.SYNC_SEND_RECEIVE);
+  interactionSpec.setCommareaLength(30);
+  setInteractionSpec(interactionSpec);
+  setOutputRecordCreator(new EciOutputRecordCreator());
+ }
+
+ private static class EciOutputRecordCreator implements RecordCreator {
+  public Record createRecord(RecordFactory recordFactory) throws ResourceException {
+   return new CommAreaRecord();
+  }
+ }
+}</pre>
+<p>The abstract <code class="classname">EciMappingOperation</code> class can
+   then be subclassed to specify mappings between custom objects and
+			<code class="literal">Records</code>.</p>
+<p> <code class="classname">EciMappingOperation</code> 抽象類別可以被子類別化以指定自定義物件和 <code class="literal">Records</code> 之間的映射。
+</p>
+<pre class="programlisting">public class MyDaoImpl extends CciDaoSupport implements MyDao {
+
+ public OutputObject getData(Integer id) {
+  EciMappingOperation query = new EciMappingOperation(getConnectionFactory(), "MYPROG") {
+   protected abstract byte[] objectToBytes(Object inObject) throws IOException {
+    Integer id = (Integer) inObject;
+    return String.valueOf(id);
+   }
+   protected abstract Object bytesToObject(byte[] bytes) throws IOException;
+    String str = new String(bytes);
+    String field1 = str.substring(0,6);
+    String field2 = str.substring(6,1);
+    String field3 = str.substring(7,1);
+    return new OutputObject(field1, field2, field3);
+   }
+  });
+
+  return (OutputObject) query.execute(new Integer(id));
+ }
+}</pre>
+<p>對應的Spring beans的配置看起來類似於下面非托管模式（non-managed mode）的配置：</p>
+<pre class="programlisting">&lt;bean id="managedConnectionFactory" class="com.ibm.connector2.cics.ECIManagedConnectionFactory"&gt;
+ &lt;property name="serverName" value="TXSERIES"/&gt;
+ &lt;property name="connectionURL" value="local:"/&gt;
+ &lt;property name="userName" value="CICSUSER"/&gt;
+ &lt;property name="password" value="CICS"/&gt;
+&lt;/bean&gt;
+
+&lt;bean id="connectionFactory" class="org.springframework.jca.support.LocalConnectionFactoryBean"&gt;
+ &lt;property name="managedConnectionFactory" ref="managedConnectionFactory"/&gt;
+&lt;/bean&gt;
+
+&lt;bean id="component" class="MyDaoImpl"&gt;
+ &lt;property name="connectionFactory" ref="connectionFactory"/&gt;
+&lt;/bean&gt;</pre>
+<p>在托管模式（managed mode）（也就是說，在一個J2EE環境中），配置可能看起來像這樣：</p>
+<pre class="programlisting">&lt;bean id="connectionFactory" class="org.springframework.jndi.JndiObjectFactoryBean"&gt;
+ &lt;property name="jndiName" value="eis/cicseci"/&gt;
+&lt;/bean&gt;
+
+&lt;bean id="component" class="MyDaoImpl"&gt;
+ &lt;property name="connectionFactory" ref="connectionFactory"/&gt;
+&lt;/bean&gt;</pre>
+</div>
+</div></body>
+</html>

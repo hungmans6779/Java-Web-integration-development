@@ -1,0 +1,85 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>6.4.&#160;AOP宣告樣式的選擇</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch06.html" title="第&#160;6&#160;章&#160;使用Spring進行切面導向程式（AOP）">
+<link rel="prev" href="ch06s03.html" title="6.3.&#160;基於Schema的AOP支持">
+<link rel="next" href="ch06s05.html" title="6.5.&#160;混合切面型別">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="aop-choosing"></a>6.4.&#160;AOP宣告樣式的選擇</h2></div></div></div>
+<p>
+            當你確定切面是實作一個給定需求的最佳方法時，你如何選擇是使用Spring AOP還是AspectJ，以及選擇
+            Aspect語言（程式碼）樣式、@AspectJ宣告樣式或XML樣式？這個決定會受到多個因素的影響，包括應用的需求、
+            開發工具和小組對AOP的精通程度。 
+        </p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="aop-spring-or-aspectj"></a>6.4.1.&#160;Spring AOP還是完全用AspectJ？</h3></div></div></div>
+<p>
+                做能起作用的最簡單的事。Spring AOP比完全使用AspectJ更加簡單，
+                因為它不需要引入AspectJ的編譯器／織入器到你開發和建構過程中。
+                如果你僅僅需要在Spring bean上通知執行操作，那麼Spring AOP是合適的選擇。
+                如果你需要通知domain物件或其它沒有在Spring容器中管理的任意物件，那麼你需要使用AspectJ。
+                如果你想通知除了簡單的方法執行之外的連接點（如：調用連接點、欄位get或set的連接點等等），
+                也需要使用AspectJ。
+            </p>
+<p>
+               當使用AspectJ時，你可以選擇使用AspectJ語言（也稱為「程式碼樣式」）或@AspectJ註釋樣式。
+               很顯然，如果你用的不是Java 5+那麼結論是你只能使用程式碼樣式。
+               如果切面在你的設計中扮演一個很大的角色，並且你能在Eclipse中使用<a href="http://www.eclipse.org/ajdt/" target="_top">AspectJ Development Tools (AJDT)</a>，
+               那麼首選AspectJ語言 :- 因為該語言專門被設計用來編寫切面，所以會更清晰、更簡單。如果你沒有使用
+               Eclipse，或者在你的應用中只有很少的切面並沒有作為一個主要的角色，你或許應該考慮使用@AspectJ樣式
+               並在你的IDE中附加一個普通的Java編輯器，並且在你的建構文稿中增加切面織入（連接）的段落。
+            </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="aop-ataspectj-or-xml"></a>6.4.2.&#160;Spring AOP中使用@AspectJ還是XML？</h3></div></div></div>
+<p>
+              如果你選擇使用Spring AOP，那麼你可以選擇@AspectJ或者XML樣式。顯然如果你不是運行
+              在Java 5上，XML樣式是最佳選擇。對於使用Java 5的項目，需要考慮多方面的折衷。
+            </p>
+<p>
+              XML樣式對現有的Spring使用者來說更加習慣。它可以使用在任何Java級別中
+              （參考連接點表達式內部的命名連接點，雖然它也需要Java 5+）
+              並且通過純粹的POJO來支持。當使用AOP作為工具來配置企業服務時XML會是一個很好的選擇。
+              （一個好的例子是當你認為連接點表達式是你的配置中的一部分時，你可能想單獨更改它）
+              對於XML樣式，從你的配置中可以清晰的表明在系統中存在那些切面。
+            </p>
+<p>
+              XML樣式有兩個缺點。第一是它不能完全將需求實作的地方封裝到一個位置。
+              DRY原則中說系統中的每一項知識都必須具有單一、無歧義、權威的表示。
+              當使用XML樣式時，如何實作一個需求的知識被分割到支撐類別的宣告中以及XML配置檔案中。
+              當使用@AspectJ樣式時就只有一個單獨的模組 -切面- 資訊被封裝了起來。
+              第二是XML樣式同@AspectJ樣式所能表達的內容相比有更多的限制：僅僅支持"singleton"切面實例模型，
+              並且不能在XML中組合命名連接點的宣告。例如，在@AspectJ樣式中我們可以編寫如下的內容：
+            </p>
+<pre class="programlisting">@Pointcut(execution(* get*()))
+                public void propertyAccess() {}
+                
+                @Pointcut(execution(org.xyz.Account+ *(..))
+                public void operationReturningAnAccount() {}
+                
+                @Pointcut(propertyAccess() &amp;&amp; operationReturningAnAccount())
+            public void accountPropertyAccess() {}</pre>
+<p>在XML樣式中能宣告開頭的兩個連接點：</p>
+<pre class="programlisting">  &lt;aop:pointcut id="propertyAccess"
+                expression="execution(* get*())"/&gt;
+                
+                &lt;aop:pointcut id="operationReturningAnAccount"
+            expression="execution(org.xyz.Account+ *(..))"/&gt;</pre>
+<p>但是不能通過組合這些來定義<code class="literal">accountPropertyAccess</code>連接點</p>
+<p>
+              @AspectJ樣式支持其它的實例模型以及更豐富的連接點組合。它具有將切面保持為一個模組單元的優點。
+              還有一個優點就是@AspectJ切面能被Spring AOP和AspectJ兩者都理解 - 
+              所以如果稍後你認為你需要AspectJ的能力去實作附加的需求，那麼你非常容易遷移到基於AspectJ的途徑。
+              總而言之，我們更喜歡@AspectJ樣式只要你有切面去做超出簡單的「配置」企業服務之外的事情。
+            </p>
+</div>
+</div></body>
+</html>

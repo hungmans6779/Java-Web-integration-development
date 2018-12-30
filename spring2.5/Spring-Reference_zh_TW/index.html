@@ -1,0 +1,1187 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Spring Framework 開發參考手冊</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="next" href="pr01.html" title="前言">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="book" lang="zh-cn">
+<div class="titlepage">
+<div>
+<div><h1 class="title">
+<a name="id370913"></a>Spring Framework 開發參考手冊</h1></div>
+<div><div class="authorgroup">
+<div class="author"><h3 class="author">
+<span class="firstname">Rod</span> <span class="surname">Johnson</span>
+</h3></div>
+<div class="author"><h3 class="author">
+<span class="firstname">Juergen</span> <span class="surname">Hoeller</span>
+</h3></div>
+<div class="author"><h3 class="author">
+<span class="firstname">Alef</span> <span class="surname">Arendsen</span>
+</h3></div>
+<div class="author"><h3 class="author">
+<span class="firstname">Colin</span> <span class="surname">Sampaleanu</span>
+</h3></div>
+<div class="author"><h3 class="author">
+<span class="firstname">Rob</span> <span class="surname">Harrop</span>
+</h3></div>
+<div class="author"><h3 class="author">
+<span class="firstname">Thomas</span> <span class="surname">Risberg</span>
+</h3></div>
+<div class="author"><h3 class="author">
+<span class="firstname">Darren</span> <span class="surname">Davison</span>
+</h3></div>
+<div class="author"><h3 class="author">
+<span class="firstname">Dmitriy</span> <span class="surname">Kopylenko</span>
+</h3></div>
+<div class="author"><h3 class="author">
+<span class="firstname">Mark</span> <span class="surname">Pollack</span>
+</h3></div>
+<div class="author"><h3 class="author">
+<span class="firstname">Thierry</span> <span class="surname">Templier</span>
+</h3></div>
+<div class="author"><h3 class="author">
+<span class="firstname">Erwin</span> <span class="surname">Vervaet</span>
+</h3></div>
+<div class="author"><h3 class="author">
+<span class="firstname">Portia</span> <span class="surname">Tung</span>
+</h3></div>
+<div class="author"><h3 class="author">
+<span class="firstname">Ben</span> <span class="surname">Hale</span>
+</h3></div>
+<div class="author"><h3 class="author">
+<span class="firstname">Adrian</span> <span class="surname">Colyer</span>
+</h3></div>
+<div class="author"><h3 class="author">
+<span class="firstname">John</span> <span class="surname">Lewis</span>
+</h3></div>
+<div class="author"><h3 class="author">
+<span class="firstname">Costin</span> <span class="surname">Leau</span>
+</h3></div>
+<div class="author"><h3 class="author">
+<span class="firstname">Mark</span> <span class="surname">Fisher</span>
+</h3></div>
+<div class="author"><h3 class="author">
+<span class="firstname">Sam</span> <span class="surname">Brannen</span>
+</h3></div>
+<div class="author"><h3 class="author">
+<span class="firstname">Ramnivas</span> <span class="surname">Laddad</span>
+</h3></div>
+</div></div>
+<div><p class="releaseinfo">2.5.2</p></div>
+<div><div class="legalnotice">
+<a name="id431212"></a><p>Copies of this document may be made for your own use and for
+			distribution to others, provided that you do not charge any
+			fee for such copies and further provided that each copy
+			contains this Copyright Notice, whether distributed in print
+			or electronically.
+			</p>
+</div></div>
+</div>
+<hr>
+</div>
+<div class="toc">
+<p><b>目錄</b></p>
+<dl>
+<dt><span class="preface"><a href="pr01.html">前言</a></span></dt>
+<dt><span class="chapter"><a href="ch01.html">1. 簡介</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch01.html#introduction-overview">1.1. 概覽</a></span></dt>
+<dd><dl><dt><span class="section"><a href="ch01.html#overview-usagescenarios">1.1.1. 使用場景</a></span></dt></dl></dd>
+</dl></dd>
+<dt><span class="chapter"><a href="ch02.html">2. Spring 2.0和 2.5的新特性</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch02.html#new-in-2-intro">2.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch02s02.html">2.2. 控制反轉(IoC)容器</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch02s02.html#new-in-2-ioc-scopes">2.2.1. 新的bean作用域</a></span></dt>
+<dt><span class="section"><a href="ch02s02.html#new-in-2-ioc-configuration">2.2.2. 更簡單的XML配置</a></span></dt>
+<dt><span class="section"><a href="ch02s02.html#new-in-2-ioc-custom-configuration">2.2.3. 可擴展的XML編寫</a></span></dt>
+<dt><span class="section"><a href="ch02s02.html#new-in-2-ioc-annotations">2.2.4. Annotation(註釋)驅動配置</a></span></dt>
+<dt><span class="section"><a href="ch02s02.html#new-in-2-ioc-component-scanning">2.2.5. 在classpath中自動搜尋元件</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch02s03.html">2.3. 切面導向程式(AOP)</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch02s03.html#new-in-2-aop-configuration">2.3.1. 更加簡單的AOP XML配置</a></span></dt>
+<dt><span class="section"><a href="ch02s03.html#new-in-2-aop-aspectj">2.3.2. 對@AspectJ 切面的支持</a></span></dt>
+<dt><span class="section"><a href="ch02s03.html#new-in-2-aop-bean-pointcuts">2.3.3. 對bean命名pointcut( bean name pointcut element)的支持</a></span></dt>
+<dt><span class="section"><a href="ch02s03.html#new-in-2-aop-load-time-weaving">2.3.4. 對AspectJ裝載時織入（AspectJ load-time weaving）的支持</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch02s04.html">2.4. 中間層</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch02s04.html#new-in-2-middle-tier-transaction-configuration">2.4.1. 在XML裡更為簡單的宣告性事務配置</a></span></dt>
+<dt><span class="section"><a href="ch02s04.html#new-in-2-middle-tier-websphere">2.4.2. 對Websphere 事務管理的完整支持</a></span></dt>
+<dt><span class="section"><a href="ch02s04.html#new-in-2-middle-tier-jpa">2.4.3. JPA</a></span></dt>
+<dt><span class="section"><a href="ch02s04.html#new-in-2-middle-tier-async-jms">2.4.4. 異步的JMS</a></span></dt>
+<dt><span class="section"><a href="ch02s04.html#new-in-2-middle-tier-jdbc">2.4.5. JDBC</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch02s05.html">2.5. Web層</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch02s05.html#new-in-2-web-convention">2.5.1. Spring MVC合理的預設值</a></span></dt>
+<dt><span class="section"><a href="ch02s05.html#new-in-2-web-portlet">2.5.2. Portlet 框架</a></span></dt>
+<dt><span class="section"><a href="ch02s05.html#new-in-2-web-annotations">2.5.3. 基於Annotation的控制器</a></span></dt>
+<dt><span class="section"><a href="ch02s05.html#new-in-2-web-form-tags">2.5.4. Spring MVC的表單標籤資源庫</a></span></dt>
+<dt><span class="section"><a href="ch02s05.html#new-in-2-web-tiles2">2.5.5. 對Tiles 2 支持</a></span></dt>
+<dt><span class="section"><a href="ch02s05.html#new-in-2-web-jsf12">2.5.6. 對JSP 1.2支持</a></span></dt>
+<dt><span class="section"><a href="ch02s05.html#new-in-2-web-jaxws">2.5.7. JAX-WS支持</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch02s06.html">2.6. 其他</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch02s06.html#new-in-2-other-dynamic-language-support">2.6.1. 動態語言支持</a></span></dt>
+<dt><span class="section"><a href="ch02s06.html#new-in-2-other-testing">2.6.2. 增強的測試支持</a></span></dt>
+<dt><span class="section"><a href="ch02s06.html#new-in-2-other-jmx">2.6.3. JMX 支持</a></span></dt>
+<dt><span class="section"><a href="ch02s06.html#new-in-2-other-jca">2.6.4. 將Spring 應用程序上下文部署為JCA adapter</a></span></dt>
+<dt><span class="section"><a href="ch02s06.html#new-in-2-other-taskexecutor">2.6.5. 計劃任務</a></span></dt>
+<dt><span class="section"><a href="ch02s06.html#new-in-2-other-java5">2.6.6. 對Java 5 (Tiger) 支持</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch02s07.html">2.7. 移植到Spring 2.5</a></span></dt>
+<dd><dl><dt><span class="section"><a href="ch02s07.html#new-in-2-migrating-changes">2.7.1. 改變</a></span></dt></dl></dd>
+<dt><span class="section"><a href="ch02s08.html">2.8. 更新的樣例應用</a></span></dt>
+<dt><span class="section"><a href="ch02s09.html">2.9. 改進的文檔</a></span></dt>
+</dl></dd>
+<dt><span class="part"><a href="pt01.html">I. 核心技術</a></span></dt>
+<dd><dl>
+<dt><span class="chapter"><a href="ch03.html">3. IoC(控制反轉)容器</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch03.html#beans-introduction">3.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch03s02.html">3.2. 基本原理 - 容器和bean</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch03s02.html#beans-factory">3.2.1. 容器</a></span></dt>
+<dt><span class="section"><a href="ch03s02.html#beans-factory-instantiation">3.2.2. 實例化容器</a></span></dt>
+<dt><span class="section"><a href="ch03s02.html#beans-definition">3.2.3. 多種bean</a></span></dt>
+<dt><span class="section"><a href="ch03s02.html#beans-factory-client">3.2.4. 使用容器</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch03s03.html">3.3. 依賴</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch03s03.html#beans-factory-collaborators">3.3.1. 注入依賴</a></span></dt>
+<dt><span class="section"><a href="ch03s03.html#beans-factory-properties-detailed">3.3.2. 依賴配置詳解</a></span></dt>
+<dt><span class="section"><a href="ch03s03.html#beans-factory-dependson">3.3.3. 使用<code class="literal">depends-on</code></a></span></dt>
+<dt><span class="section"><a href="ch03s03.html#beans-factory-lazy-init">3.3.4. 延遲初始化bean</a></span></dt>
+<dt><span class="section"><a href="ch03s03.html#beans-factory-autowire">3.3.5. 自動裝配（autowire）協作者</a></span></dt>
+<dt><span class="section"><a href="ch03s03.html#beans-factory-dependencies">3.3.6. 依賴檢查</a></span></dt>
+<dt><span class="section"><a href="ch03s03.html#beans-factory-method-injection">3.3.7. 方法注入</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch03s04.html">3.4. Bean的作用域</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch03s04.html#beans-factory-scopes-singleton">3.4.1. Singleton作用域</a></span></dt>
+<dt><span class="section"><a href="ch03s04.html#beans-factory-scopes-prototype">3.4.2. Prototype作用域</a></span></dt>
+<dt><span class="section"><a href="ch03s04.html#beans-factory-scopes-sing-prot-interaction">3.4.3. Singleton beans和prototype-bean的依賴</a></span></dt>
+<dt><span class="section"><a href="ch03s04.html#beans-factory-scopes-other">3.4.4. 其他作用域</a></span></dt>
+<dt><span class="section"><a href="ch03s04.html#beans-factory-scopes-custom">3.4.5. 自定義作用域</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch03s05.html">3.5. 定制bean特性</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch03s05.html#beans-factory-lifecycle">3.5.1. 生命週期回調</a></span></dt>
+<dt><span class="section"><a href="ch03s05.html#beans-factory-aware">3.5.2. 瞭解自己</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch03s06.html">3.6. bean定義的繼承</a></span></dt>
+<dt><span class="section"><a href="ch03s07.html">3.7. 容器擴展點</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch03s07.html#beans-factory-extension-bpp">3.7.1. 用<code class="literal">BeanPostProcessor</code>定制bean</a></span></dt>
+<dt><span class="section"><a href="ch03s07.html#beans-factory-extension-factory-postprocessors">3.7.2. 用<code class="literal">BeanFactoryPostProcessor</code>定制配置元資料</a></span></dt>
+<dt><span class="section"><a href="ch03s07.html#beans-factory-extension-factorybean">3.7.3. 使用<code class="literal">FactoryBean</code>定制實例化邏輯</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch03s08.html">3.8. The <code class="interfacename">ApplicationContext</code></a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch03s08.html#context-introduction-ctx-vs-beanfactory">3.8.1. <code class="interfacename">BeanFactory</code> 還是
+      <code class="interfacename">ApplicationContext</code>?</a></span></dt>
+<dt><span class="section"><a href="ch03s08.html#context-functionality-messagesource">3.8.2. 利用<code class="literal">MessageSource</code>實作國際化</a></span></dt>
+<dt><span class="section"><a href="ch03s08.html#context-functionality-events">3.8.3. 事件</a></span></dt>
+<dt><span class="section"><a href="ch03s08.html#context-functionality-resources">3.8.4. 底層資源的存取</a></span></dt>
+<dt><span class="section"><a href="ch03s08.html#context-create">3.8.5. <code class="interfacename">ApplicationContext</code>在WEB應用中的實例化</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch03s09.html">3.9. 粘合程式碼和可怕的singleton</a></span></dt>
+<dt><span class="section"><a href="ch03s10.html">3.10. 以J2EE RAR檔案的形式部署Spring ApplicationContext</a></span></dt>
+<dt><span class="section"><a href="ch03s11.html">3.11. 基於註釋（Annotation-based）的配置</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch03s11.html#beans-autowired-annotation">3.11.1. <code class="interfacename">@Autowired</code></a></span></dt>
+<dt><span class="section"><a href="ch03s11.html#beans-autowired-annotation-qualifiers">3.11.2. 基於註釋的自動連接微調</a></span></dt>
+<dt><span class="section"><a href="ch03s11.html#beans-custom-autowire-configurer">3.11.3. <code class="classname">CustomAutowireConfigurer</code></a></span></dt>
+<dt><span class="section"><a href="ch03s11.html#beans-resource-annotation">3.11.4. <code class="interfacename">@Resource</code></a></span></dt>
+<dt><span class="section"><a href="ch03s11.html#beans-postconstruct-and-predestroy-annotations">3.11.5. <code class="interfacename">@PostConstruct</code> 與 <code class="interfacename">@PreDestroy</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch03s12.html">3.12. 對受管元件的Classpath掃瞄</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch03s12.html#beans-stereotype-annotations">3.12.1. <code class="interfacename">@Component</code>和更多典型化註釋</a></span></dt>
+<dt><span class="section"><a href="ch03s12.html#beans-scanning-autodetection">3.12.2. 自動檢測元件</a></span></dt>
+<dt><span class="section"><a href="ch03s12.html#beans-scanning-filters">3.12.3. 使用過濾器自定義掃瞄</a></span></dt>
+<dt><span class="section"><a href="ch03s12.html#beans-scanning-name-generator">3.12.4. 自動檢測元件的命名</a></span></dt>
+<dt><span class="section"><a href="ch03s12.html#beans-scanning-scope-resolver">3.12.5. 為自動檢測的元件提供一個作用域</a></span></dt>
+<dt><span class="section"><a href="ch03s12.html#beans-scanning-qualifiers">3.12.6. 用註釋提供限定符元資料</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch03s13.html">3.13. 註冊一個<code class="interfacename">LoadTimeWeaver</code></a></span></dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch04.html">4. 資源</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch04.html#resources-introduction">4.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch04s02.html">4.2. <code class="interfacename">Resource</code>介面</a></span></dt>
+<dt><span class="section"><a href="ch04s03.html">4.3. 內置 <code class="interfacename">Resource</code> 實作</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch04s03.html#resources-implementations-urlresource">4.3.1. 
+				<code class="classname">UrlResource</code>
+			</a></span></dt>
+<dt><span class="section"><a href="ch04s03.html#resources-implementations-classpathresource">4.3.2. <code class="classname">ClassPathResource</code></a></span></dt>
+<dt><span class="section"><a href="ch04s03.html#resources-implementations-filesystemresource">4.3.3. <code class="classname">FileSystemResource</code></a></span></dt>
+<dt><span class="section"><a href="ch04s03.html#resources-implementations-servletcontextresource">4.3.4. 
+				<code class="classname">ServletContextResource</code>
+			</a></span></dt>
+<dt><span class="section"><a href="ch04s03.html#resources-implementations-inputstreamresource">4.3.5. <code class="classname">InputStreamResource</code></a></span></dt>
+<dt><span class="section"><a href="ch04s03.html#resources-implementations-bytearrayresource">4.3.6. <code class="classname">ByteArrayResource</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch04s04.html">4.4. <code class="interfacename">ResourceLoader</code>介面</a></span></dt>
+<dt><span class="section"><a href="ch04s05.html">4.5. <code class="interfacename">ResourceLoaderAware</code> 介面</a></span></dt>
+<dt><span class="section"><a href="ch04s06.html">4.6. 把<code class="interfacename">Resource</code>作為屬性來配置</a></span></dt>
+<dt><span class="section"><a href="ch04s07.html">4.7. Application context 和<code class="interfacename">Resource</code> 路徑</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch04s07.html#resources-app-ctx-construction">4.7.1. 建構application context</a></span></dt>
+<dt><span class="section"><a href="ch04s07.html#resources-app-ctx-wildcards-in-resource-paths">4.7.2. Application context建構器中資源路徑的通配符</a></span></dt>
+<dt><span class="section"><a href="ch04s07.html#resources-filesystemresource-caveats">4.7.3. <code class="classname">FileSystemResource</code> 說明</a></span></dt>
+</dl></dd>
+</dl></dd>
+<dt><span class="chapter"><a href="ch05.html">5. 校驗，資料綁定，<code class="interfacename">BeanWrapper</code>，與<code class="literal">屬性編輯器</code></a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch05.html#validation-introduction">5.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch05s02.html">5.2. 使用Spring的<code class="interfacename">Validator</code>介面進行校驗</a></span></dt>
+<dt><span class="section"><a href="ch05s03.html">5.3. 從錯誤程式碼到錯誤資訊</a></span></dt>
+<dt><span class="section"><a href="ch05s04.html">5.4. Bean處理和<code class="interfacename">BeanWrapper</code></a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch05s04.html#beans-beans-conventions">5.4.1. 設置和獲取屬性值以及巢狀屬性</a></span></dt>
+<dt><span class="section"><a href="ch05s04.html#beans-beans-conversion">5.4.2. 內建的<span class="interface">PropertyEditor</span>實作</a></span></dt>
+</dl></dd>
+</dl></dd>
+<dt><span class="chapter"><a href="ch06.html">6. 使用Spring進行切面導向程式（AOP）</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch06.html#aop-introduction">6.1. 簡介</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch06.html#aop-introduction-defn">6.1.1. AOP概念</a></span></dt>
+<dt><span class="section"><a href="ch06.html#aop-introduction-spring-defn">6.1.2. Spring AOP的功能和目標</a></span></dt>
+<dt><span class="section"><a href="ch06.html#aop-introduction-proxies">6.1.3. AOP代理</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch06s02.html">6.2. @AspectJ支持</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch06s02.html#aop-aspectj-support">6.2.1. 啟用@AspectJ支持</a></span></dt>
+<dt><span class="section"><a href="ch06s02.html#aop-at-aspectj">6.2.2. 宣告一個切面</a></span></dt>
+<dt><span class="section"><a href="ch06s02.html#aop-pointcuts">6.2.3. 宣告一個切入點（pointcut）</a></span></dt>
+<dt><span class="section"><a href="ch06s02.html#aop-advice">6.2.4. 宣告通知</a></span></dt>
+<dt><span class="section"><a href="ch06s02.html#aop-introductions">6.2.5. 引入（Introduction）</a></span></dt>
+<dt><span class="section"><a href="ch06s02.html#aop-instantiation-models">6.2.6. 切面實例化模型</a></span></dt>
+<dt><span class="section"><a href="ch06s02.html#aop-ataspectj-example">6.2.7. 例子</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch06s03.html">6.3. 基於Schema的AOP支持</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch06s03.html#aop-schema-declaring-an-aspect">6.3.1. 宣告一個切面</a></span></dt>
+<dt><span class="section"><a href="ch06s03.html#aop-schema-pointcuts">6.3.2. 宣告一個切入點</a></span></dt>
+<dt><span class="section"><a href="ch06s03.html#aop-schema-advice">6.3.3. 宣告通知</a></span></dt>
+<dt><span class="section"><a href="ch06s03.html#aop-schema-introductions">6.3.4. 引入</a></span></dt>
+<dt><span class="section"><a href="ch06s03.html#aop-schema-instatiation-models">6.3.5. 切面實例化模型</a></span></dt>
+<dt><span class="section"><a href="ch06s03.html#aop-schema-advisors">6.3.6. Advisor</a></span></dt>
+<dt><span class="section"><a href="ch06s03.html#aop-schema-example">6.3.7. 例子</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch06s04.html">6.4. AOP宣告樣式的選擇</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch06s04.html#aop-spring-or-aspectj">6.4.1. Spring AOP還是完全用AspectJ？</a></span></dt>
+<dt><span class="section"><a href="ch06s04.html#aop-ataspectj-or-xml">6.4.2. Spring AOP中使用@AspectJ還是XML？</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch06s05.html">6.5. 混合切面型別</a></span></dt>
+<dt><span class="section"><a href="ch06s06.html">6.6. 代理機制</a></span></dt>
+<dd><dl><dt><span class="section"><a href="ch06s06.html#aop-understanding-aop-proxies">6.6.1. 理解AOP代理</a></span></dt></dl></dd>
+<dt><span class="section"><a href="ch06s07.html">6.7. 以程式方式創建@AspectJ代理</a></span></dt>
+<dt><span class="section"><a href="ch06s08.html">6.8. 在Spring應用中使用AspectJ</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch06s08.html#aop-atconfigurable">6.8.1. 在Spring中使用AspectJ進行domain object的依賴注入</a></span></dt>
+<dt><span class="section"><a href="ch06s08.html#aop-ajlib-other">6.8.2. Spring中其他的AspectJ切面</a></span></dt>
+<dt><span class="section"><a href="ch06s08.html#aop-aj-configure">6.8.3. 使用Spring IoC來配置AspectJ的切面</a></span></dt>
+<dt><span class="section"><a href="ch06s08.html#aop-aj-ltw">6.8.4. 在Spring應用中使用AspectJ載入時織入（LTW）</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch06s09.html">6.9. 更多資源</a></span></dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch07.html">7. Spring AOP APIs</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch07.html#aop-api-introduction">7.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch07s02.html">7.2. Spring中的切入點API</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch07s02.html#aop-api-concepts">7.2.1. 概念</a></span></dt>
+<dt><span class="section"><a href="ch07s02.html#aop-api-pointcut-ops">7.2.2. 切入點運算</a></span></dt>
+<dt><span class="section"><a href="ch07s02.html#aop-api-pointcuts-aspectj">7.2.3. AspectJ切入點表達式</a></span></dt>
+<dt><span class="section"><a href="ch07s02.html#aop-api-pointcuts-impls">7.2.4. 便利的切入點實作</a></span></dt>
+<dt><span class="section"><a href="ch07s02.html#aop-api-pointcuts-superclasses">7.2.5. 切入點的父級類別</a></span></dt>
+<dt><span class="section"><a href="ch07s02.html#aop-api-pointcuts-custom">7.2.6. 自定義切入點</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch07s03.html">7.3. Spring的通知API</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch07s03.html#aop-api-advice-lifecycle">7.3.1. 通知的生命週期</a></span></dt>
+<dt><span class="section"><a href="ch07s03.html#aop-api-advice-types">7.3.2. Spring裡的通知型別</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch07s04.html">7.4. Spring裡的Advisor API</a></span></dt>
+<dt><span class="section"><a href="ch07s05.html">7.5. 使用ProxyFactoryBean創建AOP代理</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch07s05.html#aop-pfb-1">7.5.1. 基礎</a></span></dt>
+<dt><span class="section"><a href="ch07s05.html#aop-pfb-2">7.5.2. JavaBean屬性</a></span></dt>
+<dt><span class="section"><a href="ch07s05.html#aop-pfb-proxy-types">7.5.3. 基於JDK和CGLIB的代理</a></span></dt>
+<dt><span class="section"><a href="ch07s05.html#aop-api-proxying-intf">7.5.4. 對介面進行代理</a></span></dt>
+<dt><span class="section"><a href="ch07s05.html#aop-api-proxying-class">7.5.5. 對類別進行代理</a></span></dt>
+<dt><span class="section"><a href="ch07s05.html#aop-global-advisors">7.5.6. 使用「全局」通知器</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch07s06.html">7.6. 簡化代理定義</a></span></dt>
+<dt><span class="section"><a href="ch07s07.html">7.7. 使用ProxyFactory通過程式創建AOP代理</a></span></dt>
+<dt><span class="section"><a href="ch07s08.html">7.8. 操作被通知物件</a></span></dt>
+<dt><span class="section"><a href="ch07s09.html">7.9. 使用「自動代理（autoproxy）」功能</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch07s09.html#aop-autoproxy-choices">7.9.1. 自動代理bean定義</a></span></dt>
+<dt><span class="section"><a href="ch07s09.html#aop-autoproxy-metadata">7.9.2. 使用元資料驅動的自動代理</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch07s10.html">7.10. 使用TargetSource</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch07s10.html#aop-ts-swap">7.10.1. 熱交換目標源</a></span></dt>
+<dt><span class="section"><a href="ch07s10.html#aop-ts-pool">7.10.2. 池化目標源</a></span></dt>
+<dt><span class="section"><a href="ch07s10.html#aop-ts-prototype">7.10.3. 原型目標源</a></span></dt>
+<dt><span class="section"><a href="ch07s10.html#aop-ts-threadlocal">7.10.4. <code class="classname">ThreadLocal</code>目標源</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch07s11.html">7.11. 定義新的<code class="interfacename">Advice</code>型別</a></span></dt>
+<dt><span class="section"><a href="ch07s12.html">7.12. 更多資源</a></span></dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch08.html">8. 測試</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch08.html#testing-introduction">8.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch08s02.html">8.2. 單元測試</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch08s02.html#mock-objects">8.2.1. Mock物件</a></span></dt>
+<dt><span class="section"><a href="ch08s02.html#unit-testing-support-classes">8.2.2. 單元測試支持類別</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch08s03.html">8.3. 整合測試</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch08s03.html#integration-testing-overview">8.3.1. 概覽</a></span></dt>
+<dt><span class="section"><a href="ch08s03.html#integration-testing-which-framework">8.3.2. 使用哪個支持框架</a></span></dt>
+<dt><span class="section"><a href="ch08s03.html#integration-testing-common-goals">8.3.3. 通用目標</a></span></dt>
+<dt><span class="section"><a href="ch08s03.html#integration-testing-support-jdbc">8.3.4. JDBC測試支持</a></span></dt>
+<dt><span class="section"><a href="ch08s03.html#integration-testing-common-annotations">8.3.5. 常用註釋</a></span></dt>
+<dt><span class="section"><a href="ch08s03.html#junit38-legacy-support">8.3.6. JUnit 3.8遺留支持</a></span></dt>
+<dt><span class="section"><a href="ch08s03.html#testcontext-framework">8.3.7. Spring TestContext Framework</a></span></dt>
+<dt><span class="section"><a href="ch08s03.html#testing-examples-petclinic">8.3.8. PetClinic範例</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch08s04.html">8.4. 更多資源</a></span></dt>
+</dl></dd>
+</dl></dd>
+<dt><span class="part"><a href="pt02.html">II. 中間層資料存取</a></span></dt>
+<dd><dl>
+<dt><span class="chapter"><a href="ch09.html">9. 事務管理</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch09.html#transaction-intro">9.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch09s02.html">9.2. 動機</a></span></dt>
+<dt><span class="section"><a href="ch09s03.html">9.3. 關鍵抽象</a></span></dt>
+<dt><span class="section"><a href="ch09s04.html">9.4. 使用資源同步的事務</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch09s04.html#tx-resource-synchronization-high">9.4.1. 高層次方案</a></span></dt>
+<dt><span class="section"><a href="ch09s04.html#tx-resource-synchronization-low">9.4.2. 低層次方案</a></span></dt>
+<dt><span class="section"><a href="ch09s04.html#tx-resource-synchronization-tadsp">9.4.3. 
+				<code class="classname">TransactionAwareDataSourceProxy</code>
+			</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch09s05.html">9.5. 宣告式事務管理</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch09s05.html#tx-decl-explained">9.5.1. 理解Spring的宣告式事務管理實作</a></span></dt>
+<dt><span class="section"><a href="ch09s05.html#transaction-declarative-first-example">9.5.2. 第一個例子</a></span></dt>
+<dt><span class="section"><a href="ch09s05.html#transaction-declarative-rolling-back">9.5.3. 回滾</a></span></dt>
+<dt><span class="section"><a href="ch09s05.html#transaction-declarative-diff-tx">9.5.4. 為不同的bean配置不同的事務語義</a></span></dt>
+<dt><span class="section"><a href="ch09s05.html#transaction-declarative-txadvice-settings">9.5.5. <code class="literal">&lt;tx:advice/&gt;</code> 有關的設置</a></span></dt>
+<dt><span class="section"><a href="ch09s05.html#transaction-declarative-annotations">9.5.6. 使用 <code class="interfacename">@Transactional</code></a></span></dt>
+<dt><span class="section"><a href="ch09s05.html#tx-propagation">9.5.7. 事務傳播</a></span></dt>
+<dt><span class="section"><a href="ch09s05.html#transaction-declarative-applying-more-than-just-tx-advice">9.5.8. 通知事務操作</a></span></dt>
+<dt><span class="section"><a href="ch09s05.html#transaction-declarative-aspectj">9.5.9. 結合AspectJ使用 <code class="interfacename">@Transactional</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch09s06.html">9.6. 程式式事務管理</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch09s06.html#tx-prog-template">9.6.1. 使用<code class="classname">TransactionTemplate</code></a></span></dt>
+<dt><span class="section"><a href="ch09s06.html#transaction-programmatic-ptm">9.6.2. 使用<code class="interfacename">PlatformTransactionManager</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch09s07.html">9.7. 選擇程式式事務管理還是宣告式事務管理</a></span></dt>
+<dt><span class="section"><a href="ch09s08.html">9.8. 與特定應用伺服器整合</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch09s08.html#transaction-application-server-integration-websphere">9.8.1. IBM WebSphere</a></span></dt>
+<dt><span class="section"><a href="ch09s08.html#transaction-application-server-integration-weblogic">9.8.2. BEA WebLogic</a></span></dt>
+<dt><span class="section"><a href="ch09s08.html#transaction-application-server-integration-oc4j">9.8.3. Oracle OC4J</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch09s09.html">9.9. 常見問題的解決方法</a></span></dt>
+<dd><dl><dt><span class="section"><a href="ch09s09.html#transaction-solutions-to-common-problems-wrong-ptm">9.9.1. 對一個特定的 <code class="interfacename">DataSource</code> 使用了錯誤的事務管理器</a></span></dt></dl></dd>
+<dt><span class="section"><a href="ch09s10.html">9.10. 更多的資源</a></span></dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch10.html">10. DAO支持</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch10.html#dao-introduction">10.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch10s02.html">10.2. 一致的異常層次</a></span></dt>
+<dt><span class="section"><a href="ch10s03.html">10.3. 一致的DAO支持抽象類別</a></span></dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch11.html">11. 使用JDBC進行資料存取</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch11.html#jdbc-introduction">11.1. 簡介</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch11.html#jdbc-choose-style">11.1.1. 選擇一種工作模式</a></span></dt>
+<dt><span class="section"><a href="ch11.html#jdbc-packages">11.1.2. Spring JDBC包結構</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch11s02.html">11.2. 利用JDBC核心類別控制JDBC的基本操作和錯誤處理</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch11s02.html#jdbc-JdbcTemplate">11.2.1. <code class="classname">JdbcTemplate</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch11s02.html#jdbc-NamedParameterJdbcTemplate">11.2.2. <code class="classname">NamedParameterJdbcTemplate</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch11s02.html#jdbc-SimpleJdbcTemplate">11.2.3. <code class="classname">SimpleJdbcTemplate</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch11s02.html#jdbc-datasource">11.2.4. <code class="interfacename">DataSource</code>介面</a></span></dt>
+<dt><span class="section"><a href="ch11s02.html#jdbc-SQLExceptionTranslator">11.2.5. <code class="interfacename">SQLExceptionTranslator</code>介面</a></span></dt>
+<dt><span class="section"><a href="ch11s02.html#jdbc-statements-executing">11.2.6. 執行SQL語句</a></span></dt>
+<dt><span class="section"><a href="ch11s02.html#jdbc-statements-querying">11.2.7. 執行查詢</a></span></dt>
+<dt><span class="section"><a href="ch11s02.html#jdbc-updates">11.2.8. 更新資料庫</a></span></dt>
+<dt><span class="section"><a href="ch11s02.html#jdbc-auto-genereted-keys">11.2.9. 獲取自動產生的主鍵</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch11s03.html">11.3. 控制資料庫連接</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch11s03.html#jdbc-DataSourceUtils">11.3.1. <code class="classname">DataSourceUtils</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch11s03.html#jdbc-SmartDataSource">11.3.2. <code class="interfacename">SmartDataSource</code>介面</a></span></dt>
+<dt><span class="section"><a href="ch11s03.html#jdbc-AbstractDataSource">11.3.3. <code class="classname">AbstractDataSource</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch11s03.html#jdbc-SingleConnectionDataSource">11.3.4. <code class="classname">SingleConnectionDataSource</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch11s03.html#jdbc-DriverManagerDataSource">11.3.5. <code class="classname">DriverManagerDataSource</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch11s03.html#jdbc-TransactionAwareDataSourceProxy">11.3.6. <code class="classname">TransactionAwareDataSourceProxy</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch11s03.html#jdbc-DataSourceTransactionManager">11.3.7. <code class="classname">DataSourceTransactionManager</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch11s03.html#jdbc-NativeJdbcExtractor">11.3.8. NativeJdbcExtractor</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch11s04.html">11.4. JDBC批量操作</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch11s04.html#jdbc-advanced-classic">11.4.1. 使用JdbcTemplate進行批量操作</a></span></dt>
+<dt><span class="section"><a href="ch11s04.html#jdbc-advanced-simple">11.4.2. 使用SimpleJdbcTemplate進行批量操作</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch11s05.html">11.5. 通過使用SimpleJdbc類別簡化JDBC操作</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch11s05.html#jdbc-simple-jdbc-insert-1">11.5.1. 使用SimpleJdbcInsert插入資料</a></span></dt>
+<dt><span class="section"><a href="ch11s05.html#jdbc-simple-jdbc-insert-2">11.5.2. 使用SimpleJdbcInsert來獲取自動產生的主鍵</a></span></dt>
+<dt><span class="section"><a href="ch11s05.html#jdbc-simple-jdbc-insert-3">11.5.3. 指定SimpleJdbcInsert所使用的欄位</a></span></dt>
+<dt><span class="section"><a href="ch11s05.html#jdbc-simple-jdbc-parameters">11.5.4. 使用SqlParameterSource提供參數值</a></span></dt>
+<dt><span class="section"><a href="ch11s05.html#jdbc-simple-jdbc-call-1">11.5.5. 使用SimpleJdbcCall調用預儲程序</a></span></dt>
+<dt><span class="section"><a href="ch11s05.html#jdbc-simple-jdbc-call-2">11.5.6. 宣告SimpleJdbcCall使用的參數</a></span></dt>
+<dt><span class="section"><a href="ch11s05.html#jdbc-params">11.5.7. 如何定義SqlParameters</a></span></dt>
+<dt><span class="section"><a href="ch11s05.html#jdbc-simple-jdbc-call-3">11.5.8. 使用SimpleJdbcCall調用內置函數</a></span></dt>
+<dt><span class="section"><a href="ch11s05.html#jdbc-simple-jdbc-call-4">11.5.9. 使用SimpleJdbcCall返回的ResultSet/REF Cursor</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch11s06.html">11.6. 用Java物件來表達JDBC操作</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch11s06.html#jdbc-SqlQuery">11.6.1. <code class="classname">SqlQuery</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch11s06.html#jdbc-MappingSqlQuery">11.6.2. <code class="classname">MappingSqlQuery</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch11s06.html#jdbc-SqlUpdate">11.6.3. <code class="classname">SqlUpdate</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch11s06.html#jdbc-StoredProcedure">11.6.4. <code class="classname">StoredProcedure</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch11s06.html#jdbc-SqlFunction">11.6.5. <code class="classname">SqlFunction</code>類別</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch11s07.html">11.7. 參數和資料處理的基本原則</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch11s07.html#jdbc-type-information">11.7.1. 為參數設置SQL型別資訊</a></span></dt>
+<dt><span class="section"><a href="ch11s07.html#jdbc-lob">11.7.2. 處理BLOB 和 CLOB物件</a></span></dt>
+<dt><span class="section"><a href="ch11s07.html#jdbc-in-clause">11.7.3. 在IN語句中傳入一組參數值</a></span></dt>
+<dt><span class="section"><a href="ch11s07.html#jdbc-complex-types">11.7.4. 處理複雜型別的預儲程序調用</a></span></dt>
+</dl></dd>
+</dl></dd>
+<dt><span class="chapter"><a href="ch12.html">12. 使用ORM工具進行資料存取</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch12.html#orm-introduction">12.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch12s02.html">12.2. Hibernate</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch12s02.html#orm-resource-mngmnt">12.2.1. 資源管理</a></span></dt>
+<dt><span class="section"><a href="ch12s02.html#orm-session-factory-setup">12.2.2. 在Spring容器中創建 <code class="interfacename">SessionFactory</code></a></span></dt>
+<dt><span class="section"><a href="ch12s02.html#orm-hibernate-template">12.2.3. The <code class="classname">HibernateTemplate</code></a></span></dt>
+<dt><span class="section"><a href="ch12s02.html#orm-hibernate-daos">12.2.4. 不使用回調的基於Spring的DAO實作</a></span></dt>
+<dt><span class="section"><a href="ch12s02.html#orm-hibernate-straight">12.2.5. 基於Hibernate3的原生API實作DAO</a></span></dt>
+<dt><span class="section"><a href="ch12s02.html#orm-hibernate-tx-programmatic">12.2.6. 程式式的事務劃分</a></span></dt>
+<dt><span class="section"><a href="ch12s02.html#orm-hibernate-tx-declarative">12.2.7. 宣告式的事務劃分</a></span></dt>
+<dt><span class="section"><a href="ch12s02.html#orm-hibernate-tx-strategies">12.2.8. 事務管理策略</a></span></dt>
+<dt><span class="section"><a href="ch12s02.html#orm-hibernate-resources">12.2.9. 容器資源 vs 本地資源</a></span></dt>
+<dt><span class="section"><a href="ch12s02.html#orm-hibernate-invalid-jdbc-access-error">12.2.10. 在應用伺服器中使用Hibernate的注意事項</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch12s03.html">12.3. JDO</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch12s03.html#orm-jdo-setup">12.3.1. 建立<code class="interfacename">PersistenceManagerFactory</code>
+      </a></span></dt>
+<dt><span class="section"><a href="ch12s03.html#orm-jdo-template">12.3.2. <code class="classname">JdoTemplate</code>和<code class="classname">JdoDaoSupport</code></a></span></dt>
+<dt><span class="section"><a href="ch12s03.html#orm-jdo-daos-straight">12.3.3. 
+      
+      基於原生的JDO API實作DAO
+      </a></span></dt>
+<dt><span class="section"><a href="ch12s03.html#orm-jdo-tx">12.3.4. 事務管理</a></span></dt>
+<dt><span class="section"><a href="ch12s03.html#orm-jdo-dialect">12.3.5. <code class="interfacename">JdoDialect</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch12s04.html">12.4. Oracle TopLink</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch12s04.html#orm-toplink-abstraction">12.4.1. <code class="interfacename">SessionFactory</code> 抽象層</a></span></dt>
+<dt><span class="section"><a href="ch12s04.html#orm-toplink-template">12.4.2. <code class="classname">TopLinkTemplate</code> and
+      <code class="classname">TopLinkDaoSupport</code></a></span></dt>
+<dt><span class="section"><a href="ch12s04.html#orm-toplink-straight">12.4.3. 基於原生的TopLink API的DAO實作</a></span></dt>
+<dt><span class="section"><a href="ch12s04.html#orm-toplink-tx">12.4.4. 事務管理</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch12s05.html">12.5. iBATIS SQL Maps</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch12s05.html#orm-ibatis-setup">12.5.1. 
+      
+      創建SqlMapClient
+      </a></span></dt>
+<dt><span class="section"><a href="ch12s05.html#orm-ibatis-template">12.5.2. 
+      
+      	使用 <code class="classname">SqlMapClientTemplate</code> 和 <code class="classname">SqlMapClientDaoSupport</code>
+      </a></span></dt>
+<dt><span class="section"><a href="ch12s05.html#orm-ibatis-straight">12.5.3. 基於原生的iBATIS API的DAO實作</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch12s06.html">12.6. JPA</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch12s06.html#orm-jpa-setup">12.6.1. 在Spring環境中建立JPA</a></span></dt>
+<dt><span class="section"><a href="ch12s06.html#orm-jpa-template">12.6.2. <code class="classname">JpaTemplate</code> 和 <code class="classname">JpaDaoSupport</code></a></span></dt>
+<dt><span class="section"><a href="ch12s06.html#orm-jpa-straight">12.6.3. 基於原生的JPA實作DAO</a></span></dt>
+<dt><span class="section"><a href="ch12s06.html#orm-jpa-exceptions">12.6.4. 異常轉化</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch12s07.html">12.7. 事務管理</a></span></dt>
+<dt><span class="section"><a href="ch12s08.html">12.8. <code class="interfacename">JpaDialect</code></a></span></dt>
+</dl></dd>
+</dl></dd>
+<dt><span class="part"><a href="pt03.html">III. The Web</a></span></dt>
+<dd><dl>
+<dt><span class="chapter"><a href="ch13.html">13. Web MVC framework Web框架</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13.html#mvc-introduction">13.1. 概觀</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13.html#mvc-introduction-pluggability">13.1.1. 與其他MVC實作框架的整合</a></span></dt>
+<dt><span class="section"><a href="ch13.html#mvc-features">13.1.2. Spring Web MVC框架的特點</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s02.html">13.2. <code class="classname">DispatcherServlet</code></a></span></dt>
+<dt><span class="section"><a href="ch13s03.html">13.3. 控制器</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13s03.html#mvc-controller-abstractcontroller">13.3.1. <code class="classname">AbstractController</code> 和 <code class="classname">WebContentGenerator</code></a></span></dt>
+<dt><span class="section"><a href="ch13s03.html#mvc-controller-othersimplecontrollers">13.3.2. 其它的簡單控制器</a></span></dt>
+<dt><span class="section"><a href="ch13s03.html#mvc-controller-multiaction">13.3.3. <code class="classname">MultiActionController</code></a></span></dt>
+<dt><span class="section"><a href="ch13s03.html#mvc-controller-command">13.3.4. 命令控制器</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s04.html">13.4. 處理器映射（handler mapping）</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13s04.html#mvc-handlermapping-beanname">13.4.1. <code class="classname">BeanNameUrlHandlerMapping</code></a></span></dt>
+<dt><span class="section"><a href="ch13s04.html#mvc-handlermapping-urlhandlermapping">13.4.2. <code class="classname">SimpleUrlHandlerMapping</code></a></span></dt>
+<dt><span class="section"><a href="ch13s04.html#mvc-handlermapping-interceptor">13.4.3. 攔截器（<code class="interfacename">HandlerInterceptor</code>）</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s05.html">13.5. 視圖與視圖解析</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13s05.html#mvc-viewresolver-resolver">13.5.1. 視圖解析器（<code class="interfacename">ViewResolver</code>）</a></span></dt>
+<dt><span class="section"><a href="ch13s05.html#mvc-viewresolver-chaining">13.5.2. 視圖解析鏈</a></span></dt>
+<dt><span class="section"><a href="ch13s05.html#mvc-redirecting">13.5.3. 重定向（Rediret）到另一個視圖</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s06.html">13.6. 本地化解析器</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13s06.html#mvc-localeresolver-acceptheader">13.6.1. <code class="classname">AcceptHeaderLocaleResolver</code></a></span></dt>
+<dt><span class="section"><a href="ch13s06.html#mvc-localeresolver-cookie">13.6.2. <code class="classname">CookieLocaleResolver</code></a></span></dt>
+<dt><span class="section"><a href="ch13s06.html#mvc-localeresolver-session">13.6.3. <code class="classname">SessionLocaleResolver</code></a></span></dt>
+<dt><span class="section"><a href="ch13s06.html#mvc-localeresolver-interceptor">13.6.4. <code class="classname">LocaleChangeInterceptor</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s07.html">13.7. 使用主題</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13s07.html#mvc-themeresolver-introduction">13.7.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch13s07.html#mvc-themeresolver-defining">13.7.2. 如何定義主題</a></span></dt>
+<dt><span class="section"><a href="ch13s07.html#mvc-themeresolver-resolving">13.7.3. 主題解析器</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s08.html">13.8. Spring對分段檔案上傳（multipart file upload）的支持</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13s08.html#mvc-multipart-introduction">13.8.1. 介紹</a></span></dt>
+<dt><span class="section"><a href="ch13s08.html#mvc-multipart-resolver">13.8.2. 使用<code class="interfacename">MultipartResolver</code></a></span></dt>
+<dt><span class="section"><a href="ch13s08.html#mvc-multipart-forms">13.8.3. 在表單中處理分段檔案上傳</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s09.html">13.9. 使用Spring的表單標籤資源庫</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-configuration">13.9.1. 配置</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-formtag">13.9.2. <code class="literal">form</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-inputtag">13.9.3. <code class="literal">input</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-checkboxtag">13.9.4. <code class="literal">checkbox</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-checkboxestag">13.9.5. <code class="literal">checkboxes</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-radiobuttontag">13.9.6. <code class="literal">radiobutton</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-radiobuttonstag">13.9.7. <code class="literal">radiobuttons</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-passwordtag">13.9.8. <code class="literal">password</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-selecttag">13.9.9. <code class="literal">select</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-optiontag">13.9.10. <code class="literal">option</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-optionstag">13.9.11. <code class="literal">options</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-textAreatag">13.9.12. <code class="literal">textarea</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-hiddeninputtag">13.9.13. <code class="literal">hidden</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-errorstag">13.9.14. <code class="literal">errors</code>標籤</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s10.html">13.10. 處理異常</a></span></dt>
+<dt><span class="section"><a href="ch13s11.html">13.11. 慣例優先原則（convention over configuration）</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13s11.html#mvc-coc-ccnhm">13.11.1. 對控制器的支持：<code class="classname">ControllerClassNameHandlerMapping</code></a></span></dt>
+<dt><span class="section"><a href="ch13s11.html#mvc-coc-modelmap">13.11.2. 對模型的支持：<code class="classname">ModelMap</code>（<code class="classname">ModelAndView</code>）</a></span></dt>
+<dt><span class="section"><a href="ch13s11.html#mvc-coc-r2vnt">13.11.3. 對視圖的支持：<code class="interfacename">RequestToViewNameTranslator</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s12.html">13.12. 基於註釋的控制器配置</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13s12.html#mvc-ann-setup">13.12.1. 建立dispatcher實作註釋支持</a></span></dt>
+<dt><span class="section"><a href="ch13s12.html#mvc-ann-controller">13.12.2. 使用<code class="interfacename">@Controller</code>定義一個控制器</a></span></dt>
+<dt><span class="section"><a href="ch13s12.html#mvc-ann-requestmapping">13.12.3. 使用<code class="interfacename">@RequestMapping</code>映射請求</a></span></dt>
+<dt><span class="section"><a href="ch13s12.html#mvc-ann-requestparam">13.12.4. 使用<code class="classname">@RequestParam</code>綁定請求參數到方法參數</a></span></dt>
+<dt><span class="section"><a href="ch13s12.html#mvc-ann-modelattrib">13.12.5. 使用<code class="classname">@ModelAttribute</code>提供一個從模型到資料的連接</a></span></dt>
+<dt><span class="section"><a href="ch13s12.html#mvc-ann-sessionattrib">13.12.6. 使用<code class="classname">@SessionAttributes</code>指定存儲在Session中的屬性</a></span></dt>
+<dt><span class="section"><a href="ch13s12.html#mvc-ann-webdatabinder">13.12.7. 自定義<code class="classname">WebDataBinder</code>初始化</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s13.html">13.13. 更多資源</a></span></dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch14.html">14. 整合視圖技術</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch14.html#view-introduction">14.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch14s02.html">14.2. JSP和JSTL</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch14s02.html#view-jsp-resolver">14.2.1. 視圖解析器</a></span></dt>
+<dt><span class="section"><a href="ch14s02.html#view-jsp-jstl">14.2.2. 
+				'Plain-old' JSPs versus JSTL 'Plain-old' JSP與JSTL
+			</a></span></dt>
+<dt><span class="section"><a href="ch14s02.html#view-jsp-tags">14.2.3. 說明簡化開發的額外的標籤</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch14s03.html">14.3. Tiles</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch14s03.html#view-tiles-dependencies">14.3.1. 需要的資源</a></span></dt>
+<dt><span class="section"><a href="ch14s03.html#view-tiles-integrate">14.3.2. 如何整合Tiles</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch14s04.html">14.4. Velocity和FreeMarker</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch14s04.html#view-velocity-dependencies">14.4.1. 需要的資源</a></span></dt>
+<dt><span class="section"><a href="ch14s04.html#view-velocity-contextconfig">14.4.2. Context 配置</a></span></dt>
+<dt><span class="section"><a href="ch14s04.html#view-velocity-createtemplates">14.4.3. 創建模板</a></span></dt>
+<dt><span class="section"><a href="ch14s04.html#view-velocity-advancedconfig">14.4.4. 高層級配置</a></span></dt>
+<dt><span class="section"><a href="ch14s04.html#view-velocity-forms">14.4.5. 綁定支持和表單處理</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch14s05.html">14.5. XSLT</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch14s05.html#view-xslt-firstwords">14.5.1. 寫在段首</a></span></dt>
+<dt><span class="section"><a href="ch14s05.html#view-xslt-summary">14.5.2. 小結</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch14s06.html">14.6. 文檔視圖（PDF/Excel）</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch14s06.html#view-document-intro">14.6.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch14s06.html#view-document-config">14.6.2. 配置和安裝</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch14s07.html">14.7. JasperReports</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch14s07.html#view-jasper-reports-dependencies">14.7.1. 依賴的資源</a></span></dt>
+<dt><span class="section"><a href="ch14s07.html#view-jasper-reports-configuration">14.7.2. 配置</a></span></dt>
+<dt><span class="section"><a href="ch14s07.html#view-jasper-reports-model">14.7.3. 
+				建構<code class="literal">ModelAndView</code>
+			</a></span></dt>
+<dt><span class="section"><a href="ch14s07.html#view-jasper-reports-subreports">14.7.4. 使用子報表</a></span></dt>
+<dt><span class="section"><a href="ch14s07.html#view-jasper-reports-exporter-parameters">14.7.5. 配置Exporter的參數</a></span></dt>
+</dl></dd>
+</dl></dd>
+<dt><span class="chapter"><a href="ch15.html">15. 整合其它Web框架</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch15.html#intro">15.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch15s02.html">15.2. 通用配置</a></span></dt>
+<dt><span class="section"><a href="ch15s03.html">15.3. JavaServer Faces</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch15s03.html#jsf-delegatingvariableresolver">15.3.1. DelegatingVariableResolver</a></span></dt>
+<dt><span class="section"><a href="ch15s03.html#jsf-facescontextutils">15.3.2. FacesContextUtils</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch15s04.html">15.4. Struts</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch15s04.html#struts-contextloaderplugin">15.4.1. ContextLoaderPlugin</a></span></dt>
+<dt><span class="section"><a href="ch15s04.html#struts-actionsupport">15.4.2. ActionSupport Classes</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch15s05.html">15.5. Tapestry</a></span></dt>
+<dd><dl><dt><span class="section"><a href="ch15s05.html#view-tapestry-di">15.5.1. 注入 Spring 托管的 beans</a></span></dt></dl></dd>
+<dt><span class="section"><a href="ch15s06.html">15.6. WebWork</a></span></dt>
+<dt><span class="section"><a href="ch15s07.html">15.7. 更多資源</a></span></dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch16.html">16. Portlet MVC框架</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch16.html#portlet-introduction">16.1. 介紹</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch16.html#portlet-introduction-controller">16.1.1. 控制器 - MVC中的C</a></span></dt>
+<dt><span class="section"><a href="ch16.html#portlet-introduction-view">16.1.2. 視圖 - MVC中的V</a></span></dt>
+<dt><span class="section"><a href="ch16.html#portlet-introduction-scope">16.1.3. Web作用範圍的Bean</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch16s02.html">16.2. 
+			<code class="classname">DispatcherPortlet</code>
+		</a></span></dt>
+<dt><span class="section"><a href="ch16s03.html">16.3. <code class="classname">ViewRendererServlet</code></a></span></dt>
+<dt><span class="section"><a href="ch16s04.html">16.4. 控制器</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch16s04.html#portlet-controller-abstractcontroller">16.4.1. <code class="classname">AbstractController</code> 和 <code class="classname">PortletContentGenerator</code></a></span></dt>
+<dt><span class="section"><a href="ch16s04.html#portlet-controller-simple">16.4.2. 其它簡單的控制器</a></span></dt>
+<dt><span class="section"><a href="ch16s04.html#portlet-controller-command">16.4.3. Command控制器</a></span></dt>
+<dt><span class="section"><a href="ch16s04.html#portlet-controller-wrapping">16.4.4. <code class="classname">PortletWrappingController</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch16s05.html">16.5. 處理器映射</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch16s05.html#portlet-handlermapping-portletmode">16.5.1. <code class="classname">PortletModeHandlerMapping</code></a></span></dt>
+<dt><span class="section"><a href="ch16s05.html#portlet-handlermapping-parameter">16.5.2. <code class="classname">ParameterHandlerMapping</code></a></span></dt>
+<dt><span class="section"><a href="ch16s05.html#portlet-handlermapping-portletmodeparameter">16.5.3. <code class="classname">PortletModeParameterHandlerMapping</code></a></span></dt>
+<dt><span class="section"><a href="ch16s05.html#portlet-handlermapping-interceptor">16.5.4. 增加 <code class="interfacename">HandlerInterceptor</code>s</a></span></dt>
+<dt><span class="section"><a href="ch16s05.html#portlet-handlermapping-interceptoradapter">16.5.5. <code class="classname">HandlerInterceptorAdapter</code></a></span></dt>
+<dt><span class="section"><a href="ch16s05.html#portlet-handlermapping-parameterinterceptor">16.5.6. <code class="classname">ParameterMappingInterceptor</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch16s06.html">16.6. 視圖和它們的解析</a></span></dt>
+<dt><span class="section"><a href="ch16s07.html">16.7. Multipart檔案上傳支持</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch16s07.html#portlet-multipart-resolver">16.7.1. 使用 <code class="interfacename">PortletMultipartResolver</code></a></span></dt>
+<dt><span class="section"><a href="ch16s07.html#portlet-multipart-forms">16.7.2. 處理表單裡的檔案上傳</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch16s08.html">16.8. 異常處理</a></span></dt>
+<dt><span class="section"><a href="ch16s09.html">16.9. Portlet應用的部署</a></span></dt>
+</dl></dd>
+</dl></dd>
+<dt><span class="part"><a href="pt04.html">IV. 整合</a></span></dt>
+<dd><dl>
+<dt><span class="chapter"><a href="ch17.html">17. 使用Spring進行遠端存取與Web服務</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch17.html#remoting-introduction">17.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch17s02.html">17.2. 使用RMI暴露服務</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch17s02.html#remoting-rmi-server">17.2.1. 使用<code class="classname">RmiServiceExporter</code>暴露服務</a></span></dt>
+<dt><span class="section"><a href="ch17s02.html#remoting-rmi-client">17.2.2. 在客戶端連接服務</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch17s03.html">17.3. 使用Hessian或者Burlap通過HTTP遠端調用服務</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch17s03.html#remoting-caucho-protocols-hessian">17.3.1. 為Hessian和co.配置<code class="classname">DispatcherServlet</code></a></span></dt>
+<dt><span class="section"><a href="ch17s03.html#remoting-caucho-protocols-hessian-server">17.3.2. 使用<code class="classname">HessianServiceExporter</code>暴露你的bean</a></span></dt>
+<dt><span class="section"><a href="ch17s03.html#remoting-caucho-protocols-hessian-client">17.3.3. 在客戶端連接服務</a></span></dt>
+<dt><span class="section"><a href="ch17s03.html#remoting-caucho-protocols-burlap">17.3.4. 使用Burlap</a></span></dt>
+<dt><span class="section"><a href="ch17s03.html#remoting-caucho-protocols-security">17.3.5. 對通過Hessian或Burlap暴露的服務使用HTTP Basic認證</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch17s04.html">17.4. 使用HTTP調用器暴露服務</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch17s04.html#remoting-httpinvoker-server">17.4.1. Exposing the service object</a></span></dt>
+<dt><span class="section"><a href="ch17s04.html#remoting-httpinvoker-client">17.4.2. 在客戶端連接服務</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch17s05.html">17.5. Web Services</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch17s05.html#remoting-web-services-jaxrpc-export">17.5.1. 使用JAX-RPC暴露基於servlet的web服務</a></span></dt>
+<dt><span class="section"><a href="ch17s05.html#remoting-web-services-jaxrpc-access">17.5.2. 使用JAX-RPC存取web服務</a></span></dt>
+<dt><span class="section"><a href="ch17s05.html#remoting-web-services-jaxrpc-mapping-registration">17.5.3. 註冊JAX-RPC Bean映射</a></span></dt>
+<dt><span class="section"><a href="ch17s05.html#remoting-web-services-jaxrpc-handler-registration">17.5.4. 註冊自己的JAX-RPC 處理器</a></span></dt>
+<dt><span class="section"><a href="ch17s05.html#remoting-web-services-jaxws-export-servlet">17.5.5. 使用JAX-WS暴露基於servlet的web服務</a></span></dt>
+<dt><span class="section"><a href="ch17s05.html#remoting-web-services-jaxws-export-standalone">17.5.6. 使用JAX-WS暴露單獨web服務</a></span></dt>
+<dt><span class="section"><a href="ch17s05.html#remoting-web-services-jaxws-export-ri">17.5.7. 使用Spring支持的JAX-WS RI來暴露服務</a></span></dt>
+<dt><span class="section"><a href="ch17s05.html#remoting-web-services-jaxws-access">17.5.8. 使用JAX-WS存取web服務</a></span></dt>
+<dt><span class="section"><a href="ch17s05.html#remoting-web-services-xfire">17.5.9. 使用XFire來暴露Web服務</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch17s06.html">17.6. JMS</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch17s06.html#remoting-jms-server">17.6.1. 伺服端配置</a></span></dt>
+<dt><span class="section"><a href="ch17s06.html#remoting-jms-client">17.6.2. 客戶端配置</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch17s07.html">17.7. 對遠端介面不提供自動探測實作</a></span></dt>
+<dt><span class="section"><a href="ch17s08.html">17.8. 在選擇這些技術時的一些考慮</a></span></dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch18.html">18. Enterprise Java Beans (EJB) 整合</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch18.html#ejb-introduction">18.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch18s02.html">18.2. 存取EJB</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch18s02.html#ejb-access-concepts">18.2.1. 概念</a></span></dt>
+<dt><span class="section"><a href="ch18s02.html#ejb-access-local">18.2.2. 存取本地的無狀態Session Bean(SLSB)</a></span></dt>
+<dt><span class="section"><a href="ch18s02.html#ejb-access-remote">18.2.3. 存取遠端SLSB</a></span></dt>
+<dt><span class="section"><a href="ch18s02.html#ejb-access-ejb2-ejb3">18.2.4. Accessing EJB 2.x SLSBs versus EJB 3 SLSBs</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch18s03.html">18.3. 使用Spring提供的輔助類別實作EJB元件</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch18s03.html#ejb-implementation-ejb2">18.3.1. EJB 2.x base classes</a></span></dt>
+<dt><span class="section"><a href="ch18s03.html#ejb-implementation-ejb3">18.3.2. EJB 3 注入攔截</a></span></dt>
+</dl></dd>
+</dl></dd>
+<dt><span class="chapter"><a href="ch19.html">19. JMS (Java Message Service)</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch19.html#jms-introduction">19.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch19s02.html">19.2. 使用Spring JMS</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch19s02.html#id602830">19.2.1. <code class="classname">JmsTemplate</code></a></span></dt>
+<dt><span class="section"><a href="ch19s02.html#jms-connections">19.2.2. 連接處理器</a></span></dt>
+<dt><span class="section"><a href="ch19s02.html#jms-destinations">19.2.3. 目的地管理</a></span></dt>
+<dt><span class="section"><a href="ch19s02.html#jms-mdp">19.2.4. 訊息偵聽容器</a></span></dt>
+<dt><span class="section"><a href="ch19s02.html#jms-tx">19.2.5. 事務管理</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch19s03.html">19.3. 發送訊息</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch19s03.html#jms-msg-conversion">19.3.1. 使用訊息轉換器</a></span></dt>
+<dt><span class="section"><a href="ch19s03.html#jms-callbacks">19.3.2. <code class="interfacename">SessionCallback</code> 和 <code class="interfacename">ProducerCallback</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch19s04.html">19.4. 接收訊息</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch19s04.html#jms-receiving-sync">19.4.1. 同步接收</a></span></dt>
+<dt><span class="section"><a href="ch19s04.html#jms-asynchronousMessageReception">19.4.2. 異步接收 - 訊息驅動的POJO</a></span></dt>
+<dt><span class="section"><a href="ch19s04.html#jms-receiving-async-session-aware-message-listener">19.4.3. <code class="interfacename">SessionAwareMessageListener</code>介面</a></span></dt>
+<dt><span class="section"><a href="ch19s04.html#jms-receiving-async-message-listener-adapter">19.4.4. <code class="classname">MessageListenerAdapter</code></a></span></dt>
+<dt><span class="section"><a href="ch19s04.html#jms-tx-participation">19.4.5. 事務中的訊息處理</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch19s05.html">19.5. JCA訊息端點的支持</a></span></dt>
+<dt><span class="section"><a href="ch19s06.html">19.6. JMS命名空間支持</a></span></dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch20.html">20. JMX</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch20.html#jmx-introduction">20.1. 介紹</a></span></dt>
+<dt><span class="section"><a href="ch20s02.html">20.2. 將Bean暴露為JMX</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch20s02.html#jmx-exporting-mbeanserver">20.2.1. 創建<code class="interfacename">MBeanServer</code></a></span></dt>
+<dt><span class="section"><a href="ch20s02.html#jmx-mbean-server">20.2.2. 重用原有的<code class="interfacename">MBeanServer</code></a></span></dt>
+<dt><span class="section"><a href="ch20s02.html#jmx-exporting-lazy">20.2.3. 延遲初始化的MBean</a></span></dt>
+<dt><span class="section"><a href="ch20s02.html#jmx-exporting-auto">20.2.4. MBean的自動註冊</a></span></dt>
+<dt><span class="section"><a href="ch20s02.html#jmx-exporting-registration-behavior">20.2.5. 控制註冊行為</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch20s03.html">20.3. 控制Bean的管理介面</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch20s03.html#jmx-interface-assembler">20.3.1. <code class="interfacename">MBeanInfoAssembler</code>介面</a></span></dt>
+<dt><span class="section"><a href="ch20s03.html#jmx-interface-metadata">20.3.2. 使用源碼級元資料</a></span></dt>
+<dt><span class="section"><a href="ch20s03.html#jmx-interface-annotations">20.3.3. 使用JDK 5.0的註釋</a></span></dt>
+<dt><span class="section"><a href="ch20s03.html#jmx-interface-metadata-types">20.3.4. 源程式碼級的元資料型別</a></span></dt>
+<dt><span class="section"><a href="ch20s03.html#jmx-interface-autodetect">20.3.5. <code class="classname">AutodetectCapableMBeanInfoAssembler</code>介面</a></span></dt>
+<dt><span class="section"><a href="ch20s03.html#jmx-interface-java">20.3.6. 用Java介面定義管理介面</a></span></dt>
+<dt><span class="section"><a href="ch20s03.html#jmx-interface-methodnames">20.3.7. 使用<code class="classname">MethodNameBasedMBeanInfoAssembler</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch20s04.html">20.4. 控制Bean的<code class="classname">ObjectName</code></a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch20s04.html#jmx-naming-properties">20.4.1. 從<code class="classname">Properties</code>讀取<code class="classname">Properties</code></a></span></dt>
+<dt><span class="section"><a href="ch20s04.html#jmx-naming-metadata">20.4.2. 使用<code class="classname">MetadataNamingStrategy</code></a></span></dt>
+<dt><span class="section"><a href="ch20s04.html#jmx-context-mbeanexport">20.4.3. <code class="literal">&lt;context:mbean-export/&gt;</code>元素</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch20s05.html">20.5. JSR-160連接器</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch20s05.html#jmx-jsr160-server">20.5.1. 伺服器端連接器</a></span></dt>
+<dt><span class="section"><a href="ch20s05.html#jmx-jsr160-client">20.5.2. 客戶端連接器</a></span></dt>
+<dt><span class="section"><a href="ch20s05.html#jmx-jsr160-protocols">20.5.3. 基於Burlap/Hessian/SOAP的JMX</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch20s06.html">20.6. 通過代理存取MBean</a></span></dt>
+<dt><span class="section"><a href="ch20s07.html">20.7. 通知</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch20s07.html#jmx-notifications-listeners">20.7.1. 為通知註冊監聽器</a></span></dt>
+<dt><span class="section"><a href="ch20s07.html#jmx-notifications-publishing">20.7.2. 發佈通知</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch20s08.html">20.8. 更多資源</a></span></dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch21.html">21. JCA CCI</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch21.html#cci-introduction">21.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch21s02.html">21.2. 配置CCI</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch21s02.html#cci-config-connector">21.2.1. 連接器配置</a></span></dt>
+<dt><span class="section"><a href="ch21s02.html#cci-config-connectionfactory">21.2.2. 在Spring中配置<code class="interfacename">ConnectionFactory</code></a></span></dt>
+<dt><span class="section"><a href="ch21s02.html#cci-config-cci-connections">21.2.3. 配置CCI連接</a></span></dt>
+<dt><span class="section"><a href="ch21s02.html#cci-config-single-connection">21.2.4. 使用一個 CCI 單連接</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch21s03.html">21.3. 使用Spring的 CCI存取支持</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch21s03.html#cci-record-creator">21.3.1. 記錄轉換</a></span></dt>
+<dt><span class="section"><a href="ch21s03.html#cci-using-template">21.3.2. <code class="classname">CciTemplate</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch21s03.html#cci-using-dao">21.3.3. DAO支持</a></span></dt>
+<dt><span class="section"><a href="ch21s03.html#automatic-output-generation">21.3.4. 自動輸出記錄產生</a></span></dt>
+<dt><span class="section"><a href="ch21s03.html#template-summary">21.3.5. 總結</a></span></dt>
+<dt><span class="section"><a href="ch21s03.html#cci-straight">21.3.6. 直接使用一個CCI <code class="interfacename">Connection</code>介面和<code class="interfacename">Interaction</code>介面</a></span></dt>
+<dt><span class="section"><a href="ch21s03.html#cci-template-example">21.3.7. <code class="classname">CciTemplate</code> 使用範例</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch21s04.html">21.4. 建模CCI存取為操作物件</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch21s04.html#cci-object-mapping-record">21.4.1. <code class="classname">MappingRecordOperation</code></a></span></dt>
+<dt><span class="section"><a href="ch21s04.html#cci-object-mapping-comm-area">21.4.2. <code class="classname">MappingCommAreaOperation</code></a></span></dt>
+<dt><span class="section"><a href="ch21s04.html#cci-automatic-record-gen">21.4.3. 自動產生輸出記錄</a></span></dt>
+<dt><span class="section"><a href="ch21s04.html#cci-object-summary">21.4.4. 總結</a></span></dt>
+<dt><span class="section"><a href="ch21s04.html#cci-objects-mappring-record-example">21.4.5. <code class="classname">MappingRecordOperation</code> 使用範例</a></span></dt>
+<dt><span class="section"><a href="ch21s04.html#cci-objects-mapping-comm-area-example">21.4.6. <code class="classname">MappingCommAreaOperation</code> 使用範例</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch21s05.html">21.5. 事務</a></span></dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch22.html">22. Spring郵件抽象層</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch22.html#mail-introduction">22.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch22s02.html">22.2. 使用Spring郵件抽象</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch22s02.html#mail-usage-simple">22.2.1. <code class="interfacename">MailSender</code> 和 <code class="classname">SimpleMailMessage</code> 的基本用法</a></span></dt>
+<dt><span class="section"><a href="ch22s02.html#mail-usage-mime">22.2.2. 使用 <code class="interfacename">JavaMailSender</code> 和 <code class="classname">MimeMessagePreparator</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch22s03.html">22.3. 使用<code class="classname">MimeMessageHelper</code></a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch22s03.html#mail-javamail-mime-attachments">22.3.1. 發送附件和嵌入式資源(inline resources)</a></span></dt>
+<dt><span class="section"><a href="ch22s03.html#mail-templates">22.3.2. 使用模板來創建郵件內容</a></span></dt>
+</dl></dd>
+</dl></dd>
+<dt><span class="chapter"><a href="ch23.html">23. Spring中的定時調度(Scheduling)和執行緒池(Thread Pooling)</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch23.html#scheduling-introduction">23.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch23s02.html">23.2. 使用OpenSymphony Quartz 調度器</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch23s02.html#scheduling-quartz-jobdetail">23.2.1. 使用JobDetailBean</a></span></dt>
+<dt><span class="section"><a href="ch23s02.html#scheduling-quartz-method-invoking-job">23.2.2. 使用 <code class="classname">MethodInvokingJobDetailFactoryBean</code></a></span></dt>
+<dt><span class="section"><a href="ch23s02.html#scheduling-quartz-cron">23.2.3. 使用triggers和<code class="classname">SchedulerFactoryBean</code>來包裹任務</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch23s03.html">23.3. 使用JDK Timer支持類別</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch23s03.html#scheduling-jdk-timer-creating">23.3.1. 創建定制的timers</a></span></dt>
+<dt><span class="section"><a href="ch23s03.html#scheduling-jdk-timer-method-invoking-task">23.3.2. 使用 <code class="classname">MethodInvokingTimerTaskFactoryBean</code>類別</a></span></dt>
+<dt><span class="section"><a href="ch23s03.html#scheduling-jdk-timer-factory-bean">23.3.3. 最後：使用<code class="classname">TimerFactoryBean</code>來設置任務</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch23s04.html">23.4. Spring<code class="interfacename">TaskExecutor</code>抽象</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch23s04.html#scheduling-task-executor-interface">23.4.1. <code class="interfacename">TaskExecutor</code>介面</a></span></dt>
+<dt><span class="section"><a href="ch23s04.html#scheduling-task-executor-types">23.4.2. <code class="interfacename">TaskExecutor</code>型別</a></span></dt>
+<dt><span class="section"><a href="ch23s04.html#scheduling-task-executor-usage">23.4.3. 使用<code class="interfacename">TaskExecutor</code></a></span></dt>
+</dl></dd>
+</dl></dd>
+<dt><span class="chapter"><a href="ch24.html">24. 動態語言支持</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch24.html#dynamic-language-introduction">24.1. 介紹</a></span></dt>
+<dt><span class="section"><a href="ch24s02.html">24.2. 第一個範例</a></span></dt>
+<dt><span class="section"><a href="ch24s03.html">24.3. 定義動態語言支持的bean</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch24s03.html#dynamic-language-beans-concepts">24.3.1. 公共概念</a></span></dt>
+<dt><span class="section"><a href="ch24s03.html#dynamic-language-beans-jruby">24.3.2. JRuby beans</a></span></dt>
+<dt><span class="section"><a href="ch24s03.html#dynamic-language-beans-groovy">24.3.3. Groovy beans</a></span></dt>
+<dt><span class="section"><a href="ch24s03.html#dynamic-language-beans-bsh">24.3.4. BeanShell beans</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch24s04.html">24.4. 場景</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch24s04.html#dynamic-language-scenarios-controllers">24.4.1. Spring MVC控制器的文稿化</a></span></dt>
+<dt><span class="section"><a href="ch24s04.html#dynamic-language-scenarios-validators">24.4.2. Validator的文稿化</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch24s05.html">24.5. Bits and bobs</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch24s05.html#dynamic-language-final-notes-aop">24.5.1. AOP - 通知文稿化bean</a></span></dt>
+<dt><span class="section"><a href="ch24s05.html#dynamic-language-final-notes-scopes">24.5.2. 作用域</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch24s06.html">24.6. 更多的資源</a></span></dt>
+</dl></dd>
+<dt><span class="chapter"><a href="ch25.html">25. 註釋和源程式碼級的元資料支持</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch25.html#metadata-introduction">25.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch25s02.html">25.2. Spring的元資料支持</a></span></dt>
+<dt><span class="section"><a href="ch25s03.html">25.3. 註釋</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch25s03.html#metadata-annotations-required">25.3.1. @<code class="interfacename">Required</code></a></span></dt>
+<dt><span class="section"><a href="ch25s03.html#metadata-annotations-other">25.3.2. Spring中的其它@Annotations</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch25s04.html">25.4. Jakarta Commons Attributes整合</a></span></dt>
+<dt><span class="section"><a href="ch25s05.html">25.5. 元資料和Spring AOP自動代理</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch25s05.html#metadata-fundamentals">25.5.1. 基本原理</a></span></dt>
+<dt><span class="section"><a href="ch25s05.html#metadata-tx">25.5.2. 宣告式事務管理</a></span></dt>
+</dl></dd>
+</dl></dd>
+</dl></dd>
+<dt><span class="part"><a href="pt05.html">V. 範例程序</a></span></dt>
+<dd><dl>
+<dt><span class="chapter"><a href="ch26.html">26. 演示案例</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch26.html#showcases-introduction">26.1. 介紹</a></span></dt>
+<dt><span class="section"><a href="ch26s02.html">26.2. 使用動態語言實作的Spring MVC控制器</a></span></dt>
+<dd><dl><dt><span class="section"><a href="ch26s02.html#showcases-dynamvc-build">26.2.1. 建構與部署</a></span></dt></dl></dd>
+<dt><span class="section"><a href="ch26s03.html">26.3. 使用<code class="classname">SimpleJdbcTemplate</code>和<code class="interfacename">@Repository</code>實作DAO</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch26s03.html#showcases-java5-dao-the-domain">26.3.1. 域物件</a></span></dt>
+<dt><span class="section"><a href="ch26s03.html#showcases-java5-dao-the-daos">26.3.2. Data Access Object</a></span></dt>
+<dt><span class="section"><a href="ch26s03.html#showcases-java5-dao-build">26.3.3. 建構</a></span></dt>
+</dl></dd>
+</dl></dd>
+</dl></dd>
+<dt><span class="appendix"><a href="apa.html">A. XML Schema-based configuration</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="apa.html#xsd-config-introduction">A.1. Introduction</a></span></dt>
+<dt><span class="section"><a href="apas02.html">A.2. XML Schema-based configuration</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="apas02.html#xsd-config-body-referencing">A.2.1. Referencing the schemas</a></span></dt>
+<dt><span class="section"><a href="apas02.html#xsd-config-body-schemas-util">A.2.2. The <code class="literal">util</code> schema</a></span></dt>
+<dt><span class="section"><a href="apas02.html#xsd-config-body-schemas-jee">A.2.3. The <code class="literal">jee</code> schema</a></span></dt>
+<dt><span class="section"><a href="apas02.html#xsd-config-body-schemas-lang">A.2.4. The <code class="literal">lang</code> schema</a></span></dt>
+<dt><span class="section"><a href="apas02.html#xsd-config-body-schemas-jms">A.2.5. The <code class="literal">jms</code> schema</a></span></dt>
+<dt><span class="section"><a href="apas02.html#xsd-config-body-schemas-tx">A.2.6. The <code class="literal">tx</code> (transaction) schema</a></span></dt>
+<dt><span class="section"><a href="apas02.html#xsd-config-body-schemas-aop">A.2.7. The <code class="literal">aop</code> schema</a></span></dt>
+<dt><span class="section"><a href="apas02.html#xsd-config-body-schemas-context">A.2.8. The <code class="literal">context</code> schema</a></span></dt>
+<dt><span class="section"><a href="apas02.html#xsd-config-body-schemas-tool">A.2.9. The <code class="literal">tool</code> schema</a></span></dt>
+<dt><span class="section"><a href="apas02.html#xsd-config-body-schemas-beans">A.2.10. The <code class="literal">beans</code> schema</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="apas03.html">A.3. Setting up your IDE</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="apas03.html#xsd-config-setup-eclipse">A.3.1. Setting up Eclipse</a></span></dt>
+<dt><span class="section"><a href="apas03.html#xsd-config-setup-idea">A.3.2. Setting up IntelliJ IDEA</a></span></dt>
+<dt><span class="section"><a href="apas03.html#xsd-config-integration">A.3.3. Integration issues</a></span></dt>
+</dl></dd>
+</dl></dd>
+<dt><span class="appendix"><a href="apb.html">B. Extensible XML authoring</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="apb.html#extensible-xml-introduction">B.1. Introduction</a></span></dt>
+<dt><span class="section"><a href="apbs02.html">B.2. Authoring the schema</a></span></dt>
+<dt><span class="section"><a href="apbs03.html">B.3. Coding a <code class="interfacename">NamespaceHandler</code></a></span></dt>
+<dt><span class="section"><a href="apbs04.html">B.4. Coding a <code class="interfacename">BeanDefinitionParser</code></a></span></dt>
+<dt><span class="section"><a href="apbs05.html">B.5. Registering the handler and the schema</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="apbs05.html#extensible-xml-registration-spring-handlers">B.5.1. <code class="filename">'META-INF/spring.handlers'</code></a></span></dt>
+<dt><span class="section"><a href="apbs05.html#extensible-xml-registration-spring-schemas">B.5.2. <code class="filename">'META-INF/spring.schemas'</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="apbs06.html">B.6. Using a custom extension in your Spring XML configuration</a></span></dt>
+<dt><span class="section"><a href="apbs07.html">B.7. Meatier examples</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="apbs07.html#extensible-xml-custom-nested">B.7.1. Nesting custom tags within custom tags</a></span></dt>
+<dt><span class="section"><a href="apbs07.html#extensible-xml-custom-just-attributes">B.7.2. Custom attributes on 'normal' elements</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="apbs08.html">B.8. Further Resources</a></span></dt>
+</dl></dd>
+<dt><span class="appendix"><a href="apc.html">C. <code class="literal">spring-beans-2.0.dtd</code></a></span></dt>
+<dt><span class="appendix"><a href="apd.html">D. spring.tld</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="apd.html#spring.tld-intro">D.1. Introduction</a></span></dt>
+<dt><span class="section"><a href="apds02.html">D.2. The <code class="literal">bind</code> tag</a></span></dt>
+<dt><span class="section"><a href="apds03.html">D.3. The <code class="literal">escapeBody</code> tag</a></span></dt>
+<dt><span class="section"><a href="apds04.html">D.4. The <code class="literal">hasBindErrors</code> tag</a></span></dt>
+<dt><span class="section"><a href="apds05.html">D.5. The <code class="literal">htmlEscape</code> tag</a></span></dt>
+<dt><span class="section"><a href="apds06.html">D.6. The <code class="literal">message</code> tag</a></span></dt>
+<dt><span class="section"><a href="apds07.html">D.7. The <code class="literal">nestedPath</code> tag</a></span></dt>
+<dt><span class="section"><a href="apds08.html">D.8. The <code class="literal">theme</code> tag</a></span></dt>
+<dt><span class="section"><a href="apds09.html">D.9. The <code class="literal">transform</code> tag</a></span></dt>
+</dl></dd>
+<dt><span class="appendix"><a href="ape.html">E. spring-form.tld</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ape.html#spring-form.tld-intro">E.1. Introduction</a></span></dt>
+<dt><span class="section"><a href="apes02.html">E.2. The <code class="literal">checkbox</code> tag</a></span></dt>
+<dt><span class="section"><a href="apes03.html">E.3. The <code class="literal">checkboxes</code> tag</a></span></dt>
+<dt><span class="section"><a href="apes04.html">E.4. The <code class="literal">errors</code> tag</a></span></dt>
+<dt><span class="section"><a href="apes05.html">E.5. The <code class="literal">form</code> tag</a></span></dt>
+<dt><span class="section"><a href="apes06.html">E.6. The <code class="literal">hidden</code> tag</a></span></dt>
+<dt><span class="section"><a href="apes07.html">E.7. The <code class="literal">input</code> tag</a></span></dt>
+<dt><span class="section"><a href="apes08.html">E.8. The <code class="literal">label</code> tag</a></span></dt>
+<dt><span class="section"><a href="apes09.html">E.9. The <code class="literal">option</code> tag</a></span></dt>
+<dt><span class="section"><a href="apes10.html">E.10. The <code class="literal">options</code> tag</a></span></dt>
+<dt><span class="section"><a href="apes11.html">E.11. The <code class="literal">password</code> tag</a></span></dt>
+<dt><span class="section"><a href="apes12.html">E.12. The <code class="literal">radiobutton</code> tag</a></span></dt>
+<dt><span class="section"><a href="apes13.html">E.13. The <code class="literal">radiobuttons</code> tag</a></span></dt>
+<dt><span class="section"><a href="apes14.html">E.14. The <code class="literal">select</code> tag</a></span></dt>
+<dt><span class="section"><a href="apes15.html">E.15. The <code class="literal">textarea</code> tag</a></span></dt>
+</dl></dd>
+<dt><span class="appendix"><a href="apf.html">F. Spring 2.5開發手冊中文化專案</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="apf.html#id683914">F.1. 宣告</a></span></dt>
+<dt><span class="section"><a href="apfs02.html">F.2. 致謝</a></span></dt>
+<dt><span class="section"><a href="apfs03.html">F.3. 參與人員</a></span></dt>
+<dt><span class="section"><a href="apfs04.html">F.4. 專案歷程</a></span></dt>
+</dl></dd>
+</dl>
+</div>
+<div class="list-of-tables">
+<p><b>表格清單</b></p>
+<dl>
+<dt>3.1. <a href="ch03s02.html#beans-factory-bean-definition-tbl">bean定義</a>
+</dt>
+<dt>3.2. <a href="ch03s03.html#beans-factory-autowiring-modes-tbl">Autowiring modes</a>
+</dt>
+<dt>3.3. <a href="ch03s03.html#beans-factory-dependency-check-modes-tbl">依賴檢查方式</a>
+</dt>
+<dt>3.4. <a href="ch03s04.html#beans-factory-scopes-tbl">Bean作用域</a>
+</dt>
+<dt>3.5. <a href="ch03s08.html#context-introduction-ctx-vs-beanfactory-feature-matrix">Feature Matrix特性表</a>
+</dt>
+<dt>3.6. <a href="ch03s08.html#beans-ctx-events-tbl">內置事件</a>
+</dt>
+<dt>3.7. <a href="ch03s12.html#beans-scanning-filters-tbl">過濾器型別</a>
+</dt>
+<dt>4.1. <a href="ch04s04.html#resources-resource-strings">Resource strings</a>
+</dt>
+<dt>5.1. <a href="ch05s04.html#beans-beans-conventions-properties-tbl">屬性範例</a>
+</dt>
+<dt>5.2. <a href="ch05s04.html#beans-beans-property-editors-tbl">內建的<code class="literal">PropertyEditors</code></a>
+</dt>
+<dt>6.1. <a href="ch06s08.html#aop-aj-ltw-spring-env-impls"><code class="classname">DefaultContextLoadTimeWeaver</code>
+                    <code class="interfacename">LoadTimeWeavers</code><code class="classname">DefaultContextLoadTimeWeaver</code>類別和<code class="interfacename">LoadTimeWeavers</code>介面</a>
+</dt>
+<dt>6.2. <a href="ch06s08.html#aop-aj-ltw-ltw-tag-attrs"><code class="literal">aspectj-weaving</code>屬性值</a>
+</dt>
+<dt>9.1. <a href="ch09s05.html#id521605"><code class="literal">&lt;tx:method/&gt;</code> 有關的設置</a>
+</dt>
+<dt>9.2. <a href="ch09s05.html#tx-annotation-driven-settings"><code class="literal">&lt;tx:annotation-driven/&gt;</code> 設置</a>
+</dt>
+<dt>9.3. <a href="ch09s05.html#tx-attransactional-properties"><code class="interfacename">@Transactional</code> 註釋的屬性</a>
+</dt>
+<dt>13.1. <a href="ch13s02.html#mvc-webappctx-special-beans-tbl"><code class="interfacename">WebApplicationContext</code>中特殊的bean</a>
+</dt>
+<dt>13.2. <a href="ch13s02.html#mvc-disp-servlet-init-params-tbl"><code class="classname">DispatcherServlet</code>初始化參數</a>
+</dt>
+<dt>13.3. <a href="ch13s03.html#mvc-controller-abstract-features"><code class="classname">AbstractController</code>提供的功能</a>
+</dt>
+<dt>13.4. <a href="ch13s05.html#mvc-view-resolvers-tbl">視圖解析器</a>
+</dt>
+<dt>13.5. <a href="ch13s06.html#mvc-cookie-locale-resolver-props-tbl"><code class="classname">CookieLocaleResolver</code>的屬性</a>
+</dt>
+<dt>13.6. <a href="ch13s07.html#mvc-theme-resolver-impls-tbl"><code class="interfacename">ThemeResolver</code>的實作</a>
+</dt>
+<dt>14.1. <a href="ch14s04.html#views-macros-defs-tbl">Micro定義表</a>
+</dt>
+<dt>14.2. <a href="ch14s07.html#view-jasper-reports-configuration-views-classes">
+						JasperReports
+						<code class="literal">View</code>
+						Classes
+					</a>
+</dt>
+<dt>14.3. <a href="ch14s07.html#view-jasper-reports-configuration-multiformat-view-mappings">
+							JasperReportsMultiFormatView預設Mapping Key映射
+						</a>
+</dt>
+<dt>16.1. <a href="ch16s02.html#portlet-webappctx-special-beans-tbl"><code class="interfacename">WebApplicationContext</code>中特殊的Bean</a>
+</dt>
+<dt>16.2. <a href="ch16s02.html#portlet-dpp-init-params"><code class="classname">DispatcherPortlet</code> 的初始化參數</a>
+</dt>
+<dt>16.3. <a href="ch16s04.html#portlet-ac-features"><code class="classname">AbstractController</code>提供的功能</a>
+</dt>
+<dt>19.1. <a href="ch19s06.html#jms-namespace-listener-tbl">JMS <code class="literal">listener</code> 元素的屬性</a>
+</dt>
+<dt>19.2. <a href="ch19s06.html#jms-namespace-listener-container-tbl">JMS <code class="literal">&lt;listener-container/&gt;</code> 元素的屬性</a>
+</dt>
+<dt>19.3. <a href="ch19s06.html#jms-namespace-jca-listener-container-tbl">JMS <code class="literal">&lt;jca-listener-container/&gt;</code> 元素的屬性</a>
+</dt>
+<dt>20.1. <a href="ch20s02.html#jmx-registration-behaviors">註冊行為</a>
+</dt>
+<dt>20.2. <a href="ch20s03.html#jmx-metadata-types">源程式碼級的元資料型別</a>
+</dt>
+<dt>20.3. <a href="ch20s03.html#jmx-metadata-parameters">源程式碼級的元資料參數</a>
+</dt>
+<dt>21.1. <a href="ch21s03.html#cci-interaction-execute-methods">Usage of <code class="interfacename">Interaction</code> execute methods</a>
+</dt>
+<dt>21.2. <a href="ch21s04.html#cci-interaction-methods">Usage of Interaction execute methods</a>
+</dt>
+<dt>A.1. <a href="apas03.html#xsd-config-setup-eclipse-plugins">Eclipse XML editors</a>
+</dt>
+<dt>D.1. <a href="apds02.html#spring.tld.bind.table">Attributes</a>
+</dt>
+<dt>D.2. <a href="apds03.html#spring.tld.escapeBody.table">Attributes</a>
+</dt>
+<dt>D.3. <a href="apds04.html#spring.tld.hasBindErrors.table">Attributes</a>
+</dt>
+<dt>D.4. <a href="apds05.html#spring.tld.htmlEscape.table">Attributes</a>
+</dt>
+<dt>D.5. <a href="apds06.html#spring.tld.message.table">Attributes</a>
+</dt>
+<dt>D.6. <a href="apds07.html#spring.tld.nestedPath.table">Attributes</a>
+</dt>
+<dt>D.7. <a href="apds08.html#spring.tld.theme.table">Attributes</a>
+</dt>
+<dt>D.8. <a href="apds09.html#spring.tld.transform.table">Attributes</a>
+</dt>
+<dt>E.1. <a href="apes02.html#spring-form.tld.checkbox.table">Attributes</a>
+</dt>
+<dt>E.2. <a href="apes03.html#spring-form.tld.checkboxes.table">Attributes</a>
+</dt>
+<dt>E.3. <a href="apes04.html#spring-form.tld.errors.table">Attributes</a>
+</dt>
+<dt>E.4. <a href="apes05.html#spring-form.tld.form.table">Attributes</a>
+</dt>
+<dt>E.5. <a href="apes06.html#spring-form.tld.hidden.table">Attributes</a>
+</dt>
+<dt>E.6. <a href="apes07.html#spring-form.tld.input.table">Attributes</a>
+</dt>
+<dt>E.7. <a href="apes08.html#spring-form.tld.label.table">Attributes</a>
+</dt>
+<dt>E.8. <a href="apes09.html#spring-form.tld.option.table">Attributes</a>
+</dt>
+<dt>E.9. <a href="apes10.html#spring-form.tld.options.table">Attributes</a>
+</dt>
+<dt>E.10. <a href="apes11.html#spring-form.tld.password.table">Attributes</a>
+</dt>
+<dt>E.11. <a href="apes12.html#spring-form.tld.radiobutton.table">Attributes</a>
+</dt>
+<dt>E.12. <a href="apes13.html#spring-form.tld.radiobuttons.table">Attributes</a>
+</dt>
+<dt>E.13. <a href="apes14.html#spring-form.tld.select.table">Attributes</a>
+</dt>
+<dt>E.14. <a href="apes15.html#spring-form.tld.textarea.table">Attributes</a>
+</dt>
+<dt>F.1. <a href="apfs03.html#id684031">參與人員列表</a>
+</dt>
+</dl>
+</div>
+</div></body>
+</html>

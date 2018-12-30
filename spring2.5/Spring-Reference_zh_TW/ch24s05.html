@@ -1,0 +1,69 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>24.5.&#160;Bits and bobs</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch24.html" title="第&#160;24&#160;章&#160;動態語言支持">
+<link rel="prev" href="ch24s04.html" title="24.4.&#160;場景">
+<link rel="next" href="ch24s06.html" title="24.6.&#160;更多的資源">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div>
+<div><h2 class="title" style="clear: both">
+<a name="dynamic-language-final-notes"></a>24.5.&#160;Bits and bobs</h2></div>
+<div><h2 class="title" style="clear: both">
+<a name="dynamic-language-final-notes"></a>24.5.&#160;Bits and bobs</h2></div>
+</div></div>
+<p>
+		最後這一章提供了一些和動態語言有關的小知識點。
+		</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="dynamic-language-final-notes-aop"></a>24.5.1.&#160;AOP - 通知文稿化bean</h3></div></div></div>
+<p>
+			使用Spring AOP框架對文稿化bean進行通知已經成為可能。Spring AOP框架實際上不關心需要被
+			通知的bean是否是文稿化bean，因此你所使用的全部AOP用例和功能對文稿化bean都有效。
+			唯一需要注意的是，通知文稿化bean的時候，你不能使用基於類別的代理，
+			而只能使用<a href="ch06s06.html" title="6.6.&#160;代理機制">基於介面的代理</a>。
+			</p>
+<p>
+			當然不用局限於在通知文稿化bean方面，你也可以使用支持的動態語言實作切面，
+			並使用該切面通知其他的Spring bean。這樣才是真正的利用了動態語言支持的優勢。
+			</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="dynamic-language-final-notes-scopes"></a>24.5.2.&#160;作用域</h3></div></div></div>
+<p>
+			在不是馬上起效的情況中，文稿化bean當然也能和其他bean一樣定義作用域。
+      <code class="literal">&lt;lang:language/&gt;</code>元素的<code class="literal">scope</code>屬性可以說明你控制底層的文稿化bean的作用域，
+      這樣這些文稿化bean就和普通的bean沒有區別了。（scope的預設值任然是<a href="ch03s04.html#beans-factory-scopes-singleton" title="3.4.1.&#160;Singleton作用域">singleton</a>，
+      和普通bean沒有區別。）
+			</p>
+<p>
+				下面的範例使用<code class="literal">scope</code>屬性將Groovy bean定義為<a href="ch03s04.html#beans-factory-scopes-prototype" title="3.4.2.&#160;Prototype作用域">prototype</a>。
+			</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:lang="http://www.springframework.org/schema/lang"
+       xsi:schemaLocation="
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.5.xsd"&gt;
+
+    &lt;lang:groovy id="messenger" script-source="classpath:Messenger.groovy" <em class="lineannotation"><span class="lineannotation"><span class="bold"><strong>scope="prototype"</strong></span></span></em>&gt;
+        &lt;lang:property name="message" value="I Can Do The RoboCop" /&gt;
+    &lt;/lang:groovy&gt;
+
+    &lt;bean id="bookingService" class="x.y.DefaultBookingService"&gt;
+        &lt;property name="messenger" ref="messenger" /&gt;
+    &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<p>
+			<a href="ch03.html" title="第&#160;3&#160;章&#160;IoC(控制反轉)容器">第&#160;3&#160;章 <i>IoC(控制反轉)容器</i></a>中的<a href="ch03s04.html" title="3.4.&#160;Bean的作用域">第&#160;3.4&#160;節 「Bean的作用域」</a>章節詳細討論了Spring框架支持的作用域。
+			</p>
+</div>
+</div></body>
+</html>

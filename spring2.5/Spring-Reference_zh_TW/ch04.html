@@ -1,0 +1,50 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>第&#160;4&#160;章&#160;資源</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="pt01.html" title="部分&#160;I.&#160;核心技術">
+<link rel="prev" href="ch03s13.html" title="3.13.&#160;註冊一個LoadTimeWeaver">
+<link rel="next" href="ch04s02.html" title="4.2.&#160;Resource介面">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="chapter" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title">
+<a name="resources"></a>第&#160;4&#160;章&#160;資源</h2></div></div></div>
+<div class="toc">
+<p><b>目錄</b></p>
+<dl>
+<dt><span class="section"><a href="ch04.html#resources-introduction">4.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch04s02.html">4.2. <code class="interfacename">Resource</code>介面</a></span></dt>
+<dt><span class="section"><a href="ch04s03.html">4.3. 內置 <code class="interfacename">Resource</code> 實作</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch04s03.html#resources-implementations-urlresource">4.3.1. 
+				<code class="classname">UrlResource</code>
+			</a></span></dt>
+<dt><span class="section"><a href="ch04s03.html#resources-implementations-classpathresource">4.3.2. <code class="classname">ClassPathResource</code></a></span></dt>
+<dt><span class="section"><a href="ch04s03.html#resources-implementations-filesystemresource">4.3.3. <code class="classname">FileSystemResource</code></a></span></dt>
+<dt><span class="section"><a href="ch04s03.html#resources-implementations-servletcontextresource">4.3.4. 
+				<code class="classname">ServletContextResource</code>
+			</a></span></dt>
+<dt><span class="section"><a href="ch04s03.html#resources-implementations-inputstreamresource">4.3.5. <code class="classname">InputStreamResource</code></a></span></dt>
+<dt><span class="section"><a href="ch04s03.html#resources-implementations-bytearrayresource">4.3.6. <code class="classname">ByteArrayResource</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch04s04.html">4.4. <code class="interfacename">ResourceLoader</code>介面</a></span></dt>
+<dt><span class="section"><a href="ch04s05.html">4.5. <code class="interfacename">ResourceLoaderAware</code> 介面</a></span></dt>
+<dt><span class="section"><a href="ch04s06.html">4.6. 把<code class="interfacename">Resource</code>作為屬性來配置</a></span></dt>
+<dt><span class="section"><a href="ch04s07.html">4.7. Application context 和<code class="interfacename">Resource</code> 路徑</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch04s07.html#resources-app-ctx-construction">4.7.1. 建構application context</a></span></dt>
+<dt><span class="section"><a href="ch04s07.html#resources-app-ctx-wildcards-in-resource-paths">4.7.2. Application context建構器中資源路徑的通配符</a></span></dt>
+<dt><span class="section"><a href="ch04s07.html#resources-filesystemresource-caveats">4.7.3. <code class="classname">FileSystemResource</code> 說明</a></span></dt>
+</dl></dd>
+</dl>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="resources-introduction"></a>4.1.&#160;簡介</h2></div></div></div>
+<p>Java標準的 <code class="classname">java.net.URL</code>類別和多種URL前綴處理類別並不能很好地滿足所有底層資源存取的需要。比如，還沒有能從類別路徑或者相對於<code class="classname">ServletContext</code> 的路徑中獲得資源的標準<code class="classname">URL</code>實作。雖然能為特定的URL前綴註冊新的處理類別(類似已有前綴 <code class="literal">http:</code> 的處理類別)，但是這樣做通常比較複雜，而且<code class="classname">URL</code>介面還缺少一些有用的功能，比如檢查指向的資源是否存在的方法。</p>
+</div>
+</div></body>
+</html>

@@ -1,0 +1,314 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>12.4.&#160;Oracle TopLink</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch12.html" title="第&#160;12&#160;章&#160;使用ORM工具進行資料存取">
+<link rel="prev" href="ch12s03.html" title="12.3.&#160;JDO">
+<link rel="next" href="ch12s05.html" title="12.5.&#160;iBATIS SQL Maps">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="orm-toplink"></a>12.4.&#160;Oracle TopLink</h2></div></div></div>
+<p>
+    Spring從Spring 1.2版本開始支持Oracle TopLink （<a href="http://www.oracle.com/technology/products/ias/toplink" target="_top">http://www.oracle.com/technology/products/ias/toplink</a>）
+    作為資料存取策略，同樣遵循類似於Spring對Hibernate的支持樣式。Spring對其的支持包括
+    TopLink 9.0.4（Spring 1.2支持的產品版本）和TopLink 10.1.3（Spring 1.2支持的，依然處於beta版）。
+		對應的支持與整合類別位於 <code class="literal">org.springframework.orm.toplink</code> 套件中。
+		</p>
+<p>
+    TopLink支持由Spring和Oracle TopLink團隊共同開發。
+		非常感謝TopLink團隊，尤其是Jim Clark，替我們闡明了所有方面的細節！
+    </p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="orm-toplink-abstraction"></a>12.4.1.&#160;<code class="interfacename">SessionFactory</code> 抽象層</h3></div></div></div>
+<p>
+      	TopLink本身並沒有提供SessionFactory抽象層邏輯，多執行緒的資料存取是建立在中央 
+      	<code class="literal">ServerSession</code> 上的。對於單執行緒存取，
+      	這個中央 <code class="literal">ServerSession</code> 會為它一個 
+      	<code class="literal">ClientSession</code> 的實例供其使用。為了提供靈活便捷的創建選項，
+      	Spring為TopLink定義了一個 <code class="interfacename">SessionFactory</code> 介面，
+      	從而使你可以任意地在不同的 <code class="interfacename">Session</code> 創建策略之間進行切換。
+      </p>
+<p>
+      	作為一個一站式的商店，Spring提供了一個 <code class="classname">LocalSessionFactoryBean</code> 類別，
+     	 	允許你以bean樣式的配置方式來定義一個TopLink的 <code class="interfacename">SessionFactory</code>。
+				需要進行配置的地方主要是TopLink session配置檔案，通常來說還需配置一個受到Spring管理的JDBC 
+				<code class="interfacename">DataSource</code>。
+      </p>
+<pre class="programlisting">&lt;beans&gt;
+
+  &lt;bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close"&gt;
+    &lt;property name="driverClassName" value="${jdbc.driverClassName}"/&gt;
+    &lt;property name="url" value="${jdbc.url}"/&gt;
+    &lt;property name="username" value="${jdbc.username}"/&gt;
+    &lt;property name="password" value="${jdbc.password}"/&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="mySessionFactory" class="org.springframework.orm.toplink.LocalSessionFactoryBean"&gt;
+    &lt;property name="configLocation" value="toplink-sessions.xml"/&gt;
+    &lt;property name="dataSource" ref="dataSource"/&gt;
+  &lt;/bean&gt;
+    
+&lt;/beans&gt;</pre>
+<pre class="programlisting">&lt;toplink-configuration&gt;
+
+  &lt;session&gt;
+    &lt;name&gt;Session&lt;/name&gt;
+    &lt;project-xml&gt;toplink-mappings.xml&lt;/project-xml&gt;
+    &lt;session-type&gt;
+      &lt;server-session/&gt;
+    &lt;/session-type&gt;
+    &lt;enable-logging&gt;true&lt;/enable-logging&gt;
+    &lt;logging-options/&gt;
+  &lt;/session&gt;
+
+&lt;/toplink-configuration&gt;</pre>
+<p>
+      	通常情況下，<code class="classname">LocalSessionFactoryBean</code> 在底層將持有一個多執行緒的TopLink 
+      	<code class="literal">ServerSession</code> 並創建合適的客戶端 <code class="interfacename">Session</code>：
+				它或者是一個普通的 <code class="interfacename">Session</code>（典型情況） —— 一個受管理的 <code class="literal">ClientSession</code>；
+				或者是一個具備事務功能的 <code class="interfacename">Session</code> （後者主要在Spring內部對TopLink的支持中被使用）。
+				還有一種情況，<code class="classname">LocalSessionFactoryBean</code> 可能會持有一個單執行緒的TopLink的 
+				<code class="literal">DatabaseSession</code>，這是非常特殊的情況了。
+			</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="orm-toplink-template"></a>12.4.2.&#160;<code class="classname">TopLinkTemplate</code> and
+      <code class="classname">TopLinkDaoSupport</code></h3></div></div></div>
+<p>
+      	每個基於TopLink的DAO將通過IoC被注入一個 <code class="interfacename">SessionFactory</code>，
+      	你可以通過Setter方式注入，也可以用建構函數方式注入。這樣的DAO可以直接操作原生的TopLink API，通過 
+      	<code class="interfacename">SessionFactory</code> 來獲取一個 <code class="interfacename">Session</code>，
+      	但是通常情況下，你更願意使用Spring的 <code class="literal">TopLinkTemplate</code>：
+      </p>
+<pre class="programlisting">&lt;beans&gt;
+  
+  &lt;bean id="myProductDao" class="product.ProductDaoImpl"&gt;
+    &lt;property name="sessionFactory" ref="mySessionFactory"/&gt;
+  &lt;/bean&gt;
+  
+&lt;/beans&gt;</pre>
+<pre class="programlisting">public class TopLinkProductDao implements ProductDao {
+  
+    private TopLinkTemplate tlTemplate;
+
+    public void setSessionFactory(SessionFactory sessionFactory) {
+        this.tlTemplate = new TopLinkTemplate(sessionFactory);
+    }
+
+    public Collection loadProductsByCategory(final String category) throws DataAccessException {
+        return (Collection) this.tlTemplate.execute(new TopLinkCallback() {
+            public Object doInTopLink(Session session) throws TopLinkException {
+                ReadAllQuery findOwnersQuery = new ReadAllQuery(Product.class);
+                findOwnersQuery.addArgument("Category");
+                ExpressionBuilder builder = this.findOwnersQuery.getExpressionBuilder();
+                findOwnersQuery.setSelectionCriteria(
+                    builder.get("category").like(builder.getParameter("Category")));
+
+                Vector args = new Vector();
+                args.add(category);
+                List result = session.executeQuery(findOwnersQuery, args);
+                <em class="lineannotation"><span class="lineannotation">// do some further stuff with the result list</span></em>
+                return result;
+            }
+        });
+    }
+}</pre>
+<p>
+      	一個回調的實作能夠有效地在任何TopLink資料存取中使用。<code class="classname">TopLinkTemplate</code> 
+      	會確保當前的 <code class="interfacename">Session</code> 物件的正確打開和關閉，並自動參與到事務管理中去。
+				Template實例不僅是執行緒安全的，同時它也是可重用的。因而他們可以作為外部物件的實例變數而被持有。對於那些簡單的諸如 
+				<code class="literal">executeQuery</code>、<code class="literal">readAll</code>、<code class="literal">readById</code> 和 
+				<code class="literal">merge</code> 操作的調用，<code class="classname">TopLinkTemplate</code>
+				（譯者註：原文誤寫成<code class="classname">JdoTemplate</code>）提供可選擇的快捷函數來替換這種回調的實作。
+				不僅如此，Spring還提供了一個簡便的 <code class="classname">TopLinkDaoSupport</code> 基類別，這個類別提供了 
+				<code class="literal">setSessionFactory(..)</code> 方法來接受一個 <code class="interfacename">SessionFactory</code> 
+				物件，同時提供了 <code class="literal">getSessionFactory()</code> 和 <code class="literal">getTopLinkTemplate()</code> 
+				方法給子類別使用。綜合了這些，對於那些典型的業務需求，就有了一個非常簡單的DAO實作。
+      </p>
+<pre class="programlisting">public class ProductDaoImpl extends TopLinkDaoSupport implements ProductDao {
+  
+    public Collection loadProductsByCategory(String category) throws DataAccessException {
+        ReadAllQuery findOwnersQuery = new ReadAllQuery(Product.class);
+        findOwnersQuery.addArgument("Category");
+        ExpressionBuilder builder = this.findOwnersQuery.getExpressionBuilder();
+        findOwnersQuery.setSelectionCriteria(
+            builder.get("category").like(builder.getParameter("Category")));
+
+        return getTopLinkTemplate().executeQuery(findOwnersQuery, new Object[] {category});
+    }
+}</pre>
+<p>邊註：TopLink查詢物件是執行緒安全的，並且能夠在DAO層被快取記憶體。在一開始被創建時以實例變數的方式被保持。</p>
+<p>
+      	作為不使用Spring的 <code class="classname">TopLinkTemplate</code> 來實作DAO的替代解決方案，
+      	你依然可以通過原生TopLink API對那些基於Spring的DAO進行程式，此時你必須明確地打開和關
+      	閉一個 <code class="interfacename">Session</code>。正如在相應的Hibernate章節描述的
+      	一樣，這種做法的主要優點在於你的資料存取程式碼可以在整個過程中拋出checked exceptions。
+				<code class="classname">TopLinkDaoSupport</code> 為這種情況提供了多種函數支持，包括獲取和釋放
+				一個具備事務的 <code class="interfacename">Session</code> 並做相關的異常轉化。
+      </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="orm-toplink-straight"></a>12.4.3.&#160;基於原生的TopLink API的DAO實作</h3></div></div></div>
+<p>
+      	我們可以直接操作TopLink API來實作DAO，直接使用一個注入的 <code class="interfacename">Session</code> 
+      	而無需對Spring產生的任何依賴。它通常基於一個由 <code class="classname">LocalSessionFactoryBean</code> 
+      	定義的 <code class="interfacename">SessionFactory</code>，並通過Spring的 
+      	<code class="literal">TransactionAwareSessionAdapter</code> 暴露成為一個 <code class="interfacename">Session</code> 
+      	型別的參考。
+      </p>
+<p>
+      	TopLink的 <code class="interfacename">Session</code> 介面中定義的 
+      	<code class="literal">getActiveSession()</code> 方法將返回當前具備事務管理功能的 
+      	<code class="interfacename">Session</code> 物件。如果當前沒有處於活躍狀態的事務，
+      	這個函數將返回一個共享的TopLink的 <code class="literal">ServerSession</code>，也就是說，
+      	這種情況應該只是一個直接使用的只讀存取。另外還有一個 <code class="methodname">getActiveUnitOfWork()</code> 
+      	方法, 返回TopLink的與當前事務綁定的 <code class="interfacename">UnitOfWork</code> 
+      	（如果沒有當前事務則返回 <code class="literal">null</code>）。
+      </p>
+<p>一個相應的DAO實作類別看上去就像下面那樣:</p>
+<pre class="programlisting">public class ProductDaoImpl implements ProductDao {
+
+    private Session session;
+
+    public void setSession(Session session) {
+        this.session = session;
+    }
+
+    public Collection loadProductsByCategory(String category) {
+        ReadAllQuery findOwnersQuery = new ReadAllQuery(Product.class);
+        findOwnersQuery.addArgument("Category");
+        ExpressionBuilder builder = this.findOwnersQuery.getExpressionBuilder();
+        findOwnersQuery.setSelectionCriteria(
+            builder.get("category").like(builder.getParameter("Category")));
+
+        Vector args = new Vector();
+        args.add(category);
+        return session.getActiveSession().executeQuery(findOwnersQuery, args);
+    }
+}</pre>
+<p>
+      	上面我們所列出的DAO完全遵循IoC：它如同使用Spring的 <code class="classname">TopLinkTemplate</code> 
+      	進行編碼那樣，非常適合在application context中進行配置。Spring的 
+      	<code class="literal">TransactionAwareSessionAdapter</code> 將暴露一個 
+      	<code class="interfacename">Session</code> 型別的bean的參考，並傳入到DAO中去：
+      </p>
+<pre class="programlisting">&lt;beans&gt;
+
+  &lt;bean id="mySessionAdapter"
+      class="org.springframework.orm.toplink.support.TransactionAwareSessionAdapter"&gt;
+    &lt;property name="sessionFactory" ref="mySessionFactory"/&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="myProductDao" class="product.ProductDaoImpl"&gt;
+    &lt;property name="session" ref="mySessionAdapter"/&gt;
+  &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<p>
+      	這種DAO樣式的主要好處在於它僅僅依賴於TopLink自身的API，而無需引入任何的Spring
+      	的類別。從無入侵性的角度來看，這一點非常吸引人。同時，對於TopLink的開發人員來說也更自然。
+      </p>
+<p>
+      
+      	然而，這樣的DAO存取方式會拋出 <code class="exceptionname">TopLinkException</code>
+      	（這是一個無需宣告或捕獲的unchecked exception），這意味著，DAO的調用者只能以普通的
+      	錯誤來處理這些異常，除非完全依賴TopLink自身的異常體系。因而，除非你將DAO的調用者綁定
+      	到具體的實作策略上去，否則你將無法捕獲特定的異常原因（諸如樂觀鎖異常）。這種折中平衡或許
+      	可以被接受，如果你的應用完全基於TopLink或者無需進行特殊的異常處理。
+      </p>
+<p>
+      
+      這樣的DAO樣式有一個不利因素在於TopLink的標準的 <code class="methodname">getActiveSession()</code> 
+      函數僅僅在JTA事務中有效。而對於其他的事務管理策略尤其時本地的TopLink事務，它將 <span class="emphasis"><em>無法</em></span> 工作。
+      </p>
+<p>
+      	幸運的是，Spring的 <code class="literal">TransactionAwareSessionAdapter</code> 
+      	為TopLink的 <code class="literal">ServerSession</code> 暴露了一個相應的代理類別。
+				這個代理類別能夠在任何的事務策略之上支持TopLink的 <code class="literal">Session.getActiveSession()</code> 
+				和 <code class="literal">Session.getActiveUnitOfWork()</code> 函數，返回當前收到Spring管理
+				（即便由 <code class="literal">TopLinkTransactionManager</code> 管理）的具備事務管理功能的 
+				<code class="interfacename">Session</code> 實例。當然，這個函數的標準行為依然有效：
+				返回與當前的JTA事務綁定的 <code class="interfacename">Session</code> 物件。
+				（無論這個JTA事務是由Spring的 <code class="classname">JtaTransactionManager</code>、
+				EJB CMT或者普通的JTA所驅動的事務）。
+      </p>
+<p>
+      	總體來說，DAO可以基於TopLink的原生API實作，同時，它依舊需要能夠參與到Spring的事務管理中。
+				這對於那些已經對TopLink非常熟悉的人來說很有吸引力，因為這種方式更加自然。不過，這種DAO將拋出 
+				<code class="exceptionname">TopLinkException</code>，因而，如果有必要的話需要明確地去做由 
+				<code class="exceptionname">TopLinkException</code> 到Spring的 <code class="classname">DataAccessException</code> 
+				的轉化。
+      </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="orm-toplink-tx"></a>12.4.4.&#160;事務管理</h3></div></div></div>
+<p>將事務管理納入到Service操作的執行中，你可以使用Spring通用的宣告式的事務管理功能，參加下面的例子：</p>
+<pre class="programlisting">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;beans
+        xmlns="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:aop="http://www.springframework.org/schema/aop"
+        xmlns:tx="http://www.springframework.org/schema/tx"
+        xsi:schemaLocation="
+   http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+   http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd
+   http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-2.5.xsd"&gt;
+
+  &lt;bean id="myTxManager" class="org.springframework.orm.toplink.TopLinkTransactionManager"&gt;
+    &lt;property name="sessionFactory" ref="mySessionFactory"/&gt;
+  &lt;/bean&gt;
+
+  &lt;bean id="myProductService" class="product.ProductServiceImpl"&gt;
+    &lt;property name="productDao" ref="myProductDao"/&gt;
+  &lt;/bean&gt;
+  
+  &lt;aop:config&gt;
+    &lt;aop:pointcut id="productServiceMethods" expression="execution(* product.ProductService.*(..))"/&gt;
+    &lt;aop:advisor advice-ref="txAdvice" pointcut-ref="productServiceMethods"/&gt;
+  &lt;/aop:config&gt;
+
+  &lt;tx:advice id="txAdvice" transaction-manager="myTxManager"&gt;
+    &lt;tx:attributes&gt;
+      &lt;tx:method name="increasePrice*" propagation="REQUIRED"/&gt;
+      &lt;tx:method name="someOtherBusinessMethod" propagation="REQUIRES_NEW"/&gt;
+      &lt;tx:method name="*" propagation="SUPPORTS" read-only="true"/&gt;
+    &lt;/tx:attributes&gt;
+  &lt;/tx:advice&gt;
+
+&lt;/beans&gt;</pre>
+<p>
+      	注意，TopLink要求你必須在一個活躍的 <code class="interfacename">工作單元（UnitOfWork）</code> 
+      	中修改一個持久化物件（你通常不能修改由普通的TopLink的 <code class="interfacename">Session</code> 
+      	查詢返回的物件，因為這些物件通常是一些從二級快取記憶體中讀出的只讀物件）。與Hibernate相比，
+      	在TopLink中並沒有一種類似脫離事務刷出（non-transactional flush）的概念。基於這
+      	種原因，TopLink需要被建立在特定的環境中，尤其是它需要為JTA同步做明確的創建，由此來
+      	自行檢測一個JTA事務以及暴露一個相應的活躍的 <code class="interfacename">Session</code> 
+      	和 <code class="interfacename">UnitOfWork</code>。這一點對於本地事務不是必要的，由於它已經被
+      	Spring的 <code class="literal">TopLinkTransactionManager</code> 處理，但是對於
+      	需要參與到JTA事務中的情況，是必須的（無論是由Spring的 
+      	<code class="classname">JtaTransactionManager</code>、EJB CMT或者普通的JTA所驅動的事務）。
+      </p>
+<p>
+      	在你的基於TopLink的DAO程式碼中，你可以使用 <code class="literal">Session.getActiveUnitOfWork()</code> 
+      	方法來存取當前的 <code class="interfacename">UnitOfWork</code> 並通過它來執行寫操作。這將只在一個活躍的事務中有效
+      	（在一個收到Spring管理的事務或者JTA事務中）。對於特殊的需求，你同樣可以獲取單獨的 
+      	<code class="interfacename">UnitOfWork</code> 實例，它將不參與到當前的事務中去，不過這種情況非常少。
+      </p>
+<p>
+      	<code class="classname">TopLinkTransactionManager</code> 能夠將一個TopLink事務暴露給
+      	存取相同的JDBC <code class="interfacename">DataSource</code> 的JDBC存取程式碼。
+				前提條件是，TopLink在底層是以JDBC方式工作的並且能夠暴露底層的JDBC <code class="interfacename">Connection</code>。
+				這種情況下，用於暴露事務的 <code class="interfacename">DataSource</code> 必須被明確指定，
+				它是無法被自動檢測到的。
+      </p>
+</div>
+</div></body>
+</html>

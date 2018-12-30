@@ -1,0 +1,46 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>10.3.&#160;一致的DAO支持抽象類別</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch10.html" title="第&#160;10&#160;章&#160;DAO支持">
+<link rel="prev" href="ch10s02.html" title="10.2.&#160;一致的異常層次">
+<link rel="next" href="ch11.html" title="第&#160;11&#160;章&#160;使用JDBC進行資料存取">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="dao-abstract-superclasses"></a>10.3.&#160;一致的DAO支持抽象類別</h2></div></div></div>
+<p>
+			為了便於以一種一致的方式使用各種資料存取技術，如JDBC、JDO和Hibernate，
+			Spring提供了一套<code class="literal">抽象</code>DAO類別供你擴展。這些抽象類別提供了一些方法，通過它們你可以
+			獲得與資料存取技術相關的資料源和其他配置資訊。
+		</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>
+					<code class="classname">JdbcDaoSupport</code> - JDBC資料存取物件的基類別。
+					需要一個<code class="interfacename">DataSource</code>，同時為子類別提供
+					<code class="classname">JdbcTemplate</code>。
+				</p></li>
+<li><p>
+					<code class="classname">HibernateDaoSupport</code> - Hibernate資料存取物件的基類別。
+					需要一個<code class="interfacename">SessionFactory</code>，同時為子類別提供
+					<code class="classname">HibernateTemplate</code>。也可以選擇直接通過
+					提供一個<code class="classname">HibernateTemplate</code>來初始化，
+					這樣就可以重用後者的設置，例如<code class="interfacename">SessionFactory</code>，
+					flush模式，異常翻譯器（exception translator）等等。
+				</p></li>
+<li><p>
+					<code class="classname">JdoDaoSupport</code> - JDO資料存取物件的基類別。
+					需要設置一個<code class="interfacename">PersistenceManagerFactory</code>，
+					同時為子類別提供<code class="classname">JdoTemplate</code>。
+				</p></li>
+<li><p>
+					<code class="classname">JpaDaoSupport</code> - JPA資料存取物件的基類別。
+					需要一個<code class="interfacename">EntityManagerFactory</code>，同時
+					為子類別提供<code class="classname">JpaTemplate</code>。
+				</p></li>
+</ul></div>
+</div></body>
+</html>

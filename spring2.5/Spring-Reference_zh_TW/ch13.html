@@ -1,0 +1,233 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>第&#160;13&#160;章&#160;Web MVC framework Web框架</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="pt03.html" title="部分&#160;III.&#160;The Web">
+<link rel="prev" href="pt03.html" title="部分&#160;III.&#160;The Web">
+<link rel="next" href="ch13s02.html" title="13.2.&#160;DispatcherServlet">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="chapter" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title">
+<a name="mvc"></a>第&#160;13&#160;章&#160;Web MVC framework Web框架</h2></div></div></div>
+<div class="toc">
+<p><b>目錄</b></p>
+<dl>
+<dt><span class="section"><a href="ch13.html#mvc-introduction">13.1. 概觀</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13.html#mvc-introduction-pluggability">13.1.1. 與其他MVC實作框架的整合</a></span></dt>
+<dt><span class="section"><a href="ch13.html#mvc-features">13.1.2. Spring Web MVC框架的特點</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s02.html">13.2. <code class="classname">DispatcherServlet</code></a></span></dt>
+<dt><span class="section"><a href="ch13s03.html">13.3. 控制器</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13s03.html#mvc-controller-abstractcontroller">13.3.1. <code class="classname">AbstractController</code> 和 <code class="classname">WebContentGenerator</code></a></span></dt>
+<dt><span class="section"><a href="ch13s03.html#mvc-controller-othersimplecontrollers">13.3.2. 其它的簡單控制器</a></span></dt>
+<dt><span class="section"><a href="ch13s03.html#mvc-controller-multiaction">13.3.3. <code class="classname">MultiActionController</code></a></span></dt>
+<dt><span class="section"><a href="ch13s03.html#mvc-controller-command">13.3.4. 命令控制器</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s04.html">13.4. 處理器映射（handler mapping）</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13s04.html#mvc-handlermapping-beanname">13.4.1. <code class="classname">BeanNameUrlHandlerMapping</code></a></span></dt>
+<dt><span class="section"><a href="ch13s04.html#mvc-handlermapping-urlhandlermapping">13.4.2. <code class="classname">SimpleUrlHandlerMapping</code></a></span></dt>
+<dt><span class="section"><a href="ch13s04.html#mvc-handlermapping-interceptor">13.4.3. 攔截器（<code class="interfacename">HandlerInterceptor</code>）</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s05.html">13.5. 視圖與視圖解析</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13s05.html#mvc-viewresolver-resolver">13.5.1. 視圖解析器（<code class="interfacename">ViewResolver</code>）</a></span></dt>
+<dt><span class="section"><a href="ch13s05.html#mvc-viewresolver-chaining">13.5.2. 視圖解析鏈</a></span></dt>
+<dt><span class="section"><a href="ch13s05.html#mvc-redirecting">13.5.3. 重定向（Rediret）到另一個視圖</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s06.html">13.6. 本地化解析器</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13s06.html#mvc-localeresolver-acceptheader">13.6.1. <code class="classname">AcceptHeaderLocaleResolver</code></a></span></dt>
+<dt><span class="section"><a href="ch13s06.html#mvc-localeresolver-cookie">13.6.2. <code class="classname">CookieLocaleResolver</code></a></span></dt>
+<dt><span class="section"><a href="ch13s06.html#mvc-localeresolver-session">13.6.3. <code class="classname">SessionLocaleResolver</code></a></span></dt>
+<dt><span class="section"><a href="ch13s06.html#mvc-localeresolver-interceptor">13.6.4. <code class="classname">LocaleChangeInterceptor</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s07.html">13.7. 使用主題</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13s07.html#mvc-themeresolver-introduction">13.7.1. 簡介</a></span></dt>
+<dt><span class="section"><a href="ch13s07.html#mvc-themeresolver-defining">13.7.2. 如何定義主題</a></span></dt>
+<dt><span class="section"><a href="ch13s07.html#mvc-themeresolver-resolving">13.7.3. 主題解析器</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s08.html">13.8. Spring對分段檔案上傳（multipart file upload）的支持</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13s08.html#mvc-multipart-introduction">13.8.1. 介紹</a></span></dt>
+<dt><span class="section"><a href="ch13s08.html#mvc-multipart-resolver">13.8.2. 使用<code class="interfacename">MultipartResolver</code></a></span></dt>
+<dt><span class="section"><a href="ch13s08.html#mvc-multipart-forms">13.8.3. 在表單中處理分段檔案上傳</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s09.html">13.9. 使用Spring的表單標籤資源庫</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-configuration">13.9.1. 配置</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-formtag">13.9.2. <code class="literal">form</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-inputtag">13.9.3. <code class="literal">input</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-checkboxtag">13.9.4. <code class="literal">checkbox</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-checkboxestag">13.9.5. <code class="literal">checkboxes</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-radiobuttontag">13.9.6. <code class="literal">radiobutton</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-radiobuttonstag">13.9.7. <code class="literal">radiobuttons</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-passwordtag">13.9.8. <code class="literal">password</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-selecttag">13.9.9. <code class="literal">select</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-optiontag">13.9.10. <code class="literal">option</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-optionstag">13.9.11. <code class="literal">options</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-textAreatag">13.9.12. <code class="literal">textarea</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-hiddeninputtag">13.9.13. <code class="literal">hidden</code>標籤</a></span></dt>
+<dt><span class="section"><a href="ch13s09.html#mvc-formtaglib-errorstag">13.9.14. <code class="literal">errors</code>標籤</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s10.html">13.10. 處理異常</a></span></dt>
+<dt><span class="section"><a href="ch13s11.html">13.11. 慣例優先原則（convention over configuration）</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13s11.html#mvc-coc-ccnhm">13.11.1. 對控制器的支持：<code class="classname">ControllerClassNameHandlerMapping</code></a></span></dt>
+<dt><span class="section"><a href="ch13s11.html#mvc-coc-modelmap">13.11.2. 對模型的支持：<code class="classname">ModelMap</code>（<code class="classname">ModelAndView</code>）</a></span></dt>
+<dt><span class="section"><a href="ch13s11.html#mvc-coc-r2vnt">13.11.3. 對視圖的支持：<code class="interfacename">RequestToViewNameTranslator</code></a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s12.html">13.12. 基於註釋的控制器配置</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="ch13s12.html#mvc-ann-setup">13.12.1. 建立dispatcher實作註釋支持</a></span></dt>
+<dt><span class="section"><a href="ch13s12.html#mvc-ann-controller">13.12.2. 使用<code class="interfacename">@Controller</code>定義一個控制器</a></span></dt>
+<dt><span class="section"><a href="ch13s12.html#mvc-ann-requestmapping">13.12.3. 使用<code class="interfacename">@RequestMapping</code>映射請求</a></span></dt>
+<dt><span class="section"><a href="ch13s12.html#mvc-ann-requestparam">13.12.4. 使用<code class="classname">@RequestParam</code>綁定請求參數到方法參數</a></span></dt>
+<dt><span class="section"><a href="ch13s12.html#mvc-ann-modelattrib">13.12.5. 使用<code class="classname">@ModelAttribute</code>提供一個從模型到資料的連接</a></span></dt>
+<dt><span class="section"><a href="ch13s12.html#mvc-ann-sessionattrib">13.12.6. 使用<code class="classname">@SessionAttributes</code>指定存儲在Session中的屬性</a></span></dt>
+<dt><span class="section"><a href="ch13s12.html#mvc-ann-webdatabinder">13.12.7. 自定義<code class="classname">WebDataBinder</code>初始化</a></span></dt>
+</dl></dd>
+<dt><span class="section"><a href="ch13s13.html">13.13. 更多資源</a></span></dt>
+</dl>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="mvc-introduction"></a>13.1.&#160;概觀</h2></div></div></div>
+<p>Spring的web框架圍繞<code class="classname">DispatcherServlet</code>設計。
+      <code class="classname">DispatcherServlet</code>的作用是將請求分發到不同的處理器。
+      Spring的web框架包括可配置的處理器（handler）映射、視圖（view）解析、本地化（local）解析、
+      主題（theme）解析以及對檔案上傳的支持。Spring的Web框架中缺省的處理器是<code class="interfacename">Controller</code>
+      介面，這是一個非常簡單的介面，僅包含<code class="literal">ModelAndView  handleRequest(request, response)</code>
+      方法。可以通過實作這個介面來創建自己的控制器（也可以稱之為處理器），但是更推薦繼承Spring提供的一系列控制器，
+      比如<code class="classname">AbstractController</code>、<code class="classname">AbstractCommandController</code>
+      和<code class="classname">SimpleFormController</code>。注意，需要選擇正確的基類別：如果沒有表單，就不需要一個FormController。
+      這是和Struts的一個主要區別。
+     </p>
+<div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">提示</h3>
+<p>從Spring 2.5開始，使用Java 5或者以上版本的使用者可以採用基於註釋的controller方式。
+      在實作傳統的<code class="interfacename">Controller</code>及其子類別時這是一種更好的替換方案，
+          其中提供了更為靈活的處理multi-action的能力。更多資訊請參考<a href="ch13s12.html" title="13.12.&#160;基於註釋的控制器配置">第&#160;13.12&#160;節 「基於註釋的控制器配置」</a>。</p>
+</div>
+<div class="sidebar">
+<a name="mvc-open-for-extension"></a><p class="title"><b>「<span class="quote">遵循開閉原則</span>」</b></p>
+<p>貫穿整個Spring web框架（甚至整個Spring框架）的一個設計原則是：「<span class="quote">
+          <span class="emphasis"><em>對擴展開放，對修改封閉（開閉原則 OCP）</em></span></span>」。</p>
+<p>我們之所以在這裡提到這個設計原則，是因為Spring Web MVC 框架中核心類別的很多方法
+          都被標記成<code class="literal">final</code>。這意味著你不可以通過複寫（override)來改變
+          這些方法的行為。這是一種<span class="emphasis"><em>按設計應當如此（by design）</em></span>的決定，
+          並非隨意設置障礙。
+       </p>
+<p>在Seth Ladd等人所著《Expert Spring Web MVC and Web Flow》一書中詳細地解釋了
+      這個設計原則以及為什麼要遵守它。如果有興趣的話，可以參考該書第一版117頁。那一部分的標題為「A Look At Design」。</p>
+<p>如果找不到那本書，也可以參考下面這篇文檔（尤其當你發現自己再一次忍不住喊出
+      「<span class="quote">啊！為什麼我不能複寫這個方法？</span>」時）。</p>
+<div class="orderedlist"><ol type="1"><li><p><a href="http://www.objectmentor.com/resources/articles/ocp.pdf" target="_top">Bob
+          Martin, The Open-Closed Principle (PDF)</a></p></li></ol></div>
+<p>注意，不能給Spring MVC中的final方法添加advice。這意味著沒法攔截像
+      <code class="literal">AbstractController.handleRequest()</code>這樣的方法。關於AOP代理，
+      以及為什麼不能攔截final方法，可以參考<a href="ch06s06.html#aop-understanding-aop-proxies" title="6.6.1.&#160;理解AOP代理">第&#160;6.6.1&#160;節 「理解AOP代理」</a>
+      </p>
+</div>
+<p>Spring Web MVC允許使用任何物件作為命令物件（或表單物件）- 不必實作某個特定於框架的介面或從某個基類別繼承。
+    Spring的資料綁定相當靈活，例如，它認為型別不匹配這樣的錯誤應該是應用級的驗證錯誤，而不是系統錯誤。
+    所以你不需要為了保證表單內容的正確提交，而重複定義一個和業務物件有相同屬性的表單物件來處理簡單的無
+    型別字元串或者對字元串進行轉換。這也是和Struts相比的另一個重要區別，Struts是圍繞
+    <code class="classname">Action</code>和<code class="classname">ActionForm</code>等基類別建構的。
+    </p>
+<p>和WebWork相比，Spring將物件細分成更多不同的角色：控制器（<code class="interfacename">
+    Controller</code>）、可選的命令物件（Command Object）或表單物件（Form Object），
+    以及傳遞到視圖的模型（Model）。模型不僅包含命令物件或表單物件，而且也可以包含任何參考資料。
+    相比之下，WebWork的<code class="interfacename">Action</code>將所有的這些角色都合併在一個單獨的物件裡。
+    雖然WebWork的確允許在表單中使用現有的業務物件，但是必須把它們定義成相應的<code class="interfacename">Action
+    </code>類別的bean屬性。更重要的是，在進行視圖層（View）運算和表單賦值時，WebWork使用的是同一個處理請求的
+    <code class="interfacename">Action</code>實例。因此，參考資料也需要被定義成<code class="interfacename">Action
+    </code>的bean屬性。這樣一個對象就承擔了太多的角色（當然，對於這個觀點仍有爭議）。
+    </p>
+<p>Spring的視圖解析相當靈活。一個控制器甚至可以直接向response輸出一個視圖
+    （此時控制器返回ModelAndView的值必須是null）。在一般的情況下，一個ModelAndView
+    實例包含一個視圖名字和一個型別為<code class="interfacename">Map</code>的model，
+    一個model是一些以bean的名字為key，以bean物件（可以是命令或form，也可以是其他的JavaBean）
+    為value的鍵值對。對視圖名稱的解析處理也是高度可配置的，可以通過bean的名字、屬性檔案或者自定義的
+    <code class="interfacename">ViewResolver</code>實作來進行解析。實際上基於<code class="interfacename">
+    Map</code>的model（也就是MVC中的M）是高度抽象的，適用於各種表現層技術。
+    也就是說，任何表現層都可以直接和Spring整合，無論是JSP、Velocity還是其它表現層技術。
+    Map model可以被轉換成合適的格式，比如JSP request attribute或者Velocity template model。
+    </p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-introduction-pluggability"></a>13.1.1.&#160;與其他MVC實作框架的整合</h3></div></div></div>
+<p>由於種種原因，許多團隊傾向於使用其他的web框架。比如，某些團隊已經在其他的技術和工具方面進行了
+      投入，他們希望充分利用已有的經驗。另外，Struts不僅有大量的書籍和工具，而且有許多開發人員都熟悉它。
+      因此，如果能忍受Struts的架構性缺陷，它仍然是web層一個不錯的選擇。WebWork和其它的web框架也是這樣。
+      </p>
+<p>如果不打算使用Spring的web MVC框架，但仍希望使用Spring提供的其它功能，
+      可以很容易地將所選擇的web框架和Spring結合起來。只需通過Spring的<code class="classname">
+      ContextLoadListener</code>啟動一個root application context，就可以在
+      Struts或WebWork的Action中，通過<code class="interfacename">ServletContext</code>屬性
+      （或者Spring提供的相應輔助方法）進行存取。請注意我們沒有提到任何具體的「plugins」，因此也你不
+      需要任何專門的整合工具。從web層的角度看，可以以root application context實例為入口，把Spring作為一個library使用。</p>
+<p>即便不使用Spring的web MVC，仍可以使用Spring提供的服務以及所有註冊的bean。
+      在這裡，Spring不會和Struts或WebWork競爭，它只是提供這些純粹的web MVC框架所沒有的功能，
+      例如：bean的配置、資料存取和事務處理。因此可以使用Spring的中間層或者資料存取層來增強你的應用，
+      比如你可能只需要JDBC或Hibernate事務抽象。
+      </p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="mvc-features"></a>13.1.2.&#160;Spring Web MVC框架的特點</h3></div></div></div>
+<div class="sidebar">
+<p class="title"><b>Spring WebFlow</b></p>
+<p>Spring Web Flow（SWF）的目標是成為Web應用程序頁面串流轉管理的最佳解決方案。</p>
+<p>SWF在servlet和portlet環境中都與比如Spring MVC，Struts，和JSF這樣的現存框架整合在一起。
+  如果你面對的是一個更能得益於作為對話模型，而不是單純的請求模型的業務串流程（或多個串流程）的話，
+  那麼SWF可能就是解決方案了。</p>
+<p>SWF使你能夠把邏輯上的頁面串流轉捕捉為自容納的模組，並在不同的情形下被復用。
+  而這對於開發要引導使用者完成受控的瀏覽動作，從而驅動業務串流程的Web應用程序模組正是理想的。</p>
+<p>關於SWF的更多資訊，請存取<a href="http://www.springframework.org/webflow" target="_top">Spring WebFlow站點</a>。</p>
+</div>
+<p>Spring的web模組提供了大量獨特的功能，包括:</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>清晰的角色劃分：控制器（controller）、驗證器（validator）、
+          命令物件（command object）、表單物件（form object）、模型物件（model object）、
+          Servlet分發器（<code class="classname">DispatcherServlet</code>）、
+          處理器映射（handler mapping）、視圖解析器（view resolver）等等。 每一個角色都可以由一個專門的物件來實作。
+          </p></li>
+<li><p>強大而直接的配置方式：將框架類別和應用程序類別都能作為JavaBean配置，支持跨多個context的參考，例如，在web控制器中對業務物件和驗證器（validator）的參考。
+          </p></li>
+<li><p>可適配、非侵入：可以根據不同的應用場景，選擇合適的控制器子類別
+          （simple型、command型、form型、wizard型、multi-action型或者自定義），而不是從單一控制器
+          （比如Action/ActionForm）繼承。</p></li>
+<li><p>可重用的業務程式碼：可以使用現有的業務物件作為命令或表單物件，而不需要去擴展某個特定框架的基類別。</p></li>
+<li><p>可定制的綁定（binding） 和驗證（validation）：比如將型別不匹配作為應用級的驗證錯誤，
+          這可以保存錯誤的值。再比如本地化的日期和數字綁定等等。在其他某些框架中，你只能使用字元串表單物件，
+          需要手動解析它並轉換到業務物件。
+          </p></li>
+<li><p>可定制的handler mapping和view resolution：Spring提供從最簡單的URL映射，
+          到複雜的、專用的定制策略。與某些web MVC框架強制開發人員使用單一特定技術相比，Spring顯得更加靈活。
+          </p></li>
+<li><p>靈活的model轉換：在Springweb框架中，使用基於<code class="interfacename">Map</code>的
+          鍵/值對來達到輕易地與各種視圖技術的整合。
+          </p></li>
+<li><p>可定制的本地化和主題（theme）解析：支持在JSP中可選擇地使用Spring標籤資源庫、支持JSTL、支持Velocity（不需要額外的中間層）等等。</p></li>
+<li><p>簡單而強大的JSP標籤資源庫（Spring Tag Library）：支持包括諸如資料綁定和主題（theme）
+          之類別的許多功能。它提供在標記方面的最大靈活性。如欲瞭解詳情，請參閱附錄<a href="apd.html" title="附錄&#160;D.&#160;spring.tld">附錄&#160;D, <i>spring.tld</i></a>
+          </p></li>
+<li><p>JSP表單標籤資源庫：在Spring2.0中引入的表單標籤資源庫，使得在JSP中編寫
+          表單更加容易。如欲瞭解標籤資源庫詳情，請參閱附錄<a href="ape.html" title="附錄&#160;E.&#160;spring-form.tld">附錄&#160;E, <i>spring-form.tld</i></a>
+          </p></li>
+<li><p>Spring Bean的生命週期可以被限制在當前的HTTP Request或者HTTP <code class="interfacename">Session</code>。
+          準確的說，這並非Spring MVC框架本身特性，而應歸屬於Sping MVC使用的WebApplicationContext容器。
+          該功能在<a href="ch03s04.html#beans-factory-scopes-other" title="3.4.4.&#160;其他作用域">第&#160;3.4.4&#160;節 「其他作用域」</a>有詳細描述。
+          </p></li>
+</ul></div>
+</div>
+</div>
+</div></body>
+</html>

@@ -1,0 +1,31 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>9.2.&#160;動機</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch09.html" title="第&#160;9&#160;章&#160;事務管理">
+<link rel="prev" href="ch09.html" title="第&#160;9&#160;章&#160;事務管理">
+<link rel="next" href="ch09s03.html" title="9.3.&#160;關鍵抽象">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="transaction-motivation"></a>9.2.&#160;動機</h2></div></div></div>
+<div class="sidebar">
+<p class="title"><b>事務管理究竟是否需要應用伺服器？</b></p>
+<p>Spring框架對事務管理的支持極大地改變了傳統上認為J2EE應用需要應用伺服器的認識。</p>
+<p>這種改變尤其在於你不需要僅僅為了通過EJB來使用宣告式事務而使用應用伺服器。事實上，即使你的應用伺服器擁有強大的JTA功能，你也有充分的理由可以發現，Spring框架的宣告式事務提供了比EJB CMT更加強大、高效的程式模型。</p>
+<p>一般來說，只有當你需要支持多個事務性資源時，你才需要應用伺服器的JTA功能。而大多數應用並不需要能夠處理跨越多種資源。許多高端應用使用單一的、高伸縮性的資料庫，比如Oracle 9i RAC。</p>
+<p>（當然，也許你需要應用伺服器的其他功能，比如JMS或JCA。）</p>
+<p>最重要的一點是，使用Spring，<span class="emphasis"><em>你可以選擇何時把你的應用遷移到全功能的應用伺服器</em></span>。用硬編碼去實作本地事務來替代EJB CMT或JTA，處理JDBC連接，或者還需要使用硬編碼來處理那些全局的、受到容器管理的事務，這樣的日子將一去不復返了。使用Spring，你僅需要改動配置檔案，而不必改動你的程式碼。</p>
+</div>
+<p>傳統上，J2EE開發者有兩個事務管理的選擇： <span class="emphasis"><em>全局</em></span> 或 <span class="emphasis"><em>本地</em></span> 事務。全局事務由應用伺服器管理，使用JTA。局部事務是和資源相關的，比如一個和JDBC連接關聯的事務。這個選擇有深刻的含義。例如，全局事務可以用於多個事務性的資源（典型例子是關聯型資料庫和訊息隊列）。使用局部事務，應用伺服器不需要參與事務管理，並且不能說明確保跨越多個資源（需要指出的是多數應用使用單一事務性的資源）的事務的正確性。</p>
+<p><b>全局事務.&#160;</b>
+				全局事務有一個重大的缺陷，程式碼需要使用JTA：一個笨重的API（部分是因為它的異常模型）。此外，JTA的<code class="interfacename">UserTransaction</code>通常需要從JNDI獲得，這意味著我們為了JTA，需要 <span class="emphasis"><em>同時</em></span> 使用JNDI <span class="emphasis"><em>和</em></span> JTA。顯然全部使用全局事務限制了應用程式碼的重用性，因為JTA通常只在應用伺服器的環境中才能使用。
+				以前，使用全局事務的首選方式是通過EJB的 <span class="emphasis"><em>CMT</em></span>（<span class="emphasis"><em>容器管理事務</em></span>）：CMT是 <span class="bold"><strong>宣告式事務管理</strong></span> 的一種形式（區別於 <span class="bold"><strong>程式式事務管理</strong></span>）。EJB的CMT不需要任何和事務相關的JNDI尋找，雖然使用EJB本身肯定需要使用JNDI。它消除了大多數（不是全部）硬編碼的方式去控制事務。重大的缺陷是CMT綁定在JTA和應用伺服器環境上，並且只有我們選擇使用EJB實作商業邏輯，或者至少處於一個事務化EJB的外觀（Facade）後才能使用它。EJB有如此多的詬病，尤其是存在其它宣告式事務管理時，EJB不是一個吸引人的建議。</p>
+<p><b>本地事務.&#160;</b>本地事務容易使用，但也有明顯的缺點：它們不能用於多個事務性資源。例如，使用JDBC連接事務管理的程式碼不能用於全局的JTA事務中。另一個缺點是局部事務趨向於入侵式的程式模型。</p>
+<p>Spring解決了這些問題。它使應用開發者能夠使用在 <span class="emphasis"><em>任何環境</em></span> 下使用 <span class="emphasis"><em>一致</em></span> 的程式模型。你可以只寫一次你的程式碼，這在不同環境下的不同事務管理策略中很有益處。Spring框架同時提供宣告式和程式式事務管理。宣告事務管理是多數使用者的首選，在多數情況下是被推薦使用的。</p>
+<p>使用程式式事務管理，開發者直接使用Spring框架事務抽象，這個抽象可以使用在任何底層事務基礎之上。使用首選的宣告式模型，開發者通常書寫很少的或沒有與事務相關的程式碼，因此不依賴Spring框架或任何其他事務API。</p>
+</div></body>
+</html>

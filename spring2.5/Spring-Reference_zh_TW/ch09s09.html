@@ -1,0 +1,26 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>9.9.&#160;常見問題的解決方法</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch09.html" title="第&#160;9&#160;章&#160;事務管理">
+<link rel="prev" href="ch09s08.html" title="9.8.&#160;與特定應用伺服器整合">
+<link rel="next" href="ch09s10.html" title="9.10.&#160;更多的資源">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="transaction-solutions-to-common-problems"></a>9.9.&#160;常見問題的解決方法</h2></div></div></div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="transaction-solutions-to-common-problems-wrong-ptm"></a>9.9.1.&#160;對一個特定的 <code class="interfacename">DataSource</code> 使用了錯誤的事務管理器</h3></div></div></div>
+<p>你需要按照需求仔細地選擇 <span class="emphasis"><em>正確的</em></span><code class="interfacename">PlatformTransactionManager</code> 實作。
+		只要使用得當就可以得到一個Spring提供的直觀的、可移植的抽象層。如果你使用全局事務，
+		你<span class="emphasis"><em>必須</em></span>為所有事務操作使用Spring的<code class="classname">org.springframework.transaction.jta.JtaTransactionManager</code>類別
+	   （或 <a href="ch09s08.html" title="9.8.&#160;與特定應用伺服器整合">特定於某種應用伺服器的子類別</a>）。
+	   否則Spring將試圖在像容器資料源這樣的資源上執行局部事務。這樣的局部事務沒有任何意義，優秀的應用伺服器會把這些情況視為錯誤。<code class="literal"></code>
+	   </p>
+</div>
+</div></body>
+</html>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FlowViewLayout Version="1.2">
+  <StrutsActivity path="/cat.do" location="150,75" dimension="194,100" />
+  <StrutsActivity path="/form/listCat.jsp" location="180,270" dimension="120,52" />
+  <StrutsActivity path="/cat2.do" location="435,75" dimension="201,100" />
+  <StrutsActivity path="/form/listCat2.jsp" location="450,270" dimension="127,52" />
+  <StrutsTransition id="/cat2.do,list,/form/listCat2.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="513,175" />
+      <AbsolutePoint location="513,270" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/cat.do,list,/form/listCat.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="240,175" />
+      <AbsolutePoint location="240,270" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/form/listCat.jsp,null,/cat.do,2" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="270,270" />
+      <AbsolutePoint location="270,175" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/form/listCat2.jsp,null,/cat2.do,2" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="543,270" />
+      <AbsolutePoint location="543,175" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+</FlowViewLayout>
+

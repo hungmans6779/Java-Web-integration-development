@@ -1,0 +1,287 @@
+
+
+
+
+
+★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+
+ 【第十四章】Struts 1.x 概述 (MVC FrameWork)
+   
+    官網：http://struts.apache.org/
+       
+       
+   MVC:架構清晰、階層分明、程式碼耦合率、重用性好的特性。
+    
+  (1)Model(模型層)  ：專注於業務邏輯(即資料的儲存、處理等)。
+  (2)View(檢視層)   ：專注於資料在瀏覽器端的展示。
+  (3)Contron(控制層)：連接  Model 層與 View 層。
+    
+    
+  ActionForm：具有自動轉化資料、整合資料驗證的功能。
+  Action：扮演著 Servlet 的角色，但它本身沒有繼承 Servlet 介面，因此不是Servlet。
+      準確地說，它是 Struts 入口 ActionServlet 的一部份，
+  ActionServlet 透過使用反射呼叫  Action 的 execute() 方法執行業務程式碼。
+    
+    
+    ★★★ 極重要的觀念 ★★★
+    一、Action Bean：
+       (1)Struts 1.x：是執行緒不安全的; Action 中的屬性最好標記為 final，禁止對其進行寫操作，避免執行緒不安全問題;
+       (2)Struts 2.x：Action 已被設計為執行緒安全的了，每個請求都會產生一個  Action 實例，請求完畢後，Action 實例即銷毀。
+    二、Form Bean ：是執行緒安全的;代表 JSP 表單，每次請求都會產生一個新的Form Bean，
+                                              不會出現多個執行緒共有一個 Form Bean 的情況。Form Bean 中可任意地定義讀取屬性;
+    
+    【結論】：
+    (1)FormBean 負責資料轉化及驗證;
+    (2)JSP 負責資料展示;
+    (3)Action 專注於業務邏輯;
+
+
+    ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆	 
+   《第一個 Struts 1.X 實例》
+
+    【Struts 1.x 工作流程】
+    1. 存取 /struts/form/hello.jsp;
+    2. 送出表單後資料送出到 /struts1.2/hello.do;
+    3. Struts 截獲 *.do 的請求;
+    4. 查找 struts-config.xml,hello.do 對應 HelloForm 與 HelloAction;
+    5. 將表單封裝為 HelloForm 並反射呼叫用 HelloAction 的 execute();
+    6. forward 到 /form/helloSuccess.jsp
+
+          使用者資訊輸入頁面
+    http://3w.eztravel.com.tw:8080/struts1.2/hello.do
+   
+   
+    ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆		  
+     
+       ※POJO 極重要的觀念※
+     【POJO】(Plain Old Java Object): 具有業務邏輯處理的規則的 Java 對象（regular java objects）
+       參閱：http://supermand9362787.wordpress.com/
+   Java 對象不是 JavaBean、EntityBeans（EJB的一種）。
+   POJO一個正規的Java對象（不是JavaBean，EntityBean等），也不擔當任何的特殊的角色，也不實現任何Java框架指定的接口。
+		 
+   POJO 應該不是我們開始認為的 JavaBean，當然更不是 EJB，它不應該依賴於框架即繼承或實現某些框架類或接口。
+        例如：Struts1中的 Action 和 ActionForm 當然不屬於POJO了，
+        而在 Struts2 中的 Action 由於可以不繼承任何的接口，所以在這種情況下 Action 是 POJO，
+       但是 Struts2 中的 Action 也可以繼承 ActionSupport 類就不再屬於POJO了。
+   POJO 裡面是可以包含業務邏輯處理和持久化邏輯，也可以包含類似與JavaBean屬性和對屬性訪問的 set 和 get 方法的。
+        最後，我們總結一下給一個定義
+   POJO 是一個簡單的、正規Java對象，它包含業務邏輯處理或持久化邏輯等，
+        但不是JavaBean、EntityBean等，不具有任何特殊角色和不繼承或不實現任何其它Java框架的類別或接口。
+		 
+   http://dev.firnow.com/course/3_program/java/javashl/200845/108451.html
+		 
+     《FormBean 使用POJO 實體類別》	  
+   http://3w.eztravel.com.tw:8080/struts1.2/useBean.do
+		  
+
+    ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆	
+    
+       
+      把 JSP 設定為 Action
+      對於簡單的沒有業務邏輯的 Action，只顯示一個 JSP 就夠了。這時可以設定一下，像存取 Action 一樣使用 *.do 的形式存取JSP頁面。  
+   
+  <action path="/login"  forward="/form/loginNoAction.jsp"  />
+  <action path="/logout" forward="/form/logoutNoAction.jsp" />
+    
+  http://3w.eztravel.com.tw:8080/struts1.2/login.do
+  http://3w.eztravel.com.tw:8080/struts1.2/logout.do
+    	
+    	
+    	
+    ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆	
+
+  《FormBean 使用 POJO 實體類別》:資料庫存取範例	  
+ 	 
+  (1)建立mySQL 資料庫 struts
+     create database struts1_2 default character set utf8 collate utf8_general_ci;    -- 建立資料庫  struts，編碼方式為 UTF-8
+  
+  (2)使用資料庫struts
+     use struts1_2;                    -- 切換到 struts
+
+  (3)建立mySQL 資料表 tb_person
+     create table tb_person (
+	    id integer auto_increment,     -- 主鍵，自增長類型
+	    account varchar(255),          -- 帳號列，varchar 類型
+	    name varchar(255),             -- 姓名列，varchar 類型
+	    birthday date,                 -- 生日列，date 類型
+	    create_date timestamp,         -- 建立日期列，時間戳記列
+	    secret bit,                    -- 是否保密，boolean 類型，資料庫用bit 類型
+	    primary key (id)               -- 主鍵為id
+	); 
+
+  (4)建立mySQL 資料表 tb_hobby
+     create table tb_hobby (
+	    person_id integer,             -- id 列
+	    hobby varchar(255),            -- 愛好
+	    primary key(person_id, hobby)  -- 主鍵為hobby、Person_ID 組合主鍵
+     );
+       
+       
+   // 添加人員
+   http://3w.eztravel.com.tw:8080/struts1.2/person.do
+ 
+   // 顯示列表人員
+   http://3w.eztravel.com.tw:8080/struts1.2/person.do?action=list
+ 
+    ☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆☆	
+
+★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+   
+   【第十五章】Struts 1.x 高級應用     
+
+    <%@ taglib uri="http://jakarta.apache.org/struts/tags-html"     prefix="html"   %>
+    <%@ taglib uri="http://jakarta.apache.org/struts/tags-bean"     prefix="bean"   %>
+    <%@ taglib uri="http://jakarta.apache.org/struts/tags-logic"    prefix="logic"  %>
+    <%@ taglib uri="http://jakarta.apache.org/struts/tags-nested"   prefix="nested" %>
+    <%@ taglib uri="http://jakarta.apache.org/struts/tags-tiles"    prefix="tiles"  %>
+
+
+   1.《html 標籤函式庫》：用於產生 html 程式碼。  
+                參考頁面：http://struts.apache.org/1.2.9/userGuide/struts-html.html
+               http://struts.apache.org/1.3.10/struts-taglib/tagreference.html#struts-html.tld
+                
+	  http://3w.eztravel.com.tw:8080/struts1.2/tag.do
+  
+  
+  
+  
+  
+  
+   
+   2.《bean 標籤函式庫》：用於操作 POJO、Cookie、Header 以及Struts 物件等。
+                參考頁面：http://struts.apache.org/1.2.9/userGuide/struts-bean.html
+               http://struts.apache.org/1.3.10/struts-taglib/tagreference.html#struts-bean.tld
+               
+      http://3w.eztravel.com.tw:8080/struts1.2/beanTag.do?action=kevin&action1=hungmans6779
+      
+
+
+
+      <bean:cookie    />：獲得 cookie 中的物件。
+      <bean:write     />：能輸出 request、Session、application、page 中能夠存取到的變數。
+      <bean:parameter />：獲得 parameter 中的物件。
+      <bean:header    />：獲得 header 中的物件。
+      <bean:message   />：標籤顯示資源國際化資訊，可以攜帶參數。
+      <bean:page      />：可以檢索JSP隱藏式物件。
+      <bean:resource  />：可以獲得本Web程式內的資源。
+      <bean:struts    />：可用於 struts 配置。
+      <bean:include   />：可以將一個外部檔案包含進來。
+      <bean:size      />：可獲得集合物件的長度。
+  
+  
+  
+  
+  
+  
+   
+   3.《logic 標籤函式庫》：由於 bean 標籤經常拋出例外，因此常與 logic 標籤一起使用。
+                 參考頁面：http://struts.apache.org/1.2.9/userGuide/struts-logic.html
+                http://struts.apache.org/1.3.10/struts-taglib/tagreference.html#struts-logic.tld
+                 
+                例.<logic:present><logic:notPresent> 標籤能夠判斷物件是否存在。
+                指定 Cookie 屬性時判斷 Cookie，指定header 屬性時判斷 header ，指定parameter 時判斷 parameter。
+
+      http://3w.eztravel.com.tw:8080/struts1.2/logicTag.do
+  
+  
+  
+  
+  
+  
+   
+   4.《nested 標籤函式庫》：使用 nested 標籤能夠使Struts 把資料直接設置到業務元件 POJO 而不是FormBean。
+                參考頁面： http://struts.apache.org/1.2.9/userGuide/struts-nested.html
+                http://struts.apache.org/1.3.10/struts-taglib/tagreference.html#struts-nested.tld
+                
+     http://3w.eztravel.com.tw:8080/struts1.2/nestedTag.do
+  
+  
+  
+  
+  
+  
+   
+   5.《tiles 標籤函式庫》：原本是一個獨立的軟體產品，後來被融入Apache Struts 中。
+               官網：http://www.lifl.fr/~dumoulin/tiles/
+               參考頁面：http://tiles.apache.org/
+               http://struts.apache.org/1.2.9/userGuide/struts-tiles.html
+                         
+      tiles 在處理網頁佈局以及佈局的再使用性、可維護性上做得非常好,能將頁面或者部份頁面元件化。
+                開發Struts 專案時，結合使用tiles，在處理JSP檔案樣式上會得心應手，簡單明瞭。
+      tiles 也可以獨立於 Struts 單獨使用。單獨使用時需配置 tiles 類庫以及 tld 檔案。
+               
+       
+    (1)使用範本  template1.jsp              
+       http://3w.eztravel.com.tw:8080/struts1.2/tiles/case1.jsp
+
+    (2)使用範本 template2.jsp 
+       http://3w.eztravel.com.tw:8080/struts1.2/tiles/case2.jsp
+       http://3w.eztravel.com.tw:8080/struts1.2/case2.do
+
+    (3)使用 tiles-defs.xml 及  struts-config.xml plugin
+       http://3w.eztravel.com.tw:8080/struts1.2/tiles.do?action=list
+       http://3w.eztravel.com.tw:8080/struts1.2/tiles.do?action=view
+
+
+
+
+
+
+
+
+	 《DispatchAction 範例》：Struts1.x 內建了通用的分發器 DispatchAction ，只需要繼承 DispatchAction 類別，並指定按照哪個參數進行分發。
+	                                                                   注意 execute() 方法要執行 super.execute() ，因為父類別的 execute() 實現了分發。如果覆蓋了該方法，分發器就失效。	  
+		
+		http://3w.eztravel.com.tw:8080/struts1.2/dispatch.do?action=add
+		http://3w.eztravel.com.tw:8080/struts1.2/dispatch.do?action=list
+		http://3w.eztravel.com.tw:8080/struts1.2/dispatch.do?action=view
+		
+	
+	
+	
+	 《上傳檔案  範例》	  
+	  http://3w.eztravel.com.tw:8080/struts1.2/upload.do
+	
+	
+	
+	
+	 《Validator 自動驗證資料》	  
+	  http://3w.eztravel.com.tw:8080/struts1.2/validator.do
+	
+	
+	
+	
+	 《動態屬性 Form Bean》	
+	  http://3w.eztravel.com.tw:8080/struts1.2/dyna.do
+
+  
+  
+           《萬用字元》	
+     http://3w.eztravel.com.tw:8080/struts1.2/editPerson.do
+     http://3w.eztravel.com.tw:8080/struts1.2/editCat.do
+     http://3w.eztravel.com.tw:8080/struts1.2/editDog.do
+  
+ 
+
+★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★   
+   
+   
+   
+   
+   
+   

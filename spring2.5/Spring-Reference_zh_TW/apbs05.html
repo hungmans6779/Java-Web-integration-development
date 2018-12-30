@@ -1,0 +1,53 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>B.5.&#160;Registering the handler and the schema</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="apb.html" title="附錄&#160;B.&#160;Extensible XML authoring">
+<link rel="prev" href="apbs04.html" title="B.4.&#160;Coding a BeanDefinitionParser">
+<link rel="next" href="apbs06.html" title="B.6.&#160;Using a custom extension in your Spring XML configuration">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="extensible-xml-registration"></a>B.5.&#160;Registering the handler and the schema</h2></div></div></div>
+<p>The coding is finished! All that remains to be done is to somehow make the Spring XML
+		parsing infrastructure aware of our custom element; we do this by registering our custom
+		<code class="interfacename">namespaceHandler</code> and custom XSD file in two special purpose
+		properties files. These properties files are both placed in a
+		<code class="filename">'META-INF'</code> directory in your application, and can, for
+		example, be distributed alongside your binary classes in a JAR file. The Spring XML parsing
+		infrastructurewill automatically pick up your new extension by consuming these special
+		properties files, the formats of which are detailed below.</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="extensible-xml-registration-spring-handlers"></a>B.5.1.&#160;<code class="filename">'META-INF/spring.handlers'</code></h3></div></div></div>
+<p>The properties file called <code class="filename">'spring.handlers'</code> contains a mapping
+			of XML Schema URIs to namespace handler classes. So for our example, we need to write the
+			following:</p>
+<pre class="programlisting">http\://www.mycompany.com/schema/myns=org.springframework.samples.xml.MyNamespaceHandler</pre>
+<p><span class="emphasis"><em>(The <code class="literal">':'</code> character is a valid delimiter in the Java properties format,
+			and so the <code class="literal">':'</code> character in the URI needs to be escaped with a backslash.)</em></span></p>
+<p>The first part (the key) of the key-value pair is the URI associated with your custom namespace
+			extension, and needs to <span class="emphasis"><em>match exactly</em></span> the value of the
+			<code class="literal">'targetNamespace'</code> attribute as specified in your custom XSD schema.</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="extensible-xml-registration-spring-schemas"></a>B.5.2.&#160;<code class="filename">'META-INF/spring.schemas'</code></h3></div></div></div>
+<p>The properties file called <code class="filename">'spring.schemas'</code> contains a mapping
+			of XML Schema locations (referred to along with the schema declaration in XML files
+			that use the schema as part of the <code class="literal">'xsi:schemaLocation'</code> attribute)
+			to <span class="emphasis"><em>classpath</em></span> resources. This file is needed to prevent Spring from
+			absolutely having to use a default <code class="interfacename">EntityResolver</code> that requires
+			Internet access to retrieve the schema file. If you specify the mapping in this properties file,
+			Spring will search for the schema on the classpath (in this case <code class="literal">'myns.xsd'</code>
+			in the <code class="literal">'org.springframework.samples.xml'</code> package):</p>
+<pre class="programlisting">http\://www.mycompany.com/schema/myns/myns.xsd=org/springframework/samples/xml/myns.xsd</pre>
+<p>The upshot of this is that you are encouraged to deploy your XSD file(s) right alongside
+			the <code class="interfacename">NamespaceHandler</code> and <code class="interfacename">BeanDefinitionParser</code>
+			classes on the classpath.</p>
+</div>
+</div></body>
+</html>

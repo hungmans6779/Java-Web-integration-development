@@ -1,0 +1,343 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>17.5.&#160;Web Services</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch17.html" title="第&#160;17&#160;章&#160;使用Spring進行遠端存取與Web服務">
+<link rel="prev" href="ch17s04.html" title="17.4.&#160;使用HTTP調用器暴露服務">
+<link rel="next" href="ch17s06.html" title="17.6.&#160;JMS">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="remoting-web-services"></a>17.5.&#160;Web Services</h2></div></div></div>
+<p>Spring為標準Java web服務API提供了全面的支持:</p>
+<div class="itemizedlist"><ul type="disc">
+<li><p>使用JAX-RPC暴露web服務</p></li>
+<li><p>使用JAX-RPC存取web服務</p></li>
+<li><p>使用JAX-WS暴露web服務</p></li>
+<li><p>使用JAX-WS存取web服務</p></li>
+</ul></div>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>為什麼有2個標準的Java web服務APIs?</p>
+<p>JAX-RPC 1.1 在J2EE 1.4 中是標準的web服務API。正像其名稱所示，它關注於RPC綁定而且在最近幾年越來越不串流行。最終被Java EE 5中的JAX-WS 2.0所取代，JAX-WS 2.0不但在綁定方面更靈活，而且也是完全基於annotation的。JAX-WS 2.1也被包含在Java 6中(更詳細的說是在Sun JDK 1.6.0_04和更高版本中，低版本的Sun JDK 1.6.0包含JAX-WS 2.0)，它與JDK內置的HTTP伺服器整合。</p>
+<p>Spring 同時支持兩個標準Java web服務API。選擇誰主要看運行平臺：在JDK 1.4 / J2EE 1.4上，唯一的選擇是JAX-RPC。在Java EE 5 / Java 6上顯然應該選JAX-WS。運行Java 5的J2EE 1.4環境上，你可以選擇插入一個JAX-WS provider；請查看你的J2EE伺服器文檔。</p>
+</div>
+<p>除了在Spring Core中支持JAX-RPC and JAX-WS，Spring portfolio也提供了一種特性<a href="http://www.springframework.org/spring-ws" target="_top">Spring Web Services</a>，一個為優先授權和文檔驅動的web服務所提供的方案 - 非常建議用來創建高層級並具有前瞻性的web服務。<a href="http://xfire.codehaus.org" target="_top">XFire</a>是最後但不是唯一的Spring內置支持可以讓你將Spring管理的bean暴露為web服務的方式。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="remoting-web-services-jaxrpc-export"></a>17.5.1.&#160;使用JAX-RPC暴露基於servlet的web服務</h3></div></div></div>
+<p>Spring為JAX-RPC servlet的端點實作提供了一個方便的基類別 - <code class="classname">ServletEndpointSupport</code>. 未來暴露我們的 <code class="interfacename">AccountService</code>我們擴展Spring的<code class="classname">ServletEndpointSupport</code>類別並在這裡實作了我們的商業邏輯，通常將調用交給業務層。</p>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation">/**
+ * JAX-RPC compliant RemoteAccountService implementation that simply delegates
+ * to the AccountService implementation in the root web application context.
+ *
+ * This wrapper class is necessary because JAX-RPC requires working with dedicated
+ * endpoint classes. If an existing service needs to be exported, a wrapper that
+ * extends ServletEndpointSupport for simple application context access is
+ * the simplest JAX-RPC compliant way.
+ *
+ * This is the class registered with the server-side JAX-RPC implementation.
+ * In the case of Axis, this happens in "server-config.wsdd" respectively via
+ * deployment calls. The web service engine manages the lifecycle of instances
+ * of this class: A Spring application context can just be accessed here.
+ */</span></em>import org.springframework.remoting.jaxrpc.ServletEndpointSupport;
+
+public class AccountServiceEndpoint extends ServletEndpointSupport implements RemoteAccountService {
+    
+    private AccountService biz;
+	
+    protected void onInit() {
+        this.biz = (AccountService) getWebApplicationContext().getBean("accountService");
+    }
+
+    public void insertAccount(Account acc) throws RemoteException {
+        biz.insertAccount(acc);
+    }
+  
+    public Account[] getAccounts(String name) throws RemoteException {
+        return biz.getAccounts(name);
+    }
+}</pre>
+<p>AccountServletEndpoint需要在Spring中同一個上下文的web應用裡運行，以獲得對Spring的存取能力。如果使用Axis，把<code class="classname">AxisServlet</code>定義複製到你的<code class="filename">'web.xml'</code>中，並且在<code class="filename">'server-config.wsdd'</code>中設置端點（或使用發佈工具）。參看JPetStore這個例子中<code class="interfacename">OrderService</code>是如何用Axis發佈成一個Web服務的。
+			</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="remoting-web-services-jaxrpc-access"></a>17.5.2.&#160;使用JAX-RPC存取web服務</h3></div></div></div>
+<p>Spring提供了兩個處理器bean用來創建Web服務代理，<code class="classname">LocalJaxRpcServiceFactoryBean</code> 和 <code class="classname">JaxRpcPortProxyFactoryBean</code>。前者只返回一個JAX-RPC服務類別供我們使用。後者是一個全功能的版本，可以返回一個實作我們業務服務介面的代理。本例中，我們使用後者來為前面段落中暴露的<code class="interfacename">AccountService</code>端點創建一個代理。你將看到Spring對Web服務提供了極好的支持，只需要很少的程式碼 - 大多數都是通過類似下面的Spring配置檔案：
+			</p>
+<pre class="programlisting">&lt;bean id="accountWebService" class="org.springframework.remoting.jaxrpc.JaxRpcPortProxyFactoryBean"&gt;
+    &lt;property name="serviceInterface" value="example.RemoteAccountService"/&gt;
+    &lt;property name="wsdlDocumentUrl" value="http://localhost:8080/account/services/accountService?WSDL"/&gt;
+    &lt;property name="namespaceUri" value="http://localhost:8080/account/services/accountService"/&gt;
+    &lt;property name="serviceName" value="AccountService"/&gt;
+    &lt;property name="portName" value="AccountPort"/&gt;
+&lt;/bean&gt;</pre>
+<p><code class="literal">serviceInterface</code>是我們客戶端將使用的遠端業務介面。
+      <code class="literal">wsdlDocumentUrl</code>是WSDL檔案的URL. Spring需要用它作為啟動點來創建JAX-RPC服務。
+      <code class="literal">namespaceUri</code>對應.wsdl檔案中的targetNamespace。
+      <code class="literal">serviceName</code> 對應.wsdl檔案中的服務名。
+      <code class="literal">portName</code> 對應.wsdl檔案中的埠號號。
+      </p>
+<p>現在我們可以很方便的存取web服務，因為我們有一個可以將它暴露為<code class="literal">RemoteAccountService</code>介面的bean處理器。我們可以在Spring中這樣使用：</p>
+<pre class="programlisting">&lt;bean id="client" class="example.AccountClientImpl"&gt;
+    ...
+    &lt;property name="service" ref="accountWebService"/&gt;
+&lt;/bean&gt;</pre>
+<p>從客戶端程式碼上看，除了它拋出<code class="exceptionname">RemoteException</code>，我們可以把這個web服務當成一個普通的類別進行訪，。</p>
+<pre class="programlisting">public class AccountClientImpl {
+
+    private RemoteAccountService service;
+    
+    public void setService(RemoteAccountService service) {
+        this.service = service;
+    }
+    
+    public void foo() {
+        try {
+            service.insertAccount(...);
+        }
+        catch (RemoteException ex) {
+            <em class="lineannotation"><span class="lineannotation">// ouch</span></em>
+        }
+    }
+}
+</pre>
+<p>我們可以不檢查受控異常<code class="exceptionname">RemoteException</code>，因為Spring將它自動轉換成相應的非受控異常<code class="exceptionname">RemoteException</code>。這也需要我們提供一個非RMI的介面。現在配置檔案如下：</p>
+<pre class="programlisting">&lt;bean id="accountWebService" class="org.springframework.remoting.jaxrpc.JaxRpcPortProxyFactoryBean"&gt;
+    &lt;property name="serviceInterface" value="example.AccountService"/&gt;
+    &lt;property name="portInterface" value="example.RemoteAccountService"/&gt;
+&lt;/bean&gt;</pre>
+<p>我們的<code class="literal">serviceInterface</code>變成了非RMI介面。我們的RMI介面現在使用<code class="literal">portInterface</code>屬性來定義。我們的客戶端程式碼可以避免處理異常<code class="exceptionname">java.rmi.RemoteException</code>:</p>
+<pre class="programlisting">public class AccountClientImpl {
+
+    private AccountService service;
+    
+    public void setService(AccountService service) {
+        this.service = service;
+    }
+    
+    public void foo() {
+        service.insertAccount(...);
+    }
+}</pre>
+<p>請注意你也可以去掉"portInterface"部分並指定一個普通業務介面作為"serviceInterface"。這樣<code class="classname">JaxRpcPortProxyFactoryBean</code>將自動切換到JAX-RPC "動態調用介面", 不使用固定埠號存根來進行動態調用。這樣做的好處是你甚至不需要使用一個RMI相關的Java介面（比如在非Java的目標web服務中）；你只需要一個匹配的業務介面。查看<code class="classname">JaxRpcPortProxyFactoryBean</code>的javadoc來瞭解運行時實行的細節。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="remoting-web-services-jaxrpc-mapping-registration"></a>17.5.3.&#160;註冊JAX-RPC Bean映射</h3></div></div></div>
+<p>T為了傳遞類似<code class="classname">Account</code>等複雜物件，我們必須在客戶端註冊bean映射。</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>在伺服器端通常在<code class="filename">'server-config.wsdd'</code>中使用Axis進行bean映射註冊。</p>
+</div>
+<p>我們將使用Axis在客戶端註冊bean映射。為此，我們需要通過程序註冊這個bean映射:</p>
+<pre class="programlisting">public class AxisPortProxyFactoryBean extends JaxRpcPortProxyFactoryBean {
+
+    protected void postProcessJaxRpcService(Service service) {
+        TypeMappingRegistry registry = service.getTypeMappingRegistry();
+        TypeMapping mapping = registry.createTypeMapping();
+        registerBeanMapping(mapping, Account.class, "Account");
+        registry.register("http://schemas.xmlsoap.org/soap/encoding/", mapping);
+    }
+
+    protected void registerBeanMapping(TypeMapping mapping, Class type, String name) {
+        QName qName = new QName("http://localhost:8080/account/services/accountService", name);
+        mapping.register(type, qName,
+                new BeanSerializerFactory(type, qName),
+                new BeanDeserializerFactory(type, qName));
+    }
+}</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="remoting-web-services-jaxrpc-handler-registration"></a>17.5.4.&#160;註冊自己的JAX-RPC 處理器</h3></div></div></div>
+<p>本節中，我們將註冊自己的<code class="interfacename">javax.rpc.xml.handler.Handler</code> 到Web服務代理，這樣我們可以在SOAP訊息被發送前執行定制的程式碼。<code class="interfacename">Handler</code>是一個回調介面。<code class="filename">jaxrpc.jar</code>中有個方便的基類別<code class="classname">javax.rpc.xml.handler.GenericHandler</code>供我們繼承使用：</p>
+<pre class="programlisting">public class AccountHandler extends GenericHandler {
+
+    public QName[] getHeaders() {
+        return null;
+    }
+
+    public boolean handleRequest(MessageContext context) {
+        SOAPMessageContext smc = (SOAPMessageContext) context;
+        SOAPMessage msg = smc.getMessage();
+        try {
+            SOAPEnvelope envelope = msg.getSOAPPart().getEnvelope();
+            SOAPHeader header = envelope.getHeader();
+            ...
+        }
+        catch (SOAPException ex) {
+            throw new JAXRPCException(ex);
+        }
+        return true;
+    }
+}</pre>
+<p>我們現在要做的就是把AccountHandler註冊到JAX-RPC服務，這樣它可以在訊息被發送前調用 <code class="methodname">handleRequest(..)</code>。Spring目前對註冊處理方法還不提供宣告式支持，所以我們必須使用程式方式。但是Spring中這很容易實作，我們只需覆寫專門為此設計的 <code class="methodname">postProcessJaxRpcService(..)</code> 方法：</p>
+<pre class="programlisting">public class AccountHandlerJaxRpcPortProxyFactoryBean extends JaxRpcPortProxyFactoryBean {
+
+    protected void postProcessJaxRpcService(Service service) {
+        QName port = new QName(this.getNamespaceUri(), this.getPortName());
+        List list = service.getHandlerRegistry().getHandlerChain(port);
+        list.add(new HandlerInfo(AccountHandler.class, null, null));
+        logger.info("Registered JAX-RPC AccountHandler on port " + port);
+    }
+}</pre>
+<p>最後，我們要記得更改Spring配置檔案來使用我們的處理器bean:</p>
+<pre class="programlisting">&lt;bean id="accountWebService" class="example.AccountHandlerJaxRpcPortProxyFactoryBean"&gt;
+    ...
+&lt;/bean&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="remoting-web-services-jaxws-export-servlet"></a>17.5.5.&#160;使用JAX-WS暴露基於servlet的web服務</h3></div></div></div>
+<p>Spring為JAX-WS servlet端點實作提供了一個方便的基類別 - <code class="classname">SpringBeanAutowiringSupport</code>。要暴露我們的<code class="interfacename">AccountService</code>介面，我們可以擴展Spring的<code class="classname">SpringBeanAutowiringSupport</code>類別並實作我們的商業邏輯，通常把調用交給業務層。我們將簡單的使用Spring 2.5的<code class="literal">@Autowired</code>註釋來宣告依賴於Spring管理的bean。</p>
+<pre class="programlisting"><em class="lineannotation"><span class="lineannotation">/**
+ * JAX-WS compliant AccountService implementation that simply delegates
+ * to the AccountService implementation in the root web application context.
+ *
+ * This wrapper class is necessary because JAX-WS requires working with dedicated
+ * endpoint classes. If an existing service needs to be exported, a wrapper that
+ * extends SpringBeanAutowiringSupport for simple Spring bean autowiring (through
+ * the @Autowired annotation) is the simplest JAX-WS compliant way.
+ *
+ * This is the class registered with the server-side JAX-WS implementation.
+ * In the case of a Java EE 5 server, this would simply be defined as a servlet
+ * in web.xml, with the server detecting that this is a JAX-WS endpoint and reacting
+ * accordingly. The servlet name usually needs to match the specified WS service name.
+ *
+ * The web service engine manages the lifecycle of instances of this class.
+ * Spring bean references will just be wired in here.
+ */</span></em>import org.springframework.web.context.support.SpringBeanAutowiringSupport;
+
+@WebService(serviceName="AccountService")
+public class AccountServiceEndpoint extends SpringBeanAutowiringSupport {
+
+    @Autowired
+    private AccountService biz;
+
+    @WebMethod
+    public void insertAccount(Account acc) {
+       biz.insertAccount(acc);
+    }
+
+    @WebMethod
+    public Account[] getAccounts(String name) {
+       return biz.getAccounts(name);
+    }
+}</pre>
+<p>為了能夠讓Spring上下文使用Spring設施，我們的<code class="classname">AccountServletEndpoint</code>類別需要運行在同一個web應用中。在Java EE 5環境中這是預設的情況，它使用JAX-WS servlet端點安裝標準契約。詳情請參閱Java EE 5 web服務教程。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="remoting-web-services-jaxws-export-standalone"></a>17.5.6.&#160;使用JAX-WS暴露單獨web服務</h3></div></div></div>
+<p>Sun JDK 1.6提供的內置JAX-WS provider 使用內置的HTTP伺服器來暴露web服務。Spring的<code class="classname">SimpleJaxWsServiceExporter</code>類別檢測所有在Spring應用上下文中配置的l<code class="literal">@WebService</code> 註釋bean，然後通過預設的JAX-WS伺服器（JDK 1.6 HTTP伺服器）來暴露它們。</p>
+<p>在這種場景下，端點實例將被作為Spring bean來定義和管理。它們將使用JAX-WS來註冊，但其生命週期將一直跟隨Spring應用上下文。這意味著Spring的顯示依賴注入可用於端點實例。當然通過<code class="literal">@Autowired</code>來進行註釋驅動的注入也可以正常工作。</p>
+<pre class="programlisting">&lt;bean class="org.springframework.remoting.jaxws.SimpleJaxWsServiceExporter"&gt;
+    &lt;property name="baseAddress" value="http://localhost:9999/"/&gt;
+&lt;/bean&gt;
+
+&lt;bean id="accountServiceEndpoint" class="example.AccountServiceEndpoint"&gt;
+    ...
+&lt;/bean&gt;
+
+...</pre>
+<p><code class="classname">AccountServiceEndpoint</code>類別可能源自Spring的 <code class="classname">SpringBeanAutowiringSupport</code>類別，也可能不是。因為這裡的端點是由Spring完全管理的bean。這意味著端點實作可能像下面這樣沒有任何父類別定義 - 而且Spring的<code class="literal">@Autowired</code>配置註釋仍然能夠使用：</p>
+<pre class="programlisting">@WebService(serviceName="AccountService")
+public class AccountServiceEndpoint {
+
+    @Autowired
+    private AccountService biz;
+
+    @WebMethod
+    public void insertAccount(Account acc) {
+       biz.insertAccount(acc);
+    }
+
+    @WebMethod
+    public Account[] getAccounts(String name) {
+       return biz.getAccounts(name);
+    }
+}</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="remoting-web-services-jaxws-export-ri"></a>17.5.7.&#160;使用Spring支持的JAX-WS RI來暴露服務</h3></div></div></div>
+<p>Sun的JAX-WS RI被作為GlassFish項目的一部分來開發,它使用了Spring支持來作為JAX-WS Commons項目的一部分。這允許把JAX-WS端點作為Spring管理的bean來定義。這與前面章節討論的單獨模式類似 - 但這次是在Servlet環境中。<span class="emphasis"><em>注意這在Java EE 5環境中是不可遷移的，建議在沒有EE的web應用環境如Tomcat中嵌入JAX-WS RI。</em></span></p>
+<p>與標準的暴露基於servlet的端點方式不同之處在於端點實例的生命週期將被Spring管理。這裡在<code class="literal">web.xml</code>將只有一個JAX-WS servlet定義。在標準的Java EE 5樣式中(如上所示)，你將對每個伺服端點定義一個servlet，每個伺服端點都代理到Spring bean (通過使用<code class="literal">@Autowired</code>，如上所示)。</p>
+<p>關於安裝和使用詳情請查閱<a href="https://jax-ws-commons.dev.java.net/spring/" target="_top">https://jax-ws-commons.dev.java.net/spring/</a>。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="remoting-web-services-jaxws-access"></a>17.5.8.&#160;使用JAX-WS存取web服務</h3></div></div></div>
+<p>類似JAX-RPC支持，Spring提供了2個處理器bean來創建JAX-WS web服務代理，它們是<code class="classname">LocalJaxWsServiceFactoryBean</code>和<code class="classname">JaxWsPortProxyFactoryBean</code>。前一個只能返回一個JAX-WS服務物件來讓我們使用。後面的是可以返回我們業務服務介面的代理實作的完整版本。這個例子中我們使用後者來為<code class="interfacename">AccountService</code>端點再創建一個代理：</p>
+<pre class="programlisting">&lt;bean id="accountWebService" class="org.springframework.remoting.jaxws.JaxWsPortProxyFactoryBean"&gt;
+    &lt;property name="serviceInterface" value="example.AccountService"/&gt;
+    &lt;property name="wsdlDocumentUrl" value="http://localhost:8080/account/services/accountService?WSDL"/&gt;
+    &lt;property name="namespaceUri" value="http://localhost:8080/account/services/accountService"/&gt;
+    &lt;property name="serviceName" value="AccountService"/&gt;
+    &lt;property name="portName" value="AccountPort"/&gt;
+&lt;/bean&gt;</pre>
+<p><code class="literal">serviceInterface</code>是我們客戶端將使用的遠端業務介面。
+      <code class="literal">wsdlDocumentUrl</code>是WSDL檔案的URL. Spring需要用它作為啟動點來創建JAX-RPC服務。
+      <code class="literal">namespaceUri</code>對應.wsdl檔案中的targetNamespace。
+      <code class="literal">serviceName</code> 對應.wsdl檔案中的服務名。
+      <code class="literal">portName</code> 對應.wsdl檔案中的埠號號。
+      </p>
+<p>現在我們可以很方便的存取web服務，因為我們有一個可以將它暴露為<code class="literal">AccountService</code>介面的bean處理器。我們可以在Spring中這樣使用：</p>
+<pre class="programlisting">&lt;bean id="client" class="example.AccountClientImpl"&gt;
+    ...
+    &lt;property name="service" ref="accountWebService"/&gt;
+&lt;/bean&gt;</pre>
+<p>從客戶端程式碼上我們可以把這個web服務當成一個普通的類別進行存取：</p>
+<pre class="programlisting">public class AccountClientImpl {
+
+    private AccountService service;
+
+    public void setService(AccountService service) {
+        this.service = service;
+    }
+
+    public void foo() {
+        service.insertAccount(...);
+    }
+}</pre>
+<p><span class="emphasis"><em>注意:</em></span> 上面被稍微簡化了，因為JAX-WS需要端點介面及實作類別來使用<code class="literal">@WebService</code>, <code class="literal">@SOAPBinding</code>等註釋。 這意味著你不能簡單的使用普通的Java介面和實作來作為JAX-WS端點，你需要首先對它們進行相應的註釋。這些需求詳情請查閱JAX-WS文檔。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="remoting-web-services-xfire"></a>17.5.9.&#160;使用XFire來暴露Web服務</h3></div></div></div>
+<p>XFire是一個Codehaus提供的輕量級SOAP資源庫。暴露XFire是通過XFire自帶的context，這個context將和RemoteExporter樣式的bean相結合，後者需要被加入到在你的<code class="interfacename">WebApplicationContext</code>中。對於所有讓你來暴露服務的方法，你需要創建一個<code class="classname">DispatcherServlet</code>類別並有相應的<code class="interfacename">WebApplicationContext</code>來封裝你將要暴露的服務：</p>
+<pre class="programlisting">&lt;servlet&gt;
+    &lt;servlet-name&gt;xfire&lt;/servlet-name&gt;
+    &lt;servlet-class&gt;org.springframework.web.servlet.DispatcherServlet&lt;/servlet-class&gt;
+&lt;/servlet&gt;</pre>
+<p>你還必須連接XFire配置。這是通過增加一個context檔案到由<code class="classname">ContextLoaderListener</code>（或者<code class="classname">ContextLoaderServlet</code>）載入的 <code class="literal">contextConfigLocations</code> 參數中。</p>
+<pre class="programlisting">&lt;context-param&gt;
+    &lt;param-name&gt;contextConfigLocation&lt;/param-name&gt;
+    &lt;param-value&gt;classpath:org/codehaus/xfire/spring/xfire.xml&lt;/param-value&gt;
+&lt;/context-param&gt;
+
+&lt;listener&gt;
+    &lt;listener-class&gt;org.springframework.web.context.ContextLoaderListener&lt;/listener-class&gt;
+&lt;/listener&gt;</pre>
+<p>在你加入一個Servlet映射後（映射<code class="literal">/*</code>到上面定義的XFire Servlet），你只需要增加一個額外的bean來使用XFire暴露服務。例如，在 <code class="filename">'xfire-servlet.xml'</code> 中增加如下配置：</p>
+<pre class="programlisting">&lt;beans&gt;
+
+    &lt;bean name="/Echo" class="org.codehaus.xfire.spring.remoting.XFireExporter"&gt;
+        &lt;property name="serviceInterface" value="org.codehaus.xfire.spring.Echo"/&gt;
+        &lt;property name="serviceBean"&gt;
+    	       &lt;bean class="org.codehaus.xfire.spring.EchoImpl"/&gt;
+        &lt;/property&gt;
+        <em class="lineannotation"><span class="lineannotation">&lt;!-- the XFire bean is defined in the <code class="filename">xfire.xml</code> file --&gt;</span></em>
+        &lt;property name="xfire" ref="xfire"/&gt;
+  &lt;/bean&gt;
+
+&lt;/beans&gt;</pre>
+<p>XFire處理了其他的事情。它檢查你的服務介面並產生一個WSDL檔案。這裡的部分文檔來自XFire網站，要瞭解更多有關XFire Spring的整合請存取 <a href="http://docs.codehaus.org/display/XFIRE/Spring" target="_top">docs.codehaus.org/display/XFIRE/Spring</a>。</p>
+</div>
+</div></body>
+</html>

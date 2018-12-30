@@ -1,0 +1,99 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>17.3.&#160;使用Hessian或者Burlap通過HTTP遠端調用服務</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch17.html" title="第&#160;17&#160;章&#160;使用Spring進行遠端存取與Web服務">
+<link rel="prev" href="ch17s02.html" title="17.2.&#160;使用RMI暴露服務">
+<link rel="next" href="ch17s04.html" title="17.4.&#160;使用HTTP調用器暴露服務">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="remoting-caucho-protocols"></a>17.3.&#160;使用Hessian或者Burlap通過HTTP遠端調用服務</h2></div></div></div>
+<p>Hessian提供一種基於HTTP的二進制遠端協議。它是由Caucho開發的，可以在 <a href="http://www.caucho.com" target="_top">http://www.caucho.com</a> 找到更多有關Hessian的資訊。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="remoting-caucho-protocols-hessian"></a>17.3.1.&#160;為Hessian和co.配置<code class="classname">DispatcherServlet</code></h3></div></div></div>
+<p>Hessian使用一個特定的Servlet通過HTTP進行通訊。使用Spring在Web MVC中就常用的 <code class="classname">DispatcherServlet</code>原理，可以很容易的配置這樣一個Servlet來暴露你的服務。首先我們要在你的應用裡創建一個新的Servlet（下面來自<code class="literal">web.xml</code>檔案）：</p>
+<pre class="programlisting">&lt;servlet&gt;
+    &lt;servlet-name&gt;remoting&lt;/servlet-name&gt;
+    &lt;servlet-class&gt;org.springframework.web.servlet.DispatcherServlet&lt;/servlet-class&gt;
+    &lt;load-on-startup&gt;1&lt;/load-on-startup&gt;
+&lt;/servlet&gt;
+
+&lt;servlet-mapping&gt;
+    &lt;servlet-name&gt;remoting&lt;/servlet-name&gt;
+    &lt;url-pattern&gt;/remoting/*&lt;/url-pattern&gt;
+&lt;/servlet-mapping&gt;</pre>
+<p>你可能對Spring的<code class="classname">DispatcherServlet</code>很熟悉，這樣你將需要在<code class="filename">'WEB-INF'</code>目錄中創建一個名為<code class="filename">'remoting-servlet.xml'</code> (在你的servlet名稱後) 的Spring容器配置上下文。這個應用上下文將在下一節中裡使用。</p>
+<p>另外，可以考慮使用Spring中簡單的<code class="classname">HttpRequestHandlerServlet</code>。這允許你在根應用上下文（預設是<code class="filename">'WEB-INF/applicationContext.xml'</code>）中插入遠端exporter定義。每個servlet定義指向特定的exporter bean。在這種情況下，每個servlet的名稱需要和目標exporter bean的名稱相匹配。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="remoting-caucho-protocols-hessian-server"></a>17.3.2.&#160;使用<code class="classname">HessianServiceExporter</code>暴露你的bean</h3></div></div></div>
+<p>在新創建的 <code class="literal">remoting-servlet.xml</code> 應用上下文裡，我們將創建一個<code class="classname">HessianServiceExporter</code>來暴露你的服務：</p>
+<pre class="programlisting">&lt;bean id="accountService" class="example.AccountServiceImpl"&gt;
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- any additional properties, maybe a DAO? --&gt;</span></em>
+&lt;/bean&gt;
+
+&lt;bean name="/AccountService" class="org.springframework.remoting.caucho.HessianServiceExporter"&gt;
+    &lt;property name="service" ref="accountService"/&gt;
+    &lt;property name="serviceInterface" value="example.AccountService"/&gt;
+&lt;/bean&gt;</pre>
+<p>現在，我們準備好在客戶端連接服務了。不必顯示指定處理器的映射，只要使用<code class="classname">BeanNameUrlHandlerMapping</code>把URL請求映射到服務上：所以，這個服務將在由bean名稱指明的URL <code class="literal">http://HOST:8080/remoting/AccountService</code> 位置進行暴露。</p>
+<p>另外一種選擇, 在你的根應用上下文中創建一個 <code class="classname">HessianServiceExporter</code> (比如在<code class="filename">'WEB-INF/applicationContext.xml'</code>中):</p>
+<pre class="programlisting">&lt;bean name="accountExporter" class="org.springframework.remoting.caucho.HessianServiceExporter"&gt;
+    &lt;property name="service" ref="accountService"/&gt;
+    &lt;property name="serviceInterface" value="example.AccountService"/&gt;
+&lt;/bean&gt;</pre>
+<p>在後一情況下, 在<code class="filename">'web.xml'</code>中為exporter定義一個相應的servlet，也能得到同樣的結果：這個exporter映射到request路徑<code class="literal">/remoting/AccountService</code>。注意這個servlet名稱需要與目標exporter bean的名稱相匹配。</p>
+<pre class="programlisting">&lt;servlet&gt;
+    &lt;servlet-name&gt;accountExporter&lt;/servlet-name&gt;
+    &lt;servlet-class&gt;org.springframework.web.context.support.HttpRequestHandlerServlet&lt;/servlet-class&gt;
+&lt;/servlet&gt;
+
+&lt;servlet-mapping&gt;
+    &lt;servlet-name&gt;accountExporter&lt;/servlet-name&gt;
+    &lt;url-pattern&gt;/remoting/AccountService&lt;/url-pattern&gt;
+&lt;/servlet-mapping&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="remoting-caucho-protocols-hessian-client"></a>17.3.3.&#160;在客戶端連接服務</h3></div></div></div>
+<p>使用<code class="classname">HessianProxyFactoryBean</code>，我們可以在客戶端連接服務。同樣的方式對RMI範例也適用。我們將創建一個單獨的bean處理器或者應用上下文，而後簡單地指明下面的bean <code class="classname">SimpleObject</code>將使用<code class="interfacename">AccountService</code>來管理accounts：</p>
+<pre class="programlisting">&lt;bean class="example.SimpleObject"&gt;
+    &lt;property name="accountService" ref="accountService"/&gt;
+&lt;/bean&gt;
+
+&lt;bean id="accountService" class="org.springframework.remoting.caucho.HessianProxyFactoryBean"&gt;
+    &lt;property name="serviceUrl" value="http://remotehost:8080/remoting/AccountService"/&gt;
+    &lt;property name="serviceInterface" value="example.AccountService"/&gt;
+&lt;/bean&gt;</pre>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="remoting-caucho-protocols-burlap"></a>17.3.4.&#160;使用Burlap</h3></div></div></div>
+<p>我們將不會詳細討論Burlap，它是一個基於XML的Hessian替代方案。它的配置和建構方法和上述Hessian的一樣。只要把 <code class="literal">Hessian</code> 換成 <code class="literal">Burlap</code> 就行了。</p>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="remoting-caucho-protocols-security"></a>17.3.5.&#160;對通過Hessian或Burlap暴露的服務使用HTTP Basic認證</h3></div></div></div>
+<p>Hessian和Burlap的一個優勢是我們可以容易的使用HTTP Basic認證，因為二者都是基於HTTP的。例如，普通HTTP Server安全機制可以通過使用 <code class="literal">web.xml</code> 安全特性來應用。通常，你不會為每個使用者都建立不同的安全證書，而是在<code class="literal">Hessian/BurlapProxyFactoryBean</code>級別共享安全證書（類似一個JDBC <code class="interfacename">DataSource</code>）。</p>
+<pre class="programlisting">&lt;bean class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping"&gt;
+    &lt;property name="interceptors" ref="authorizationInterceptor"/&gt;
+&lt;/bean&gt;
+
+&lt;bean id="authorizationInterceptor" 
+      class="org.springframework.web.servlet.handler.UserRoleAuthorizationInterceptor"&gt;
+    &lt;property name="authorizedRoles" value="administrator,operator"/&gt;
+&lt;/bean&gt;</pre>
+<p>這個例子裡我們顯式使用了<code class="classname">BeanNameUrlHandlerMapping</code>，並設置了一個攔截器，只允許管理員和操作員調用這個應用上下文中提及的bean。</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p>當然，這個例子沒有演示靈活的安全設施。考慮更多有關安全的問題時，請參閱 <a href="http://acegisecurity.sourceforge.net" target="_top">http://acegisecurity.sourceforge.net</a> Acegi Security System for Spring</p> 。
+      </div>
+</div>
+</div></body>
+</html>

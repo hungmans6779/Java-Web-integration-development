@@ -1,0 +1,429 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 2.1//EN" "http://struts.apache.org/dtds/struts-2.1.dtd">
+
+
+<struts>
+   
+  <!-- 也可以寫在 struts.properties (開始)
+       constant 設定 Struts2.x 屬性，與 struts.properties 作用是一樣的。
+   -->
+  <!--  開發模式  -->
+  <constant name="struts.devMode" value="true" ></constant>
+ 
+  <!-- Action 副檔名  -->
+  <constant name="struts.action.extension" value="action" ></constant> 
+  <!-- 也可以寫在 struts.properties (結束) -->
+    
+ 
+ 
+ 
+ 
+  <!-- 設定檔
+       include 多個 struts2.x 設定檔，這些檔案是獨立的 struts2 設定檔，作用、格式 與 struts.xml 一樣，
+                  要有  <!DOCTYPE>，也要有 <struts>根項目。
+  -->
+  <!--      
+  <include file="struts-login.xml" ></include>
+  <include file="struts-user.xml" ></include>
+  -->
+ 
+ 
+ 
+ 
+  <!-- 設定 Bean： POJO 類別  
+  <bean class="" name="" ></bean>
+  -->
+  
+  
+  
+  
+  
+  
+   
+   
+  
+  <!-- 
+            定義一個 package 
+     Struts2.x 設定檔中引入了 package 的概念。所有的 result、 action 等必須設定到package 中。package 具有繼承的特性，
+              子 package 裡的 Action 能使用父 package 裡的資源。     
+              
+              自訂的 package 一般繼承自 struts-default。這裡面包含了 Struts2 的預設攔截器，
+              例如，從 request 中獲得資料並設定到  Action 上等工作都是由 Struts2 攔截器完的。
+  -->
+  <package name="main" extends="struts-default" >
+  
+  
+  
+  
+    <!-- 第16章 Struts2.x 概述  -->
+  
+  
+    <!--  設定攔截器  -->
+    <!--
+    <interceptors>
+      <interceptor name="loginInterceptor"
+                   class="com.helloweenvsfei.struts2.interceptor.LoginInterceptor" ></interceptor>
+    </interceptors>
+    -->
+  
+  
+    <!-- 第19章 Struts2.X 攔截器與檔案上傳 -->
+    <!-- 自訂的許可權驗證攔截器 -->
+    <interceptors>
+       <interceptor name="authentication" 
+                    class="com.helloweenvsfei.struts2.action.interceptor.AuthenticationInterceptor" ></interceptor>
+    </interceptors>
+     
+     
+     
+    
+    
+    
+    
+    <!-- 所有全域的 result -->
+    <global-results>
+      <result name="globalLogin" >/form/interceptor/loginPage/login.jsp</result>
+      <result name="success" >/form/welcome.jsp</result>  <!-- 名為  success 的 result -->   
+    </global-results>
+  
+  
+  
+    <!-- 全域例外 -->
+    <global-exception-mappings>
+      <!-- 設定例外  -->
+      <exception-mapping result="/exception.jsp"
+                         exception="java.lang.Exception" ></exception-mapping>
+    </global-exception-mappings>
+    
+    
+    
+    
+    <!-- 《登入功能 Action》-->
+    <action name="loginPerson" 
+            class="com.helloweenvsfei.struts2.action.LoginAction" >
+      <result name="login" >/form/login.jsp</result>        
+    </action>
+      
+    
+    
+    
+    <!-- 《登入功能 Action》：不繼承任何類別的Action -->
+    <!-- 下列的   loginPerson1 、loginPerson1_login 、 loginPerson1_logout 的範例  -->
+    <action name="loginPerson1"
+            class="com.helloweenvsfei.struts2.action.LoginAction1" >
+      <result name="login"   >/form/login1.jsp</result>     <!-- 名為 login 的  resout -->
+      <result name="logout"  >/form/logout1.jsp</result>    <!-- 名為 logout 的  resout -->
+    </action>
+    
+    <!--  執行 LoginAction1 的 非預設可執行的方法 login()  -->
+    <action name="loginPerson1_login" 
+            class="com.helloweenvsfei.struts2.action.LoginAction1" method="login" >
+      <result name="login"   >/form/login1.jsp</result>
+    </action>
+    
+    <!--  執行 LoginAction1 的 非預設可執行的方法 logout()  -->
+    <action name="loginPerson1_logout" 
+            class="com.helloweenvsfei.struts2.action.LoginAction1" method="logout" >
+      <result name="logout"  >/form/logout1.jsp</result>       
+    </action>
+    
+    
+    
+    
+    
+    
+    
+    <!-- 《登入功能 Action》-->
+    <!-- 使用萬用字元設定 LoginAction2 任意方法  -->
+    <action name="*Person2" 
+            class="com.helloweenvsfei.struts2.action.LoginAction2" method="{1}" >
+      <result name="{1}" >/form/{1}2.jsp</result>      
+    </action>
+    
+    
+    
+    
+    
+    
+ 
+    <!-- 
+                  圖書管理 Action 
+                  這裡把 method 屬性用萬元字元定義為{1}，表示使用 initAddBook.action 存取時，執行initAdd()方法
+                  使用 listBook.action 存取時，執行 list() 方法 
+    -->    
+    <action name="*Book"
+            class="com.helloweenvsfei.struts2.action.BookAction" method="{1}" >
+      <result name="success" >/form/book/successBook.jsp</result>
+      <result name="{1}"     >/form/book/{1}Book.jsp</result>       <!-- 萬用字元設定 -->
+      <result name="initAdd" >/form/book/initAddBook.jsp</result>   <!-- 輸入頁面 -->
+      <result name="list"    >/form/book/listBook.jsp</result>      <!-- 清單頁面 -->     
+   </action>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <!-- 第17章 Struts2.x 高級應用 -->
+    
+    
+    <!-- 日期轉換器範例1  -->
+    <!-- 使用 /WEB-INF/classes/xwork-conversion.properties 設定檔內的轉換器  -->
+    <action name="convertor"
+            class="com.helloweenvsfei.struts2.action.ConvertorAction" >
+      <result name="input"   >/form/convertor/convertor.jsp</result>      
+      <result name="success" >/form/convertor/convertorSuccess.jsp</result>      
+    </action>
+    
+    
+    <!-- 日期轉換器範例2  -->
+    <!-- 
+                   不使用 xwork-conversion.properties 設定檔，直接用 converter="xxxxx" 設定
+                   轉換器設定在此 Action 中，只作 用於目前的 Action 中
+    -->
+    <action name="convertor1"
+            class="com.helloweenvsfei.struts2.action.ConvertorAction" 
+            converter="com.helloweenvsfei.struts2.convertor.DateTimeConvertor" >
+      <result name="input"   >/form/convertor/convertor1.jsp</result>      
+      <result name="success" >/form/convertor/convertorSuccess1.jsp</result>      
+    </action>   
+    
+
+
+    <!-- 《ServletActionContext 取得 request,response 物件》 -->
+    <action name="loginPerson3"
+            class="com.helloweenvsfei.struts2.action.LoginAction3" >
+      <result name="login"   >/form/login3.jsp</result>     <!-- 名為 login 的  resout -->
+      <result name="logout"  >/form/logout3.jsp</result>    <!-- 名為 logout 的  resout -->
+    </action>
+
+
+
+
+    <!-- 
+               《 Aware 介面》:感知
+       Struts 在產生實體一個Action實例時，如果發現它實現了相應的Aware 介面，會把相應的資源透過Aware介面方法注射進去。
+                  這種方式也可以叫注射方式(IoC 方式)。
+       Servlet API 中常用物件 applicatoin、request、response、Session 對應的 Aware 介面分別為 ServletContextAware、ServletResponseAware、ServletResponseAware及SessionAware。
+    -->
+    <action name="servletAware" 
+            class="com.helloweenvsfei.struts2.action.aware.ServletAwareAction" >
+      <result name="success" >/form/aware/servletAwareSuccess.jsp</result>       
+    </action>
+
+
+
+
+    <!-- 
+                  圖書管理 Action 
+                  這裡把 method 屬性用萬元字元定義為{1}，表示使用 initAddBook.action 存取時，執行initAdd()方法
+                  使用 listBook.action 存取時，執行 list() 方法 
+    -->    
+    <action name="*Book1"
+            class="com.helloweenvsfei.struts2.action.BookAction1" method="{1}"
+            converter="com.helloweenvsfei.struts2.convertor.DateTimeConvertor"  >
+      <result name="success" >/form/book/successBook1.jsp</result>
+      <result name="{1}"     >/form/book/{1}Book1.jsp</result>       <!-- 萬用字元設定 -->
+      <result name="initAdd" >/form/book/initAddBook1.jsp</result>   <!-- 輸入頁面 -->
+      <result name="list"    >/form/book/listBook1.jsp</result>      <!-- 清單頁面 -->     
+   </action>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <!-- 第18章 Struts2.x 標籤 -->
+    
+    <action name="ognl"
+            class="com.helloweenvsfei.struts2.action.ognl.OgnlAction"  >
+      <result>/form/ognl/ognlSuccess.jsp</result>
+    </action>
+
+
+
+    <!-- div、submit、a 標籤實現無更新獲得資料 -->
+    <action name="divTagNews"
+            class="com.helloweenvsfei.struts2.action.tags.NonUITag.DivNewsAction"  >
+      <result name="success" >/form/tags/NonUITag/divTagNews.jsp</result>
+    </action>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     <!-- 第19章 Struts2.X 攔截器與檔案上傳 -->
+     
+     
+     <!-- timer 計時攔截器 -->
+     <!-- 
+          補充：package 需要繼承 struts-default 才能使用Struts2 裡的攔截器，
+          因為time 計時攔截器是設定在 struts-default 包裡的 
+     -->
+     <action name="timerInterceptor"
+             class="com.helloweenvsfei.struts2.action.interceptor.TimeAction" >
+             
+       <!-- 設定 Timer 攔截器  -->      
+       <interceptor-ref name="timer" ></interceptor-ref>  
+       
+       <result name="success" >/form/interceptor/timeSuccess.jsp</result> 
+     </action>
+             
+             
+             
+     <!-- token 防重複傳送攔截器 -->
+     <!-- 
+       如果網路不存，傳送資料後可能就沒有反應了。這時候使用者不知道資料是否已經傳送到伺服器了，
+       往往還會按了一下傳送按鈕再傳送一次。對於某些應用，例如網路購物、銀行轉帳等，重複傳送會導致非常嚴重的後果。
+       
+       token 攔截器用於保證表單只被傳送一次，如果再傳送該表單，攔截器會攔截該請求，防止傳送重複資料。
+       它的原理是顯示表單的時候，在 Session 中該表單做一個標記，該標記只能使用一次，使用過後就失效了，
+       從而保證表單最多只傳送一次資料。重複傳送資料會因為標記已失效而傳送失敗。 
+      -->
+      <action name="tokenInputInterceptor" 
+              class="com.helloweenvsfei.struts2.action.interceptor.TokenInputAction"  >
+        <result name="success" >/form/interceptor/tokenInput.jsp</result>     
+     </action> 
+     
+     <action name="tokenSubmitInterceptor" 
+             class="com.helloweenvsfei.struts2.action.interceptor.TokenSubmitAction"  >
+        
+        <!-- token 攔截器 -->
+        <interceptor-ref name="token" />
+        
+        <!-- basicStack 攔截器 -->
+        <interceptor-ref name="basicStack" />
+             
+        <result name="input"         >/form/interceptor/tokenInput.jsp</result>
+        <result name="success"       >/form/interceptor/tokenSuccess.jsp</result>   
+        <result name="invalid.token" >/form/interceptor/tokenInvalid.jsp</result>  
+     </action> 
+
+    
+    
+    
+     <!-- execAndWait 執行等待攔截器 -->
+     <!-- 
+       如果某個 Action 執行時間比較長，瀏覽器會因為等待伺服器回應而長時間顯示空白。
+       這比較令人厭煩，如果能顯示一個伺服器忙碌的頁面就好了。execAndWait 攔截器就是實現這個效果的。
+       execAndWait 攔截器接受請求後，能判斷上一個請求是否處理完畢。如果已經處理完畢，則顯示結果頁面，
+       否則，顯示等待畫面。 
+     -->
+     <action name="waitInterceptor" 
+             class="com.helloweenvsfei.struts2.action.interceptor.WaitAction" >
+       
+       <!-- completeStack 攔截器-->
+       <interceptor-ref name="completeStack" />
+       
+       <!-- execAndWait 攔截器 -->
+       <interceptor-ref name="execAndWait" />
+       
+       <result name="wait"    >/form/interceptor/waiting.jsp</result>   
+       <result name="success" >/form/interceptor/waitSuccess.jsp</result>
+     </action>
+    
+    
+    
+        
+     <!-- 自訂的許可權驗證攔截器 -->
+     <!-- 
+       攔截器可以自由擴充。所有的攔截器都實現自Interceptor 介面。實現自訂攔截器也要實現 Interceptor 介面。
+       一般直接繼承 AbstractInterceptor 描象類別即可。 
+     -->
+     <action name="authenticationInterceptor"
+             class="com.helloweenvsfei.struts2.action.interceptor.AuthenticationInterceptorAction" >
+       
+       <!-- 設定攔截器 -->
+       <interceptor-ref name="authentication" ></interceptor-ref>        
+              
+       <result name="success" >/form/interceptor/authenticationSuccess.jsp</result>     
+     </action>
+    
+    
+    
+    
+     <!-- 上傳檔案 -->
+     <!-- 
+           Strust1.x、Struts2.x 都提供對上傳檔案的支援。Struts1.x 把上傳後的檔案封裝為 FormFile 物件，
+       需要用FileInputStream 讀取。而Struts2.x 則直接把上傳後的檔案封裝為 java.io.File 物件。
+       開發者只需在 Action 中定義一個File 類型的變數，然後直接使用該 File 物件，將它複製到目的目錄即可。
+     -->
+     <action name="upload"
+            class="com.helloweenvsfei.struts2.action.fileUpload.UploadAction" >
+
+	   <!-- 檔案上傳參數設定  -->	
+	   <!-- 
+	      allowedTypes：填寫的是 MIME 類型，而不是檔案名副檔名。
+	      maximumSize: 檢查檔案大小時，會先檢查 Struts2.x 全域的 struts.multipart.maxSize 屬性，後檢查 maximumSize 屬性。
+	                   因此 Struts2.x 的 struts-multipart.maxSize 屬性要大於攔截器的 maximunSize 屬性，否則 maximun 參數不起作用。
+	   -->
+	   <interceptor-ref name="fileUpload">
+	      <param name="allowedTypes">
+	        image/bmp,image/x-png,image/gif,image/jpeg
+	      </param>
+		  <param name="maximumSize" >20480</param>
+	  	</interceptor-ref>
+	   
+       <!-- 預設的攔截器堆疊 -->	  
+	   <interceptor-ref name="defaultStack" />
+
+       <result name="input" >/form/fileUplad/upload.jsp</result>
+       <result name="list"  >/form/fileUplad/uploadList.jsp</result>        
+     </action>
+
+
+    
+  </package>
+  
+
+</struts>    

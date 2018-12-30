@@ -1,0 +1,66 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>17.2.&#160;使用RMI暴露服務</title>
+<link rel="stylesheet" href="styles/html.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.0">
+<link rel="start" href="index.html" title="Spring Framework 開發參考手冊">
+<link rel="up" href="ch17.html" title="第&#160;17&#160;章&#160;使用Spring進行遠端存取與Web服務">
+<link rel="prev" href="ch17.html" title="第&#160;17&#160;章&#160;使用Spring進行遠端存取與Web服務">
+<link rel="next" href="ch17s03.html" title="17.3.&#160;使用Hessian或者Burlap通過HTTP遠端調用服務">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="remoting-rmi"></a>17.2.&#160;使用RMI暴露服務</h2></div></div></div>
+<p>使用Spring的RMI支持，你可以通過RMI基礎設施透明的暴露你的服務。設置好Spring的RMI支持後，你會看到一個和遠端EJB介面類似的配置，只是沒有對安全上下文傳遞和遠端事務傳遞的標準支持。當使用RMI調用器時，Spring對這些額外的調用上下文提供了鉤子，你可以在此插入安全框架或者定制的安全證書。</p>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="remoting-rmi-server"></a>17.2.1.&#160;使用<code class="classname">RmiServiceExporter</code>暴露服務</h3></div></div></div>
+<p>使用<code class="classname">RmiServiceExporter</code>，我們可以把AccountService物件的介面暴露成RMI物件。可以使用 <code class="classname">RmiProxyFactoryBean</code> 或者在傳統RMI服務中使用普通RMI來存取該介面。<code class="classname">RmiServiceExporter</code> 顯式地支持使用RMI調用器暴露任何非RMI的服務。</p>
+<p>當然，我們首先需要在Spring容器中設置我們的服務：</p>
+<pre class="programlisting">&lt;bean id="accountService" class="example.AccountServiceImpl"&gt;
+    <em class="lineannotation"><span class="lineannotation">
+	&lt;!--其他屬性，或者一個DAO物件？--&gt;
+</span></em>
+&lt;/bean&gt;</pre>
+<p>然後我們要使用<code class="classname">RmiServiceExporter</code>來暴露我們的服務：</p>
+<pre class="programlisting">&lt;bean class="org.springframework.remoting.rmi.RmiServiceExporter"&gt;
+    <em class="lineannotation"><span class="lineannotation">&lt;!-- 不一定要與要輸出的bean同名--&gt;</span></em>
+    &lt;property name="serviceName" value="AccountService"/&gt;
+    &lt;property name="service" ref="accountService"/&gt;
+    &lt;property name="serviceInterface" value="example.AccountService"/&gt;
+    <em class="lineannotation"><span class="lineannotation">&lt;!--  預設為1199--&gt;</span></em>
+    &lt;property name="registryPort" value="1199"/&gt;
+&lt;/bean&gt;</pre>
+<p>正如你所見，我們覆寫了RMI註冊的埠號號。通常你的應用伺服器也會維護RMI註冊，最好不要和它衝突。更進一步來說，服務名是用來綁定服務的。所以本例中，服務綁定在 <code class="literal">rmi://HOST:1199/AccountService</code>。在客戶端我們將使用這個URL來連接到服務。
+			</p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">注意</h3>
+<p><code class="literal">servicePort</code> 屬性被省略了(它的預設值為0).這表示在與服務通信時將使用匿名埠號.</p>
+</div>
+</div>
+<div class="section" lang="zh-cn">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="remoting-rmi-client"></a>17.2.2.&#160;在客戶端連接服務</h3></div></div></div>
+<p>我們的客戶端是一個使用<code class="interfacename">AccountService</code>來管理account的簡單物件：</p>
+<pre class="programlisting">public class SimpleObject {
+
+    private AccountService accountService;
+
+    public void setAccountService(AccountService accountService) {
+        this.accountService = accountService;
+    }
+}</pre>
+<p>為了把服務連接到客戶端上，我們將創建一個單獨的Spring容器，包含這個簡單物件和連接配置位的服務：</p>
+<pre class="programlisting">&lt;bean class="example.SimpleObject"&gt;
+    &lt;property name="accountService" ref="accountService"/&gt;
+&lt;/bean&gt;
+
+&lt;bean id="accountService" class="org.springframework.remoting.rmi.RmiProxyFactoryBean"&gt;
+    &lt;property name="serviceUrl" value="rmi://HOST:1199/AccountService"/&gt;
+    &lt;property name="serviceInterface" value="example.AccountService"/&gt;
+&lt;/bean&gt;</pre>
+<p>這就是我們在客戶端為支持遠端account服務所需要做的。Spring將透明的創建一個調用器並且通過<code class="classname">RmiServiceExporter</code>使得account服務支持遠端服務。在客戶端，我們用<code class="classname">RmiProxyFactoryBean</code>連接它。</p>
+</div>
+</div></body>
+</html>
